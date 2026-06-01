@@ -1,0 +1,12 @@
+Salve seu efeito sonoro NESTA pasta com o nome EXATO:
+
+    iniciar.mp3
+
+Ele toca quando o prestador clica em "Iniciar Deslocamento" (gerar link de rastreio).
+
+- Formato: .mp3
+- Recomendado: som curto (1–2 segundos).
+- Se o arquivo não existir, nada quebra (só não toca som).
+
+Caminho completo:
+    C:\Users\barro\rede-guinchos\audio\iniciar.mp3

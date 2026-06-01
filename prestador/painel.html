@@ -153,11 +153,17 @@
       });
     }
 
+    /* ---------- som ao iniciar deslocamento ---------- */
+    const somIniciar = new Audio('/audio/iniciar.mp3');
+    somIniciar.preload = 'auto';
+    function tocarSom() { try { somIniciar.currentTime = 0; somIniciar.play().catch(() => {}); } catch (e) {} }
+
     /* ---------- tracking GPS ---------- */
     let watchId = null, tokenAtivo = null;
     function pararTracking(){ if (watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; tokenAtivo=null; } }
 
     async function iniciarDeslocamento(c) {
+      tocarSom(); // efeito sonoro no clique (gesto do usuário garante a reprodução)
       if (!navigator.geolocation) { alert('GPS não suportado neste dispositivo.'); return; }
       pararTracking(); // garante um tracking por vez
       tokenAtivo = c.link_token;
