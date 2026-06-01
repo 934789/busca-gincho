@@ -35,7 +35,10 @@
           <input type="file" id="c_foto_file" accept="image/*">
           <p class="helper" id="c_foto_status">Selecione uma imagem (JPG/PNG).</p>
         </div>
-        <div class="field"><label>URL do banner (capa) — opcional</label><input type="url" id="c_banner" placeholder="https://..."></div>
+        <div class="field"><label>Banner / capa do perfil (opcional)</label>
+          <input type="file" id="c_banner_file" accept="image/*">
+          <p class="helper" id="c_banner_status"></p>
+        </div>
         <div class="field"><label>Regiões atendidas</label><input type="text" id="c_regioes" value="Centro, Zona Sul, Zona Norte, Barra e Região"></div>
         <h2 style="margin:6px 0 12px"><i class="fa-solid fa-list-check"></i> Serviços prestados</h2>
         <div class="check-grid" id="cadServicos"></div>
@@ -68,7 +71,10 @@
           <input type="file" id="e_foto_file" accept="image/*">
           <p class="helper" id="e_foto_status"></p>
         </div>
-        <div class="field"><label>URL do banner</label><input type="url" id="e_banner"></div>
+        <div class="field"><label>Trocar banner/capa (upload — em branco mantém)</label>
+          <input type="file" id="e_banner_file" accept="image/*">
+          <p class="helper" id="e_banner_status"></p>
+        </div>
         <div class="field"><label>Regiões</label><input type="text" id="e_regioes"></div>
         <div class="grid-2">
           <div class="field"><label>Latitude</label><input type="text" id="e_lat"></div>
@@ -92,7 +98,7 @@
         <button class="btn-filtro" id="btnFiltrar"><i class="fa-solid fa-filter"></i></button>
       </div>
       <div class="stats-grid" id="contStats" style="margin-bottom:14px"></div>
-      <h4 style="color:var(--ink);font-size:14px;margin-bottom:8px">Chamados no período</h4>
+      <h4 id="contListaTit" style="color:var(--ink);font-size:14px;margin-bottom:8px">Contatos por mês</h4>
       <div id="contLista"></div>
     </div>
   </div>
@@ -136,13 +142,15 @@
       e.preventDefault();
       const msg = document.getElementById('msgCad');
       msg.className = 'form-msg'; msg.textContent = 'Salvando...';
-      let fotoUrl = '';
+      let fotoUrl = '', bannerUrl = '';
       const f = c_foto_file.files[0];
       if (f) { fotoUrl = await uploadFoto(f, document.getElementById('c_foto_status')); if (fotoUrl === null) { msg.className='form-msg error'; msg.textContent='Falha no upload da foto.'; return; } }
+      const b = c_banner_file.files[0];
+      if (b) { bannerUrl = await uploadFoto(b, document.getElementById('c_banner_status')); if (bannerUrl === null) { msg.className='form-msg error'; msg.textContent='Falha no upload do banner.'; return; } }
       const novo = {
         nome:c_nome.value.trim(), email:c_email.value.trim().toLowerCase(), senha_provisoria:c_senha.value,
         whatsapp:c_whats.value.replace(/\D/g,''), telefone:c_tel.value.replace(/\D/g,''),
-        bairro:c_bairro.value.trim(), foto_url:fotoUrl || '', banner_url:c_banner.value.trim(),
+        bairro:c_bairro.value.trim(), foto_url:fotoUrl || '', banner_url:bannerUrl || '',
         atendimento_regioes:c_regioes.value.trim(),
         latitude:-22.9068, longitude:-43.1729, ativo:true, ...lerServicos(cadServ),  // base padrão: Rio (ajustável no editar)
       };
@@ -152,6 +160,7 @@
       if (!error) {
         e.target.reset(); c_senha.value='troque123';
         const st=document.getElementById('c_foto_status'); st.textContent='Selecione uma imagem (JPG/PNG).'; st.style.color='';
+        const sb2=document.getElementById('c_banner_status'); sb2.textContent=''; sb2.style.color='';
         cadServ.querySelectorAll('.check-item').forEach(el=>el.classList.remove('on')); listar();
       }
     });
@@ -162,15 +171,30 @@
       const { data, error } = await sb.from('prestadores').select('*').order('created_at', { ascending:false });
       if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
       if (!data.length) { box.innerHTML = '<p class="helper">Nenhum prestador cadastrado.</p>'; return; }
+
+      // contatos = cliques no WhatsApp (cada clique cria um chamado)
+      const { data: chs } = await sb.from('chamados').select('prestador_id, created_at');
+      const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+      const cont = {};
+      (chs || []).forEach((c) => {
+        const o = cont[c.prestador_id] || (cont[c.prestador_id] = { total:0, mes:0 });
+        o.total++; if (new Date(c.created_at) >= inicioMes) o.mes++;
+      });
+
       box.innerHTML = '';
       data.forEach((p) => {
+        const ct = cont[p.id] || { total:0, mes:0 };
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
           <img src="${p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffc600'}" alt="">
           <div class="ar-info">
             <strong>${p.nome}</strong><small>${p.whatsapp} · ${p.bairro||''}</small>
-            <div class="ar-stats"><span><i class="fa-solid fa-star"></i> ${Number(p.avaliacao||5).toFixed(1)}</span><span>${p.total_avaliacoes||0} aval.</span></div>
+            <div class="ar-stats">
+              <span><i class="fa-brands fa-whatsapp" style="color:#1f9d57"></i> ${ct.total} contatos</span>
+              <span><i class="fa-solid fa-calendar-day"></i> ${ct.mes} este mês</span>
+              <span><i class="fa-solid fa-star" style="color:var(--yellow)"></i> ${Number(p.avaliacao||5).toFixed(1)}</span>
+            </div>
           </div>
           <div class="ar-buttons">
             <button class="mini-btn ${p.ativo ? 'toggle-on' : 'toggle-off'}" data-act="toggle">${p.ativo ? '<i class="fa-solid fa-eye"></i> Ativo' : '<i class="fa-solid fa-eye-slash"></i> Oculto'}</button>
@@ -189,8 +213,9 @@
     /* ---------- editar ---------- */
     function abrirEditar(p) {
       e_id.value=p.id; e_nome.value=p.nome; e_whats.value=p.whatsapp; e_tel.value=p.telefone||'';
-      e_bairro.value=p.bairro||''; e_banner.value=p.banner_url||'';
+      e_bairro.value=p.bairro||'';
       e_foto_file.value=''; document.getElementById('e_foto_status').textContent = p.foto_url ? 'Foto atual definida. Envie outra para trocar.' : 'Sem foto.';
+      e_banner_file.value=''; document.getElementById('e_banner_status').textContent = p.banner_url ? 'Banner atual definido. Envie outro para trocar.' : 'Sem banner.';
       e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_senha.value='';
       SERVICOS.forEach((s) => { const cb=editServ.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
       abrirModal('modalEditar');
@@ -199,10 +224,12 @@
       e.preventDefault();
       const msg = document.getElementById('msgEdit');
       const patch = { nome:e_nome.value.trim(), whatsapp:e_whats.value.replace(/\D/g,''), telefone:e_tel.value.replace(/\D/g,''),
-        bairro:e_bairro.value.trim(), banner_url:e_banner.value.trim(), atendimento_regioes:e_regioes.value.trim(),
+        bairro:e_bairro.value.trim(), atendimento_regioes:e_regioes.value.trim(),
         latitude:parseFloat(e_lat.value), longitude:parseFloat(e_lng.value), ...lerServicos(editServ) };
       const ef = e_foto_file.files[0];
       if (ef) { const url = await uploadFoto(ef, document.getElementById('e_foto_status')); if (url === null) { msg.className='form-msg error'; msg.textContent='Falha no upload da foto.'; return; } patch.foto_url = url; }
+      const eb = e_banner_file.files[0];
+      if (eb) { const url = await uploadFoto(eb, document.getElementById('e_banner_status')); if (url === null) { msg.className='form-msg error'; msg.textContent='Falha no upload do banner.'; return; } patch.banner_url = url; }
       if (e_senha.value.trim()) patch.senha_provisoria = e_senha.value.trim();
       const { error } = await sb.from('prestadores').update(patch).eq('id', e_id.value);
       msg.className = 'form-msg ' + (error ? 'error' : 'ok');
@@ -213,27 +240,51 @@
     /* ---------- métricas (chamados por período) ---------- */
     let metricaP = null;
     async function abrirMetricas(p){ metricaP = p; document.getElementById('contNome').textContent='— '+p.nome; f_de.value=''; f_ate.value=''; await renderMetricas(); abrirModal('modalContatos'); }
+    const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     async function renderMetricas() {
       if (!metricaP) return;
-      let q = sb.from('chamados').select('*').eq('prestador_id', metricaP.id).order('created_at', { ascending:false });
-      if (f_de.value)  q = q.gte('created_at', f_de.value + 'T00:00:00');
-      if (f_ate.value) q = q.lte('created_at', f_ate.value + 'T23:59:59');
-      const { data: chs } = await q;
-      const lista = chs || [];
-      const total = lista.length, caminho = lista.filter(c=>c.status==='A Caminho').length, fim = lista.filter(c=>c.status==='Finalizado').length;
+      // todos os contatos (cliques no WhatsApp = chamados) do prestador
+      const { data: all } = await sb.from('chamados').select('*').eq('prestador_id', metricaP.id).order('created_at', { ascending:false });
+      const lista = all || [];
+      const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+      const total = lista.length;
+      const mes = lista.filter(c => new Date(c.created_at) >= inicioMes).length;
+      const fim = lista.filter(c => c.status === 'Finalizado').length;
+
       document.getElementById('contStats').innerHTML = `
-        <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Chamados</div></div>
-        <div class="stat-card"><div class="stat-num">${caminho}</div><div class="stat-label">A caminho</div></div>
-        <div class="stat-card"><div class="stat-num">${fim}</div><div class="stat-label">Finalizados</div></div>
-        <div class="stat-card accent"><div class="stat-num">${Number(metricaP.avaliacao||5).toFixed(1)}</div><div class="stat-label">Avaliação</div></div>`;
+        <div class="stat-card accent"><div class="stat-num">${total}</div><div class="stat-label">Contatos WhatsApp (total)</div></div>
+        <div class="stat-card"><div class="stat-num">${mes}</div><div class="stat-label">Este mês</div></div>
+        <div class="stat-card"><div class="stat-num">${fim}</div><div class="stat-label">Atendimentos concluídos</div></div>
+        <div class="stat-card"><div class="stat-num">${Number(metricaP.avaliacao||5).toFixed(1)}</div><div class="stat-label">Avaliação</div></div>`;
+
       const box = document.getElementById('contLista');
-      const nomes = { 'Pendente':'st-Pendente', 'A Caminho':'st-ACaminho', 'Finalizado':'st-Finalizado' };
-      box.innerHTML = lista.length ? lista.slice(0,50).map((c) => `
-        <div class="evento-item">
-          <span class="evento-tipo">${c.servico_solicitado||'Chamado'}</span>
-          <span>${c.status}</span>
-          <span>${new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
-        </div>`).join('') : '<p class="helper">Nenhum chamado neste período.</p>';
+      const tit = document.getElementById('contListaTit');
+      const filtrando = f_de.value || f_ate.value;
+
+      if (filtrando) {
+        // lista dos contatos no período selecionado
+        let periodo = lista;
+        if (f_de.value)  periodo = periodo.filter(c => c.created_at >= f_de.value + 'T00:00:00');
+        if (f_ate.value) periodo = periodo.filter(c => c.created_at <= f_ate.value + 'T23:59:59');
+        tit.textContent = `Contatos no período (${periodo.length})`;
+        box.innerHTML = periodo.length ? periodo.slice(0,80).map((c) => `
+          <div class="evento-item">
+            <span class="evento-tipo"><i class="fa-brands fa-whatsapp" style="color:#1f9d57"></i> Contato</span>
+            <span>${c.status}</span>
+            <span>${new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+          </div>`).join('') : '<p class="helper">Nenhum contato neste período.</p>';
+      } else {
+        // resumo por mês
+        const porMes = {};
+        lista.forEach((c) => { const d=new Date(c.created_at); const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); porMes[k]=(porMes[k]||0)+1; });
+        const meses = Object.keys(porMes).sort().reverse();
+        tit.textContent = 'Contatos por mês';
+        box.innerHTML = meses.length ? meses.map((k) => { const [y,m]=k.split('-'); return `
+          <div class="evento-item">
+            <span class="evento-tipo">${MESES[+m-1]}/${y}</span><span></span>
+            <span><i class="fa-brands fa-whatsapp" style="color:#1f9d57"></i> ${porMes[k]} contatos</span>
+          </div>`; }).join('') : '<p class="helper">Ainda sem contatos.</p>';
+      }
     }
     document.getElementById('btnFiltrar').addEventListener('click', renderMetricas);
 
