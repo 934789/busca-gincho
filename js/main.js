@@ -112,9 +112,9 @@ function bearing(a, b) {
 function initHomeMap(lat, lng, acc) {
   if (!mapa) {
     mapa = L.map('homeMap', { zoomControl: false, attributionControl: false }).setView([lat, lng], 16);
-    // tiles do Google Maps (estilo oficial)
-    L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 20,
+    // CARTO Voyager — mapa gratuito, legal e limpo (sem chave/cartão), visual estilo Google
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+      subdomains: 'abcd', maxZoom: 20,
     }).addTo(mapa);
   }
   desenharCena(lat, lng, acc);
