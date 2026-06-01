@@ -11,6 +11,26 @@ const btnBuscar  = document.getElementById('btnBuscar');
 const searchStatus = document.getElementById('searchStatus');
 
 let userPos = null;
+let filtroServico = null; // filtro rápido ativo (coluna de serviço)
+
+/* ---------- filtros rápidos (tipo de pane) ---------- */
+(function montarFiltros() {
+  const wrap = document.getElementById('quickFilters');
+  if (!wrap) return;
+  FILTROS_RAPIDOS.forEach((f) => {
+    const b = document.createElement('button');
+    b.className = 'qf-btn';
+    b.innerHTML = `<i class="fa-solid ${f.icon}"></i> ${f.label}`;
+    b.addEventListener('click', () => {
+      const ativando = filtroServico !== f.key;
+      filtroServico = ativando ? f.key : null;
+      wrap.querySelectorAll('.qf-btn').forEach((x) => x.classList.remove('on'));
+      if (ativando) b.classList.add('on');
+      render();
+    });
+    wrap.appendChild(b);
+  });
+})();
 
 function montarCard(p, i) {
   const node = tpl.content.cloneNode(true);
@@ -75,6 +95,8 @@ async function render() {
   if (error) { mostrarVazio('Banco ainda não configurado. Rode o SQL no Supabase.'); console.error(error); return; }
 
   let lista = data || [];
+  lista = lista.filter((x) => x.online !== false);            // esconde quem está offline/ocupado
+  if (filtroServico) lista = lista.filter((x) => x[filtroServico]); // filtro rápido por tipo de pane
   const regiao = regiaoSel.value;
   if (regiao) lista = lista.filter((x) => (x.atendimento_regioes || '').toLowerCase().includes(regiao.toLowerCase()));
   if (userPos) {

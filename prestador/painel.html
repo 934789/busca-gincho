@@ -13,16 +13,34 @@
     .chamado-card .cc-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
     .cc-top small { color:var(--text-soft); font-size:12px; }
     .st-pill { font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
-    .st-Pendente   { background:#fff6d6; color:#9a7400; }
-    .st-A.st-Caminho, .st-ACaminho { background:#e0eeff; color:#1d6fe0; }
+    .st-Pendente { background:#fff6d6; color:#9a7400; }
+    .st-ACaminho { background:#e0eeff; color:#1d6fe0; }
     .st-Finalizado { background:#e0f7ea; color:#1f9d57; }
-    .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
     .cc-iniciar { background:var(--yellow); color:var(--ink); }
     .cc-finalizar { background:var(--ink); color:#fff; }
-    .cc-link { background:#f4f5f7; border:1px dashed #cfd3da; border-radius:11px; padding:10px 12px; font-size:12px; color:var(--text); display:flex; gap:8px; align-items:center; margin-bottom:10px; word-break:break-all; }
+    .cc-pdf { background:#1f9d57; color:#fff; }
+    .cc-link { background:#f4f5f7; border:1px dashed #cfd3da; border-radius:11px; padding:10px 12px; font-size:12px; color:var(--text); display:flex; gap:8px; align-items:center; margin-bottom:6px; word-break:break-all; }
     .cc-link button { margin-left:auto; background:var(--ink); color:var(--yellow); border:none; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
     .live-dot { width:9px; height:9px; border-radius:50%; background:#1f9d57; display:inline-block; animation:blink 1.2s infinite; }
     @keyframes blink { 50%{opacity:.3;} }
+
+    /* toggle online */
+    .online-bar { display:flex; align-items:center; gap:12px; }
+    .online-bar .ob-txt { flex:1; }
+    .online-bar .ob-txt strong { font-size:15px; }
+    .online-bar .ob-txt small { display:block; font-size:12px; color:var(--text-soft); }
+    .switch { position:relative; width:60px; height:32px; flex-shrink:0; cursor:pointer; }
+    .switch input { display:none; }
+    .switch .slider { position:absolute; inset:0; background:#c9ccd2; border-radius:999px; transition:.25s; }
+    .switch .slider::before { content:''; position:absolute; width:26px; height:26px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.25s; }
+    .switch input:checked + .slider { background:#1f9d57; }
+    .switch input:checked + .slider::before { transform:translateX(28px); }
+    .status-badge { font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px; }
+    .sb-on { background:#e0f7ea; color:#1f9d57; } .sb-off { background:#ffe0e0; color:#e23c3c; }
+
+    canvas#fatChart { max-height:200px; }
+    .pdf-template { position:fixed; left:-9999px; top:0; width:760px; }
   </style>
 </head>
 <body>
@@ -33,21 +51,33 @@
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
-    <!-- ESTATÍSTICAS -->
+    <!-- ONLINE / OFFLINE -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-chart-line"></i> Resumo</h2>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-bell"></i></div><div class="stat-num" id="s_total">—</div><div class="stat-label">Chamados recebidos</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-route"></i></div><div class="stat-num" id="s_caminho">—</div><div class="stat-label">A caminho agora</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div><div class="stat-num" id="s_fim">—</div><div class="stat-label">Finalizados</div></div>
-        <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="s_aval">—</div><div class="stat-label">Avaliação média</div></div>
+      <div class="online-bar">
+        <div class="ob-txt">
+          <strong>Status de plantão <span class="status-badge sb-on" id="statusBadge">ONLINE</span></strong>
+          <small id="statusHint">Você aparece para os clientes na busca.</small>
+        </div>
+        <label class="switch"><input type="checkbox" id="onlineToggle" checked><span class="slider"></span></label>
       </div>
     </section>
 
-    <!-- CHAMADOS RECENTES -->
+    <!-- FATURAMENTO -->
+    <section class="dash-section">
+      <h2><i class="fa-solid fa-sack-dollar"></i> Faturamento</h2>
+      <div class="stats-grid" style="margin-bottom:14px">
+        <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div><div class="stat-num" id="f_semana">—</div><div class="stat-label">Esta semana</div></div>
+        <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div><div class="stat-num" id="f_mes">—</div><div class="stat-label">Este mês</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div><div class="stat-num" id="f_atend">—</div><div class="stat-label">Atendimentos (mês)</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="f_aval">—</div><div class="stat-label">Avaliação</div></div>
+      </div>
+      <canvas id="fatChart"></canvas>
+    </section>
+
+    <!-- CHAMADOS -->
     <section class="dash-section">
       <h2><i class="fa-solid fa-headset"></i> Chamados Recentes <span class="live-dot" title="Ao vivo"></span></h2>
-      <p class="helper" style="margin-bottom:12px">Ao combinar pelo WhatsApp, clique em <strong>Iniciar Deslocamento</strong> e envie o link de rastreio ao cliente.</p>
+      <p class="helper" style="margin-bottom:12px">Ao combinar pelo WhatsApp, clique em <strong>Iniciar Deslocamento</strong> e envie o link ao cliente. Ao terminar, <strong>Finalizar</strong> abre o comprovante.</p>
       <div id="listaChamados"><p class="helper">Carregando...</p></div>
     </section>
 
@@ -57,10 +87,13 @@
       <form id="perfilForm">
         <div class="field"><label>Nome de exibição</label><input type="text" id="nome" required></div>
         <div class="field"><label>WhatsApp (com DDD, só números)</label><input type="text" id="whatsapp" placeholder="5521987654321" required></div>
-        <div class="field"><label>Telefone para ligação</label><input type="text" id="telefone"></div>
-        <div class="field"><label>URL da foto de perfil</label><input type="url" id="foto_url"></div>
-        <div class="field"><label>Bairro / base</label><input type="text" id="bairro" placeholder="Barra da Tijuca, RJ"></div>
+        <div class="field"><label>Telefone</label><input type="text" id="telefone"></div>
+        <div class="field"><label>Bairro / base</label><input type="text" id="bairro"></div>
         <div class="field"><label>Regiões que atende</label><textarea id="regioes" rows="2"></textarea></div>
+        <p class="helper" style="font-weight:600;color:var(--ink)"><i class="fa-solid fa-file-invoice"></i> Dados fiscais (saem no comprovante PDF)</p>
+        <div class="field"><label>CNPJ ou CPF</label><input type="text" id="documento"></div>
+        <div class="field"><label>Razão social (opcional)</label><input type="text" id="razao_social"></div>
+        <div class="field"><label>Endereço da base</label><input type="text" id="endereco_base"></div>
         <h2 style="margin-top:8px"><i class="fa-solid fa-list-check"></i> Serviços que ofereço</h2>
         <div class="check-grid" id="servicosGrid"></div>
         <button type="submit" class="btn-primary" style="margin-top:18px">Salvar alterações</button>
@@ -69,142 +102,267 @@
     </section>
   </div>
 
+  <!-- MODAL COMPROVANTE -->
+  <div class="modal-bg" id="modalComprovante">
+    <div class="modal">
+      <h3><span><i class="fa-solid fa-file-invoice-dollar"></i> Finalizar — dados do serviço</span><span class="x" onclick="fecharModal('modalComprovante')">✕</span></h3>
+      <form id="compForm">
+        <div class="field"><label>Nome do cliente</label><input type="text" id="k_nome" required></div>
+        <div class="field"><label>CPF do cliente</label><input type="text" id="k_cpf" placeholder="000.000.000-00"></div>
+        <div class="grid-2">
+          <div class="field"><label>Placa</label><input type="text" id="k_placa" placeholder="ABC1D23"></div>
+          <div class="field"><label>Cor</label><input type="text" id="k_cor" placeholder="Preto"></div>
+        </div>
+        <div class="field"><label>Modelo do veículo</label><input type="text" id="k_modelo" placeholder="Chevrolet Onix"></div>
+        <div class="field"><label>Origem (onde buscou)</label><input type="text" id="k_origem" placeholder="Av. Brasil, alt. Bonsucesso"></div>
+        <div class="field"><label>Destino (onde entregou)</label><input type="text" id="k_destino" placeholder="Oficina X, Barra da Tijuca"></div>
+        <div class="grid-2">
+          <div class="field"><label>KM rodados (opcional)</label><input type="text" id="k_km" placeholder="18"></div>
+          <div class="field"><label>Valor cobrado (R$)</label><input type="text" id="k_valor" placeholder="250,00" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Forma de pagamento</label>
+            <select id="k_pgto"><option>PIX</option><option>Dinheiro</option><option>Cartão de Crédito</option><option>Cartão de Débito</option></select>
+          </div>
+          <div class="field"><label>Descrição</label><input type="text" id="k_desc" placeholder="Reboque por pane mecânica"></div>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:6px"><i class="fa-solid fa-flag-checkered"></i> Finalizar e salvar</button>
+        <p class="form-msg" id="msgComp"></p>
+      </form>
+    </div>
+  </div>
+
+  <div class="pdf-template" id="pdfTemplate"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
   <script src="/js/supabase-config.js"></script>
   <script>
     const PID = sessionStorage.getItem('prestador_id');
     if (!PID || !sb) location.href = 'login.html';
     document.getElementById('btnSair').onclick = () => { pararTracking(); sessionStorage.clear(); location.href = 'login.html'; };
+    let perfilAtual = null;
+
+    const fmtR = (v) => 'R$ ' + (Number(v)||0).toFixed(2).replace('.', ',');
 
     /* ---------- serviços ---------- */
     const grid = document.getElementById('servicosGrid');
     SERVICOS.forEach((s) => {
-      const lbl = document.createElement('label');
-      lbl.className = 'check-item';
+      const lbl = document.createElement('label'); lbl.className = 'check-item';
       lbl.innerHTML = `<input type="checkbox" data-key="${s.key}"><i class="fa-solid ${s.icon}"></i> ${s.label}`;
-      const cb = lbl.querySelector('input');
-      cb.addEventListener('change', () => lbl.classList.toggle('on', cb.checked));
+      const cb = lbl.querySelector('input'); cb.addEventListener('change', () => lbl.classList.toggle('on', cb.checked));
       grid.appendChild(lbl);
     });
 
     /* ---------- perfil ---------- */
     async function carregarPerfil() {
       const { data: p } = await sb.from('prestadores').select('*').eq('id', PID).single();
-      if (!p) return;
-      nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||'';
-      foto_url.value=p.foto_url||''; bairro.value=p.bairro||''; regioes.value=p.atendimento_regioes||'';
+      if (!p) return; perfilAtual = p;
+      nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||''; bairro.value=p.bairro||'';
+      regioes.value=p.atendimento_regioes||''; documento.value=p.documento||''; razao_social.value=p.razao_social||''; endereco_base.value=p.endereco_base||'';
       SERVICOS.forEach((s) => { const cb=grid.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
+      // status online
+      const on = p.online !== false;
+      onlineToggle.checked = on; atualizarBadgeOnline(on);
+      f_aval.textContent = Number(p.avaliacao||5).toFixed(1).replace('.', ',');
     }
     document.getElementById('perfilForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msgPerfil');
       const patch = { nome:nome.value.trim(), whatsapp:whatsapp.value.replace(/\D/g,''), telefone:telefone.value.replace(/\D/g,''),
-        foto_url:foto_url.value.trim(), bairro:bairro.value.trim(), atendimento_regioes:regioes.value.trim() };
+        bairro:bairro.value.trim(), atendimento_regioes:regioes.value.trim(),
+        documento:documento.value.trim(), razao_social:razao_social.value.trim(), endereco_base:endereco_base.value.trim() };
       SERVICOS.forEach((s) => { patch[s.key] = grid.querySelector(`[data-key="${s.key}"]`).checked; });
       const { error } = await sb.from('prestadores').update(patch).eq('id', PID);
-      msg.className = 'form-msg ' + (error ? 'error' : 'ok');
-      msg.textContent = error ? ('Erro: ' + error.message) : '✓ Alterações salvas!';
+      msg.className = 'form-msg ' + (error ? 'error' : 'ok'); msg.textContent = error ? ('Erro: '+error.message) : '✓ Salvo!';
+      if (!error) perfilAtual = { ...perfilAtual, ...patch };
     });
 
-    /* ---------- chamados + stats ---------- */
-    function stPillClass(s){ return 'st-' + s.replace(/\s/g,''); }
-    async function carregarChamados() {
-      const { data: chs, error } = await sb.from('chamados').select('*').eq('prestador_id', PID).order('created_at', { ascending:false }).limit(30);
-      const box = document.getElementById('listaChamados');
-      if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
-      const lista = chs || [];
-      // stats
-      document.getElementById('s_total').textContent = lista.length;
-      document.getElementById('s_caminho').textContent = lista.filter(c=>c.status==='A Caminho').length;
-      document.getElementById('s_fim').textContent = lista.filter(c=>c.status==='Finalizado').length;
-
-      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado ainda. Quando um cliente clicar no seu WhatsApp, aparece aqui na hora.</p>'; return; }
-      box.innerHTML = '';
-      lista.forEach((c) => {
-        const div = document.createElement('div');
-        div.className = 'chamado-card';
-        const hora = new Date(c.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-        let acao = '';
-        if (c.status === 'Pendente') {
-          acao = `<button class="cc-btn cc-iniciar" data-act="iniciar"><i class="fa-solid fa-location-arrow"></i> Iniciar Deslocamento</button>`;
-        } else if (c.status === 'A Caminho') {
-          const link = `${location.origin}/rastreio.html?t=${c.link_token}`;
-          acao = `
-            <div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
-            <button class="cc-btn cc-finalizar" data-act="finalizar"><i class="fa-solid fa-flag-checkered"></i> Finalizar Atendimento</button>`;
-        } else {
-          acao = `<p class="helper" style="margin:0">Atendimento concluído.</p>`;
-        }
-        div.innerHTML = `
-          <div class="cc-top">
-            <div><strong>${c.servico_solicitado||'Chamado'}</strong><br><small>${hora}</small></div>
-            <span class="st-pill ${stPillClass(c.status)}">${c.status==='A Caminho'?'A caminho':c.status}</span>
-          </div>${acao}`;
-        const btn = div.querySelector('[data-act]');
-        div.querySelectorAll('[data-act]').forEach((b) => {
-          b.addEventListener('click', () => {
-            const act = b.dataset.act;
-            if (act === 'iniciar') iniciarDeslocamento(c);
-            else if (act === 'finalizar') finalizarAtendimento(c);
-            else if (act === 'copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
-          });
-        });
-        box.appendChild(div);
-      });
+    /* ---------- online/offline ---------- */
+    function atualizarBadgeOnline(on) {
+      const b = document.getElementById('statusBadge'); const h = document.getElementById('statusHint');
+      b.textContent = on ? 'ONLINE' : 'OFFLINE'; b.className = 'status-badge ' + (on ? 'sb-on' : 'sb-off');
+      h.textContent = on ? 'Você aparece para os clientes na busca.' : 'Você está oculto da busca (em atendimento).';
     }
+    onlineToggle.addEventListener('change', async () => {
+      const on = onlineToggle.checked; atualizarBadgeOnline(on);
+      await sb.from('prestadores').update({ online: on }).eq('id', PID);
+    });
 
-    /* ---------- som ao iniciar deslocamento ---------- */
-    const somIniciar = new Audio('/audio/iniciar.mp3');
-    somIniciar.preload = 'auto';
-    function tocarSom() { try { somIniciar.currentTime = 0; somIniciar.play().catch(() => {}); } catch (e) {} }
+    /* ---------- som ---------- */
+    const somIniciar = new Audio('/audio/iniciar.mp3'); somIniciar.preload = 'auto';
+    function tocarSom() { try { somIniciar.currentTime = 0; somIniciar.play().catch(()=>{}); } catch(e){} }
 
     /* ---------- tracking GPS ---------- */
     let watchId = null, tokenAtivo = null;
     function pararTracking(){ if (watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; tokenAtivo=null; } }
-
     async function iniciarDeslocamento(c) {
-      tocarSom(); // efeito sonoro no clique (gesto do usuário garante a reprodução)
-      if (!navigator.geolocation) { alert('GPS não suportado neste dispositivo.'); return; }
-      pararTracking(); // garante um tracking por vez
-      tokenAtivo = c.link_token;
-      // status -> A Caminho + posição inicial
+      tocarSom();
+      if (!navigator.geolocation) { alert('GPS não suportado.'); return; }
+      pararTracking(); tokenAtivo = c.link_token;
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        await sb.from('chamados').update({
-          status: 'A Caminho',
-          latitude_atual_guincho: pos.coords.latitude,
-          longitude_atual_guincho: pos.coords.longitude,
-        }).eq('id', c.id);
+        await sb.from('chamados').update({ status:'A Caminho', latitude_atual_guincho:pos.coords.latitude, longitude_atual_guincho:pos.coords.longitude }).eq('id', c.id);
         carregarChamados();
-        // começa a transmitir
         watchId = navigator.geolocation.watchPosition(async (p) => {
-          await sb.from('chamados').update({
-            latitude_atual_guincho: p.coords.latitude,
-            longitude_atual_guincho: p.coords.longitude,
-          }).eq('link_token', tokenAtivo);
-        }, (err) => console.error('GPS:', err), { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
-      }, (err) => {
-        alert('Não foi possível obter sua localização. Ative o GPS e permita o acesso.');
-        console.error(err);
-      }, { enableHighAccuracy:true, timeout:10000 });
+          await sb.from('chamados').update({ latitude_atual_guincho:p.coords.latitude, longitude_atual_guincho:p.coords.longitude }).eq('link_token', tokenAtivo);
+        }, (err)=>console.error('GPS:',err), { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+      }, ()=>alert('Não foi possível obter sua localização. Ative o GPS.'), { enableHighAccuracy:true, timeout:10000 });
     }
 
-    async function finalizarAtendimento(c) {
+    /* ---------- chamados + faturamento ---------- */
+    let fatChart = null;
+    async function carregarChamados() {
+      const { data: chs, error } = await sb.from('chamados').select('*').eq('prestador_id', PID).order('created_at', { ascending:false }).limit(60);
+      const box = document.getElementById('listaChamados');
+      if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
+      const lista = chs || [];
+      const fin = lista.filter(c => c.status === 'Finalizado');
+
+      // faturamento
+      const now = new Date();
+      const iniSem = new Date(now); iniSem.setDate(now.getDate()-now.getDay()); iniSem.setHours(0,0,0,0);
+      const iniMes = new Date(now.getFullYear(), now.getMonth(), 1);
+      const soma = (arr) => arr.reduce((s,c)=>s+(Number(c.valor_servico)||0), 0);
+      f_semana.textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniSem)));
+      f_mes.textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniMes)));
+      f_atend.textContent = fin.filter(c=>new Date(c.created_at)>=iniMes).length;
+      desenharGrafico(fin);
+
+      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado ainda. Quando um cliente clicar no seu WhatsApp, aparece aqui na hora.</p>'; return; }
+      box.innerHTML = '';
+      lista.forEach((c) => {
+        const div = document.createElement('div'); div.className = 'chamado-card';
+        const hora = new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        let acao = '';
+        if (c.status === 'Pendente') acao = `<button class="cc-btn cc-iniciar" data-act="iniciar"><i class="fa-solid fa-location-arrow"></i> Iniciar Deslocamento</button>`;
+        else if (c.status === 'A Caminho') {
+          const link = `${location.origin}/rastreio.html?t=${c.link_token}`;
+          acao = `<div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
+                  <button class="cc-btn cc-finalizar" data-act="finalizar"><i class="fa-solid fa-flag-checkered"></i> Finalizar Atendimento</button>`;
+        } else {
+          const temComp = c.valor_servico != null;
+          acao = `<button class="cc-btn cc-pdf" data-act="pdf"><i class="fa-solid fa-file-pdf"></i> ${temComp ? 'Gerar Comprovante PDF' : 'Preencher comprovante'}</button>`;
+        }
+        div.innerHTML = `<div class="cc-top"><div><strong>${c.servico_solicitado||'Chamado'}</strong>${c.valor_servico!=null?` · <span style="color:#1f9d57">${fmtR(c.valor_servico)}</span>`:''}<br><small>${hora}</small></div>
+            <span class="st-pill st-${(c.status||'').replace(/\s/g,'')}">${c.status==='A Caminho'?'A caminho':c.status}</span></div>${acao}`;
+        div.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
+          const a = b.dataset.act;
+          if (a==='iniciar') iniciarDeslocamento(c);
+          else if (a==='finalizar' || a==='pdf' && c.valor_servico==null) abrirComprovante(c);
+          else if (a==='pdf') gerarPDF(c);
+          else if (a==='copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
+        }));
+        box.appendChild(div);
+      });
+    }
+
+    function desenharGrafico(fin) {
+      const now = new Date(); const labels = [], valores = [];
+      for (let i=6;i>=0;i--) {
+        const d=new Date(now); d.setDate(now.getDate()-i); d.setHours(0,0,0,0);
+        const d2=new Date(d); d2.setDate(d.getDate()+1);
+        labels.push(d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+        valores.push(fin.filter(c=>{const t=new Date(c.created_at); return t>=d && t<d2;}).reduce((s,c)=>s+(Number(c.valor_servico)||0),0));
+      }
+      const ctx = document.getElementById('fatChart');
+      if (fatChart) fatChart.destroy();
+      fatChart = new Chart(ctx, {
+        type:'bar',
+        data:{ labels, datasets:[{ label:'Faturamento (R$)', data:valores, backgroundColor:'#FFCC00', borderRadius:6 }] },
+        options:{ plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ callback:(v)=>'R$'+v } } } }
+      });
+    }
+
+    /* ---------- comprovante (finalizar) ---------- */
+    let chamadoComp = null;
+    function abrirComprovante(c) {
+      chamadoComp = c;
+      k_nome.value=c.nome_cliente||''; k_cpf.value=c.cpf_cliente||''; k_placa.value=c.placa_veiculo||''; k_cor.value=c.cor_veiculo||'';
+      k_modelo.value=c.modelo_veiculo||''; k_origem.value=c.endereco_origem||''; k_destino.value=c.endereco_destino||'';
+      k_km.value=c.km_rodados||''; k_valor.value=c.valor_servico!=null?String(c.valor_servico).replace('.',','):''; k_desc.value=c.descricao_servico||c.servico_solicitado||'';
+      abrirModal('modalComprovante');
+    }
+    document.getElementById('compForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msgComp'); msg.className='form-msg'; msg.textContent='Salvando...';
+      const patch = {
+        status:'Finalizado',
+        nome_cliente:k_nome.value.trim(), cpf_cliente:k_cpf.value.trim(), placa_veiculo:k_placa.value.trim().toUpperCase(),
+        cor_veiculo:k_cor.value.trim(), modelo_veiculo:k_modelo.value.trim(), endereco_origem:k_origem.value.trim(),
+        endereco_destino:k_destino.value.trim(), km_rodados:parseFloat(String(k_km.value).replace(',','.'))||null,
+        valor_servico:parseFloat(String(k_valor.value).replace(/\./g,'').replace(',','.'))||0,
+        forma_pagamento:k_pgto.value, descricao_servico:k_desc.value.trim(),
+      };
+      const { error } = await sb.from('chamados').update(patch).eq('id', chamadoComp.id);
+      if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
       pararTracking();
-      await sb.from('chamados').update({ status: 'Finalizado' }).eq('id', c.id);
-      carregarChamados();
+      const finalizado = { ...chamadoComp, ...patch };
+      fecharModal('modalComprovante'); carregarChamados();
+      // gera o PDF na hora
+      setTimeout(() => gerarPDF(finalizado), 300);
+    });
+
+    /* ---------- PDF do comprovante ---------- */
+    async function gerarPDF(c) {
+      const p = perfilAtual || {};
+      const el = document.getElementById('pdfTemplate');
+      const dt = new Date(c.created_at || Date.now()).toLocaleString('pt-BR');
+      const linha = (lbl, val) => val ? `<tr><td style="padding:5px 0;color:#666;width:42%">${lbl}</td><td style="padding:5px 0;font-weight:600">${val}</td></tr>` : '';
+      el.innerHTML = `
+        <div style="font-family:Poppins,Arial,sans-serif;color:#111;padding:34px;background:#fff">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:4px solid #FFCC00;padding-bottom:16px;margin-bottom:18px">
+            <img src="/img/logo3.png" style="height:54px" onerror="this.style.display='none'">
+            <div style="text-align:right">
+              <div style="font-size:20px;font-weight:800">COMPROVANTE DE ATENDIMENTO</div>
+              <div style="font-size:12px;color:#666">Busca Guincho · ${dt}</div>
+            </div>
+          </div>
+          <h3 style="font-size:14px;margin:0 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">PRESTADOR</h3>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:14px">
+            ${linha('Nome / Razão social', p.razao_social || p.nome)}
+            ${linha('CNPJ / CPF', p.documento)}
+            ${linha('Endereço da base', p.endereco_base)}
+            ${linha('Contato', p.telefone || p.whatsapp)}
+          </table>
+          <h3 style="font-size:14px;margin:0 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">CLIENTE E VEÍCULO</h3>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:14px">
+            ${linha('Cliente', c.nome_cliente)}
+            ${linha('CPF', c.cpf_cliente)}
+            ${linha('Veículo', [c.modelo_veiculo, c.cor_veiculo].filter(Boolean).join(' '))}
+            ${linha('Placa', c.placa_veiculo)}
+          </table>
+          <h3 style="font-size:14px;margin:0 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">DESLOCAMENTO</h3>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:14px">
+            ${linha('Origem', c.endereco_origem)}
+            ${linha('Destino', c.endereco_destino)}
+            ${linha('KM rodados', c.km_rodados ? c.km_rodados + ' km' : '')}
+          </table>
+          <h3 style="font-size:14px;margin:0 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">SERVIÇO E VALOR</h3>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:10px">
+            ${linha('Descrição', c.descricao_servico || c.servico_solicitado)}
+            ${linha('Forma de pagamento', c.forma_pagamento)}
+            ${linha('Data / Hora', dt)}
+          </table>
+          <div style="background:#111;color:#FFCC00;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px;color:#fff">VALOR TOTAL</span>
+            <span style="font-size:24px;font-weight:800">${fmtR(c.valor_servico)}</span>
+          </div>
+          <p style="font-size:10.5px;color:#999;margin-top:18px;text-align:center">Documento gerado pela plataforma Busca Guincho. Apresente à sua seguradora para fins de reembolso.</p>
+        </div>`;
+      const nomeArq = `comprovante_${(c.placa_veiculo||'servico').replace(/\s/g,'')}.pdf`;
+      await html2pdf().set({ margin:0, filename:nomeArq, image:{type:'jpeg',quality:.96}, html2canvas:{scale:2, useCORS:true}, jsPDF:{unit:'mm', format:'a4', orientation:'portrait'} }).from(el.firstElementChild).save();
     }
 
-    /* ---------- realtime: novos chamados aparecem na hora ---------- */
-    function escutarChamados() {
-      sb.channel('painel-' + PID)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados', filter: `prestador_id=eq.${PID}` },
-            () => carregarChamados())
-        .subscribe();
-    }
+    /* ---------- realtime ---------- */
+    sb.channel('painel-' + PID).on('postgres_changes', { event:'*', schema:'public', table:'chamados', filter:`prestador_id=eq.${PID}` }, () => carregarChamados()).subscribe();
+
+    window.abrirModal = (id) => document.getElementById(id).classList.add('open');
+    window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
+    document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));
 
     carregarPerfil();
     carregarChamados();
-    escutarChamados();
   </script>
 </body>
 </html>

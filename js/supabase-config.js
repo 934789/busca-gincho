@@ -31,6 +31,15 @@ const SERVICOS = [
   { key: 'carga_bateria',    label: 'Carga de Bateria',      icon: 'fa-car-battery' },
   { key: 'troca_pneu',       label: 'Auxílio Troca de pneu', icon: 'fa-gear' },
   { key: 'resgate_veicular', label: 'Resgate Veicular',      icon: 'fa-triangle-exclamation' },
+  { key: 'chaveiro',         label: 'Chaveiro',              icon: 'fa-key' },
+];
+
+// filtros rápidos da home (pane do cliente -> coluna de serviço)
+const FILTROS_RAPIDOS = [
+  { key: 'carga_bateria', label: 'Bateria acabou', icon: 'fa-car-battery' },
+  { key: 'reboque_leve',  label: 'Carro quebrou',  icon: 'fa-car-burst' },
+  { key: 'troca_pneu',    label: 'Pneu furou',     icon: 'fa-life-ring' },
+  { key: 'chaveiro',      label: 'Chave trancada', icon: 'fa-key' },
 ];
 
 /* ---------- utilidades compartilhadas ---------- */

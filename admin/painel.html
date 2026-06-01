@@ -30,6 +30,12 @@
           <div class="field"><label>WhatsApp</label><input type="text" id="c_whats" placeholder="5521987654321" required></div>
           <div class="field"><label>Telefone</label><input type="text" id="c_tel" placeholder="552133334444"></div>
         </div>
+        <p class="helper" style="margin:-4px 0 10px;font-weight:600;color:var(--ink)"><i class="fa-solid fa-file-invoice"></i> Dados para o comprovante (recibo PDF)</p>
+        <div class="grid-2">
+          <div class="field"><label>CNPJ ou CPF</label><input type="text" id="c_doc" placeholder="00.000.000/0001-00"></div>
+          <div class="field"><label>Razão social (opcional)</label><input type="text" id="c_razao" placeholder="Guincho Silva ME"></div>
+        </div>
+        <div class="field"><label>Endereço da base</label><input type="text" id="c_endbase" placeholder="Rua X, 100 - Bairro - RJ"></div>
         <div class="field"><label>Bairro / base</label><input type="text" id="c_bairro" placeholder="Barra da Tijuca, RJ"></div>
         <div class="field"><label>Foto do prestador</label>
           <input type="file" id="c_foto_file" accept="image/*">
@@ -66,6 +72,11 @@
           <div class="field"><label>WhatsApp</label><input type="text" id="e_whats" required></div>
           <div class="field"><label>Telefone</label><input type="text" id="e_tel"></div>
         </div>
+        <div class="grid-2">
+          <div class="field"><label>CNPJ ou CPF</label><input type="text" id="e_doc"></div>
+          <div class="field"><label>Razão social</label><input type="text" id="e_razao"></div>
+        </div>
+        <div class="field"><label>Endereço da base</label><input type="text" id="e_endbase"></div>
         <div class="field"><label>Bairro</label><input type="text" id="e_bairro"></div>
         <div class="field"><label>Trocar foto (upload — em branco mantém a atual)</label>
           <input type="file" id="e_foto_file" accept="image/*">
@@ -151,8 +162,9 @@
         nome:c_nome.value.trim(), email:c_email.value.trim().toLowerCase(), senha_provisoria:c_senha.value,
         whatsapp:c_whats.value.replace(/\D/g,''), telefone:c_tel.value.replace(/\D/g,''),
         bairro:c_bairro.value.trim(), foto_url:fotoUrl || '', banner_url:bannerUrl || '',
+        documento:c_doc.value.trim(), razao_social:c_razao.value.trim(), endereco_base:c_endbase.value.trim(),
         atendimento_regioes:c_regioes.value.trim(),
-        latitude:-22.9068, longitude:-43.1729, ativo:true, ...lerServicos(cadServ),  // base padrão: Rio (ajustável no editar)
+        latitude:-22.9068, longitude:-43.1729, ativo:true, online:true, ...lerServicos(cadServ),  // base padrão: Rio (ajustável no editar)
       };
       const { error } = await sb.from('prestadores').insert(novo);
       msg.className = 'form-msg ' + (error ? 'error' : 'ok');
@@ -213,7 +225,7 @@
     /* ---------- editar ---------- */
     function abrirEditar(p) {
       e_id.value=p.id; e_nome.value=p.nome; e_whats.value=p.whatsapp; e_tel.value=p.telefone||'';
-      e_bairro.value=p.bairro||'';
+      e_bairro.value=p.bairro||''; e_doc.value=p.documento||''; e_razao.value=p.razao_social||''; e_endbase.value=p.endereco_base||'';
       e_foto_file.value=''; document.getElementById('e_foto_status').textContent = p.foto_url ? 'Foto atual definida. Envie outra para trocar.' : 'Sem foto.';
       e_banner_file.value=''; document.getElementById('e_banner_status').textContent = p.banner_url ? 'Banner atual definido. Envie outro para trocar.' : 'Sem banner.';
       e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_senha.value='';
@@ -224,7 +236,8 @@
       e.preventDefault();
       const msg = document.getElementById('msgEdit');
       const patch = { nome:e_nome.value.trim(), whatsapp:e_whats.value.replace(/\D/g,''), telefone:e_tel.value.replace(/\D/g,''),
-        bairro:e_bairro.value.trim(), atendimento_regioes:e_regioes.value.trim(),
+        bairro:e_bairro.value.trim(), documento:e_doc.value.trim(), razao_social:e_razao.value.trim(), endereco_base:e_endbase.value.trim(),
+        atendimento_regioes:e_regioes.value.trim(),
         latitude:parseFloat(e_lat.value), longitude:parseFloat(e_lng.value), ...lerServicos(editServ) };
       const ef = e_foto_file.files[0];
       if (ef) { const url = await uploadFoto(ef, document.getElementById('e_foto_status')); if (url === null) { msg.className='form-msg error'; msg.textContent='Falha no upload da foto.'; return; } patch.foto_url = url; }

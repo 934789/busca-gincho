@@ -110,6 +110,20 @@ html, body {
 }
 .search-btn:active { transform: scale(.95); filter: brightness(.93); }
 
+/* ===================== FILTROS RÁPIDOS ===================== */
+.quick-filters { display: flex; gap: 9px; overflow-x: auto; padding: 16px 16px 2px; scrollbar-width: none; }
+.quick-filters::-webkit-scrollbar { display: none; }
+.qf-btn {
+  flex-shrink: 0; background: #fff; border: 1.5px solid var(--line); color: var(--ink);
+  border-radius: var(--r-pill); padding: 10px 15px; font-family: inherit; font-weight: 600;
+  font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 7px;
+  white-space: nowrap; transition: all .15s; box-shadow: var(--shadow);
+}
+.qf-btn i { color: var(--yellow-dark); font-size: 14px; }
+.qf-btn.on { background: var(--yellow); border-color: var(--yellow); }
+.qf-btn.on i { color: var(--ink); }
+.qf-btn:active { transform: scale(.96); }
+
 /* ===================== SECTION HEAD ===================== */
 .section-head { display: flex; align-items: center; justify-content: space-between; padding: 26px 20px 4px; }
 .section-head h2 { font-size: 21px; font-weight: 800; color: var(--ink); letter-spacing: -.4px; }
