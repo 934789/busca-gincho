@@ -180,6 +180,9 @@ document.getElementById('drawerClose').addEventListener('click', fecharDrawer);
 drawerBg.addEventListener('click', fecharDrawer);
 function fecharDrawer() { drawer.classList.remove('open'); drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
 
+/* ---------- A/B do botão central: ?fab=b => só ícone ---------- */
+if (new URLSearchParams(location.search).get('fab') === 'b') document.body.classList.add('fab-icon-only');
+
 /* ---------- init ---------- */
 render();
 autoLocalizar();
