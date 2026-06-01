@@ -72,6 +72,17 @@
       font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; transition:opacity .15s; }
     .btn-enviar:disabled { opacity:.45; cursor:not-allowed; }
     .av-obrigado { display:none; }
+
+    /* marcador do caminhão com pulso amarelo */
+    .truck-divicon { background:transparent; border:none; }
+    .map-truck { width:56px; height:56px; display:block; position:relative; z-index:2; }
+    .map-pulse { position:absolute; left:50%; top:50%; width:56px; height:56px; transform:translate(-50%,-50%);
+      border-radius:50%; background:rgba(255,204,0,.55); z-index:1; animation:mapPulse 1.6s ease-out infinite; }
+    @keyframes mapPulse {
+      0%   { transform:translate(-50%,-50%) scale(.6); opacity:.8; }
+      70%  { transform:translate(-50%,-50%) scale(2.3); opacity:0; }
+      100% { opacity:0; }
+    }
   </style>
 </head>
 <body>
@@ -139,8 +150,9 @@
 
     let mapa, marcador, chamado, prestador, canal, notaSelecionada = 0;
 
-    const ICONE_GUINCHO = L.icon({
-      iconUrl: '/img/truck-marker.svg',
+    const ICONE_GUINCHO = L.divIcon({
+      className: 'truck-divicon',
+      html: '<span class="map-pulse"></span><img class="map-truck" src="/img/truck-marker.svg" alt="guincho">',
       iconSize: [56, 56], iconAnchor: [28, 28], popupAnchor: [0, -28],
     });
 

@@ -275,6 +275,14 @@ html, body {
 .perfil-info > p i { color: var(--ink); margin-top: 2px; }
 .perfil-note { background: #f6f6f8; border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 12.5px !important; }
 .perfil-note i { color: var(--yellow-dark) !important; }
+
+/* avaliações no perfil */
+.review { border-top: 1px solid var(--line); padding: 13px 0; }
+.review:first-of-type { border-top: none; padding-top: 4px; }
+.review-top { display: flex; justify-content: space-between; align-items: center; }
+.review-stars { color: var(--yellow); font-size: 16px; letter-spacing: 2px; }
+.review-top small { color: var(--text-mute); font-size: 11.5px; }
+.review p { font-size: 13px; color: var(--text-soft); margin-top: 6px; line-height: 1.45; }
 .perfil-body .badges { display:flex; justify-content: center; gap: 12px; margin-top: 10px; }
 .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: #3a3a3a; }
 .badge i { color: var(--yellow-dark); font-size: 14px; }

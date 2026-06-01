@@ -73,11 +73,31 @@
             <h3>Serviços Prestados</h3>
             <ul class="perfil-services">${servicos}</ul>
           </div>
+          <div class="perfil-info" id="avaliacoesBox"></div>
+
           <div class="perfil-info">
             <p class="perfil-note"><i class="fa-solid fa-shield-halved"></i> Profissional cadastrado e verificado pela <strong>Busca Guincho</strong>. O pagamento é negociado diretamente com o prestador.</p>
           </div>
         </div>`;
       document.title = `${p.nome} — Busca Guincho`;
+
+      // ---- Avaliações (comentários + estrelas) ----
+      const box = document.getElementById('avaliacoesBox');
+      const { data: avs } = await sb.from('avaliacoes')
+        .select('nota, comentario, created_at').eq('prestador_id', id)
+        .order('created_at', { ascending: false }).limit(30);
+      if (avs && avs.length) {
+        box.innerHTML = `<h3>Avaliações (${avs.length})</h3>` + avs.map((a) => {
+          const estrelas = '★★★★★'.slice(0, a.nota) + '☆☆☆☆☆'.slice(0, 5 - a.nota);
+          const data = new Date(a.created_at).toLocaleDateString('pt-BR');
+          return `<div class="review">
+              <div class="review-top"><span class="review-stars">${estrelas}</span><small>${data}</small></div>
+              ${a.comentario ? `<p>${a.comentario.replace(/</g,'&lt;')}</p>` : ''}
+            </div>`;
+        }).join('');
+      } else {
+        box.innerHTML = `<h3>Avaliações</h3><p class="helper">Este prestador ainda não recebeu avaliações.</p>`;
+      }
 
       // WhatsApp também abre um chamado (silencioso)
       document.getElementById('btnWhats').addEventListener('click', async () => {
