@@ -234,10 +234,11 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Security-Policy',
     "default-src 'self'; " +
     "img-src 'self' data: https:; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; " +
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
-    "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; " +
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co; " +
+    "frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
 
   const u = new URL(req.url, `http://${req.headers.host}`);
   const p = u.pathname;

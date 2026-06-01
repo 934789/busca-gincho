@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0D0D0D" />
+  <title>Busca Guincho — Acompanhe seu guincho</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root { --ink:#0D0D0D; --yellow:#FFCC00; --green:#28A745; }
+    html, body { height:100%; font-family:'Poppins',sans-serif; background:var(--ink); }
+    #app { max-width:480px; margin:0 auto; height:100vh; position:relative; overflow:hidden; background:var(--ink); }
+
+    /* mapa */
+    #mapa { position:absolute; inset:0; z-index:1; }
+
+    /* barra superior de status */
+    .track-top {
+      position:absolute; top:0; left:0; right:0; z-index:1000;
+      background:linear-gradient(180deg, rgba(13,13,13,.96), rgba(13,13,13,.75) 80%, transparent);
+      color:#fff; padding:16px 18px 26px; display:flex; align-items:center; gap:13px;
+    }
+    .track-top .pulse { width:42px; height:42px; border-radius:50%; background:var(--yellow); color:var(--ink);
+      display:grid; place-items:center; font-size:19px; flex-shrink:0; animation:pulse 1.6s infinite; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,204,0,.5);} 70%{box-shadow:0 0 0 14px rgba(255,204,0,0);} 100%{box-shadow:0 0 0 0 rgba(255,204,0,0);} }
+    .track-top h1 { font-size:16px; font-weight:700; line-height:1.1; }
+    .track-top p { font-size:12px; color:#bdbdbd; margin-top:2px; }
+    .track-top .tag { margin-left:auto; background:rgba(40,167,69,.2); color:#5ce081; font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
+
+    /* card inferior do prestador */
+    .track-card {
+      position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
+      background:#fff; border-radius:22px; padding:16px; display:flex; align-items:center; gap:13px;
+      box-shadow:0 14px 40px rgba(0,0,0,.4);
+    }
+    .track-card img { width:54px; height:54px; border-radius:50%; object-fit:cover; background:#e6e8ec; }
+    .track-card .tc-info { flex:1; }
+    .track-card .tc-info strong { font-size:16px; color:var(--ink); }
+    .track-card .tc-info small { display:block; font-size:12px; color:#6e7682; margin-top:2px; }
+    .track-card a.zap { background:var(--yellow); color:var(--ink); width:50px; height:50px; border-radius:15px;
+      display:grid; place-items:center; font-size:22px; text-decoration:none; }
+
+    /* overlay de aviso */
+    .aviso { position:absolute; inset:0; z-index:2000; background:var(--ink); color:#fff; display:none;
+      flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; }
+    .aviso.show { display:flex; }
+    .aviso i { font-size:48px; color:var(--yellow); margin-bottom:16px; }
+    .aviso h2 { font-size:20px; margin-bottom:8px; }
+    .aviso p { color:#bdbdbd; font-size:14px; }
+
+    /* modal de avaliação */
+    .modal-avaliacao { position:absolute; inset:0; z-index:3000; background:rgba(13,13,13,.92); display:none;
+      align-items:center; justify-content:center; padding:22px; animation:fade .3s ease; }
+    .modal-avaliacao.show { display:flex; }
+    @keyframes fade { from{opacity:0;} to{opacity:1;} }
+    .av-card { background:#fff; border-radius:24px; padding:28px 22px; width:100%; max-width:400px; text-align:center; animation:up .35s ease; }
+    @keyframes up { from{transform:translateY(20px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+    .av-card .check { width:64px; height:64px; border-radius:50%; background:#eafaf0; color:var(--green); display:grid; place-items:center; font-size:30px; margin:0 auto 14px; }
+    .av-card h2 { font-size:19px; color:var(--ink); line-height:1.25; }
+    .av-card .sub { font-size:13px; color:#6e7682; margin-top:6px; }
+    .stars { display:flex; justify-content:center; gap:10px; margin:22px 0; }
+    .stars i { font-size:38px; color:#e2e4e8; cursor:pointer; transition:transform .1s, color .15s; }
+    .stars i:active { transform:scale(.85); }
+    .stars i.active { color:var(--yellow); }
+    .av-card textarea { width:100%; border:1.5px solid #ececf0; border-radius:14px; padding:13px; font-family:inherit;
+      font-size:14px; resize:none; outline:none; }
+    .av-card textarea:focus { border-color:var(--yellow); }
+    .btn-enviar { width:100%; background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px;
+      font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; transition:opacity .15s; }
+    .btn-enviar:disabled { opacity:.45; cursor:not-allowed; }
+    .av-obrigado { display:none; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="mapa"></div>
+
+    <div class="track-top" id="trackTop">
+      <div class="pulse"><i class="fa-solid fa-truck-pickup"></i></div>
+      <div>
+        <h1 id="topTitulo">Seu guincho está a caminho</h1>
+        <p id="topSub">Acompanhe a chegada em tempo real</p>
+      </div>
+      <span class="tag" id="topTag">AO VIVO</span>
+    </div>
+
+    <div class="track-card" id="trackCard" style="display:none">
+      <img id="cardFoto" src="" alt="">
+      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardBairro"></small></div>
+      <a class="zap" id="cardZap" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
+    </div>
+
+    <!-- aviso (erro / não configurado) -->
+    <div class="aviso" id="aviso">
+      <i class="fa-solid fa-circle-info"></i>
+      <h2 id="avisoTit">Carregando...</h2>
+      <p id="avisoMsg"></p>
+    </div>
+
+    <!-- modal de avaliação -->
+    <div class="modal-avaliacao" id="modalAval">
+      <div class="av-card" id="avForm">
+        <div class="check"><i class="fa-solid fa-flag-checkered"></i></div>
+        <h2 id="avPergunta">Como foi o atendimento?</h2>
+        <p class="sub">Sua avaliação ajuda outros motoristas.</p>
+        <div class="stars" id="stars">
+          <i class="fa-solid fa-star" data-v="1"></i>
+          <i class="fa-solid fa-star" data-v="2"></i>
+          <i class="fa-solid fa-star" data-v="3"></i>
+          <i class="fa-solid fa-star" data-v="4"></i>
+          <i class="fa-solid fa-star" data-v="5"></i>
+        </div>
+        <textarea id="avComentario" rows="3" placeholder="Deixe um comentário (opcional)"></textarea>
+        <button class="btn-enviar" id="btnEnviar" disabled>Enviar Avaliação</button>
+      </div>
+      <div class="av-card av-obrigado" id="avObrigado">
+        <div class="check"><i class="fa-solid fa-heart"></i></div>
+        <h2>Obrigado pela sua avaliação!</h2>
+        <p class="sub">Redirecionando para o início...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script>
+    const token = new URLSearchParams(location.search).get('t');
+    const elAviso = document.getElementById('aviso');
+    function mostrarAviso(tit, msg, icone='fa-circle-info') {
+      document.querySelector('.aviso i').className = 'fa-solid ' + icone;
+      document.getElementById('avisoTit').textContent = tit;
+      document.getElementById('avisoMsg').textContent = msg;
+      elAviso.classList.add('show');
+    }
+
+    let mapa, marcador, chamado, prestador, canal, notaSelecionada = 0;
+
+    const ICONE_GUINCHO = L.icon({
+      iconUrl: '/img/truck-marker.svg',
+      iconSize: [56, 56], iconAnchor: [28, 28], popupAnchor: [0, -28],
+    });
+
+    async function init() {
+      if (!token) return mostrarAviso('Link inválido', 'Este link de rastreio não tem um código válido.', 'fa-triangle-exclamation');
+      if (!window.sb) return mostrarAviso('Supabase não configurado', 'Cole a URL e a chave em js/supabase-config.js para ativar o rastreio.', 'fa-gear');
+
+      // busca o chamado pelo token
+      const { data, error } = await sb.from('chamados').select('*').eq('link_token', token).single();
+      if (error || !data) return mostrarAviso('Chamado não encontrado', 'Verifique o link enviado pelo motorista.', 'fa-triangle-exclamation');
+      chamado = data;
+
+      // dados do prestador (nome/foto para o card e a avaliação)
+      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,whatsapp').eq('id', chamado.prestador_id).single();
+      prestador = pr || { nome: 'Prestador' };
+      preencherCard();
+
+      // se já finalizou, vai direto pra avaliação
+      if (chamado.status === 'Finalizado') return desativarMapaEMostrarAvaliacao();
+
+      iniciarMapa();
+      escutarRealtime();
+    }
+
+    function preencherCard() {
+      document.getElementById('cardNome').textContent = prestador.nome;
+      document.getElementById('cardBairro').textContent = prestador.bairro || '';
+      document.getElementById('cardFoto').src = prestador.foto_url ||
+        ('https://ui-avatars.com/api/?name=' + encodeURIComponent(prestador.nome) + '&background=0D0D0D&color=FFCC00');
+      if (prestador.whatsapp)
+        document.getElementById('cardZap').href = 'https://wa.me/' + String(prestador.whatsapp).replace(/\D/g,'');
+      document.getElementById('trackCard').style.display = 'flex';
+    }
+
+    function iniciarMapa() {
+      const lat = chamado.latitude_atual_guincho || -22.9068;
+      const lng = chamado.longitude_atual_guincho || -43.1729;
+      mapa = L.map('mapa', { zoomControl: false }).setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 19,
+      }).addTo(mapa);
+      if (chamado.latitude_atual_guincho) marcador = L.marker([lat, lng], { icon: ICONE_GUINCHO }).addTo(mapa);
+    }
+
+    function escutarRealtime() {
+      canal = sb.channel('tracking-' + token)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chamados', filter: `link_token=eq.${token}` },
+          (payload) => {
+            const { latitude_atual_guincho, longitude_atual_guincho, status } = payload.new;
+            if (status === 'A Caminho' && latitude_atual_guincho) {
+              const c = [latitude_atual_guincho, longitude_atual_guincho];
+              if (!marcador) marcador = L.marker(c, { icon: ICONE_GUINCHO }).addTo(mapa);
+              else marcador.setLatLng(c);
+              mapa.panTo(c, { animate: true, duration: 1 });
+            } else if (status === 'Finalizado') {
+              if (canal) canal.unsubscribe();
+              desativarMapaEMostrarAvaliacao();
+            }
+          })
+        .subscribe();
+    }
+
+    /* ---------- AVALIAÇÃO ---------- */
+    function desativarMapaEMostrarAvaliacao() {
+      document.getElementById('mapa').style.display = 'none';
+      document.getElementById('trackTop').style.display = 'none';
+      document.getElementById('trackCard').style.display = 'none';
+      document.getElementById('avPergunta').textContent = `Como foi o atendimento de ${prestador.nome}?`;
+      document.getElementById('modalAval').classList.add('show');
+    }
+
+    // estrelas: hover + click
+    const stars = [...document.querySelectorAll('#stars i')];
+    function pintar(n) { stars.forEach((s, i) => s.classList.toggle('active', i < n)); }
+    stars.forEach((s) => {
+      s.addEventListener('mouseover', () => pintar(+s.dataset.v));
+      s.addEventListener('mouseout', () => pintar(notaSelecionada));
+      s.addEventListener('click', () => { notaSelecionada = +s.dataset.v; pintar(notaSelecionada); document.getElementById('btnEnviar').disabled = false; });
+    });
+
+    document.getElementById('btnEnviar').addEventListener('click', async () => {
+      if (!notaSelecionada) return;
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      const { error } = await sb.from('avaliacoes').insert({
+        prestador_id: chamado.prestador_id,
+        chamado_id: chamado.id,
+        nota: notaSelecionada,
+        comentario: document.getElementById('avComentario').value.trim() || null,
+      });
+      if (error) { btn.disabled = false; btn.textContent = 'Tentar novamente'; alert('Erro ao enviar: ' + error.message); return; }
+      document.getElementById('avForm').style.display = 'none';
+      document.getElementById('avObrigado').style.display = 'block';
+      setTimeout(() => { location.href = '/'; }, 2600);
+    });
+
+    init();
+  </script>
+</body>
+</html>

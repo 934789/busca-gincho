@@ -15,10 +15,13 @@ let userPos = null;
 function montarCard(p, i) {
   const node = tpl.content.cloneNode(true);
 
-  // avatar + nome (clique p/ perfil desabilitado por enquanto — reativar depois)
+  // avatar + nome -> abre o perfil detalhado do prestador
+  node.querySelector('.pc-avatar').href = '/perfil/' + p.id;
   node.querySelector('.avatar').src = p.foto_url ||
     'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.nome) + '&background=0A0A0A&color=ffc600&size=200';
-  node.querySelector('.provider-name').textContent = p.nome;
+  const nome = node.querySelector('.provider-name');
+  nome.textContent = p.nome;
+  nome.href = '/perfil/' + p.id;
 
   // meta: avaliação • distância • online
   node.querySelector('.m-rating').textContent = Number(p.avaliacao).toFixed(1).replace('.', ',');
