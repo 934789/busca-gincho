@@ -190,9 +190,19 @@
       await sb.from('prestadores').update({ online: on }).eq('id', PID);
     });
 
-    /* ---------- som ---------- */
+    /* ---------- sons ---------- */
     const somIniciar = new Audio('/audio/iniciar.mp3'); somIniciar.preload = 'auto';
+    const somCall = new Audio('/audio/call.mp3'); somCall.preload = 'auto';
     function tocarSom() { try { somIniciar.currentTime = 0; somIniciar.play().catch(()=>{}); } catch(e){} }
+    function tocarCall() { try { somCall.currentTime = 0; somCall.play().catch(()=>{}); } catch(e){} }
+    // desbloqueia o áudio no 1º toque/clique (navegadores bloqueiam autoplay sem interação)
+    let audioUnlocked = false;
+    function unlockAudio() {
+      if (audioUnlocked) return; audioUnlocked = true;
+      [somCall, somIniciar].forEach((a) => { const p = a.play(); if (p) p.then(() => { a.pause(); a.currentTime = 0; }).catch(()=>{}); });
+      document.removeEventListener('click', unlockAudio); document.removeEventListener('touchstart', unlockAudio);
+    }
+    document.addEventListener('click', unlockAudio); document.addEventListener('touchstart', unlockAudio);
 
     /* ---------- tracking GPS ---------- */
     let watchId = null, tokenAtivo = null;
@@ -312,7 +322,7 @@
       el.innerHTML = `
         <div style="font-family:Poppins,Arial,sans-serif;color:#111;padding:34px;background:#fff">
           <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:4px solid #FFCC00;padding-bottom:16px;margin-bottom:18px">
-            <img src="/img/logo3.png" style="height:54px" onerror="this.style.display='none'">
+            <img src="/img/logo_comprovante.png" style="height:56px" onerror="this.onerror=null;this.src='/img/logo3.png'">
             <div style="text-align:right">
               <div style="font-size:20px;font-weight:800">COMPROVANTE DE ATENDIMENTO</div>
               <div style="font-size:12px;color:#666">Busca Guincho · ${dt}</div>
@@ -351,11 +361,16 @@
           <p style="font-size:10.5px;color:#999;margin-top:18px;text-align:center">Documento gerado pela plataforma Busca Guincho. Apresente à sua seguradora para fins de reembolso.</p>
         </div>`;
       const nomeArq = `comprovante_${(c.placa_veiculo||'servico').replace(/\s/g,'')}.pdf`;
+      await new Promise((r) => setTimeout(r, 350)); // deixa o logo carregar antes de renderizar
       await html2pdf().set({ margin:0, filename:nomeArq, image:{type:'jpeg',quality:.96}, html2canvas:{scale:2, useCORS:true}, jsPDF:{unit:'mm', format:'a4', orientation:'portrait'} }).from(el.firstElementChild).save();
     }
 
     /* ---------- realtime ---------- */
-    sb.channel('painel-' + PID).on('postgres_changes', { event:'*', schema:'public', table:'chamados', filter:`prestador_id=eq.${PID}` }, () => carregarChamados()).subscribe();
+    sb.channel('painel-' + PID).on('postgres_changes', { event:'*', schema:'public', table:'chamados', filter:`prestador_id=eq.${PID}` },
+      (payload) => {
+        if (payload.eventType === 'INSERT') tocarCall(); // novo contato pelo WhatsApp -> toca notificação
+        carregarChamados();
+      }).subscribe();
 
     window.abrirModal = (id) => document.getElementById(id).classList.add('open');
     window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
