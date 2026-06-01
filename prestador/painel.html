@@ -3,30 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a1f3c" />
-  <title>BuscaGincho — Meu Painel</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Busca Guincho — Meu Painel</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .chamado-card { border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:11px; }
+    .chamado-card .cc-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+    .cc-top small { color:var(--text-soft); font-size:12px; }
+    .st-pill { font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
+    .st-Pendente   { background:#fff6d6; color:#9a7400; }
+    .st-A.st-Caminho, .st-ACaminho { background:#e0eeff; color:#1d6fe0; }
+    .st-Finalizado { background:#e0f7ea; color:#1f9d57; }
+    .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .cc-iniciar { background:var(--yellow); color:var(--ink); }
+    .cc-finalizar { background:var(--ink); color:#fff; }
+    .cc-link { background:#f4f5f7; border:1px dashed #cfd3da; border-radius:11px; padding:10px 12px; font-size:12px; color:var(--text); display:flex; gap:8px; align-items:center; margin-bottom:10px; word-break:break-all; }
+    .cc-link button { margin-left:auto; background:var(--ink); color:var(--yellow); border:none; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .live-dot { width:9px; height:9px; border-radius:50%; background:#1f9d57; display:inline-block; animation:blink 1.2s infinite; }
+    @keyframes blink { 50%{opacity:.3;} }
+  </style>
 </head>
 <body>
   <div class="dash">
     <header class="dash-header">
-      <img class="logo-img" src="../img/logo.png" alt="BuscaGincho" onerror="this.style.display='none'" />
+      <img class="logo-icon-img" src="/img/logo3.png" alt="Busca Guincho" onerror="this.style.display='none'" style="height:30px" />
       <h1>Meu Painel</h1>
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
     <!-- ESTATÍSTICAS -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-chart-line"></i> Minhas Estatísticas</h2>
+      <h2><i class="fa-solid fa-chart-line"></i> Resumo</h2>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-eye"></i></div><div class="stat-num" id="s_views">—</div><div class="stat-label">Visualizações do Perfil</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-brands fa-whatsapp"></i></div><div class="stat-num" id="s_whats">—</div><div class="stat-label">Cliques no WhatsApp</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-phone"></i></div><div class="stat-num" id="s_ligar">—</div><div class="stat-label">Cliques em Ligar</div></div>
-        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="s_aval">—</div><div class="stat-label">Avaliação Média</div></div>
-        <div class="stat-card accent" style="grid-column:1/-1"><div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div><div class="stat-num" id="s_total">—</div><div class="stat-label">Total de Contatos recebidos pela plataforma</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-bell"></i></div><div class="stat-num" id="s_total">—</div><div class="stat-label">Chamados recebidos</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-route"></i></div><div class="stat-num" id="s_caminho">—</div><div class="stat-label">A caminho agora</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div><div class="stat-num" id="s_fim">—</div><div class="stat-label">Finalizados</div></div>
+        <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="s_aval">—</div><div class="stat-label">Avaliação média</div></div>
       </div>
+    </section>
+
+    <!-- CHAMADOS RECENTES -->
+    <section class="dash-section">
+      <h2><i class="fa-solid fa-headset"></i> Chamados Recentes <span class="live-dot" title="Ao vivo"></span></h2>
+      <p class="helper" style="margin-bottom:12px">Ao combinar pelo WhatsApp, clique em <strong>Iniciar Deslocamento</strong> e envie o link de rastreio ao cliente.</p>
+      <div id="listaChamados"><p class="helper">Carregando...</p></div>
     </section>
 
     <!-- PERFIL -->
@@ -35,27 +57,28 @@
       <form id="perfilForm">
         <div class="field"><label>Nome de exibição</label><input type="text" id="nome" required></div>
         <div class="field"><label>WhatsApp (com DDD, só números)</label><input type="text" id="whatsapp" placeholder="5521987654321" required></div>
-        <div class="field"><label>Telefone para ligação</label><input type="text" id="telefone" placeholder="552133334444"></div>
-        <div class="field"><label>URL da foto de perfil</label><input type="url" id="foto_url" placeholder="https://..."></div>
+        <div class="field"><label>Telefone para ligação</label><input type="text" id="telefone"></div>
+        <div class="field"><label>URL da foto de perfil</label><input type="url" id="foto_url"></div>
+        <div class="field"><label>Bairro / base</label><input type="text" id="bairro" placeholder="Barra da Tijuca, RJ"></div>
         <div class="field"><label>Regiões que atende</label><textarea id="regioes" rows="2"></textarea></div>
-
         <h2 style="margin-top:8px"><i class="fa-solid fa-list-check"></i> Serviços que ofereço</h2>
         <div class="check-grid" id="servicosGrid"></div>
-
         <button type="submit" class="btn-primary" style="margin-top:18px">Salvar alterações</button>
         <p class="form-msg" id="msgPerfil"></p>
       </form>
     </section>
   </div>
 
-  <script src="../js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
   <script>
     const PID = sessionStorage.getItem('prestador_id');
-    if (!PID || !API.token('prestador')) location.href = 'login.html';
-    document.getElementById('btnSair').onclick = () => { sessionStorage.clear(); location.href = 'login.html'; };
+    if (!PID || !sb) location.href = 'login.html';
+    document.getElementById('btnSair').onclick = () => { pararTracking(); sessionStorage.clear(); location.href = 'login.html'; };
 
+    /* ---------- serviços ---------- */
     const grid = document.getElementById('servicosGrid');
-    API.SERVICOS.forEach((s) => {
+    SERVICOS.forEach((s) => {
       const lbl = document.createElement('label');
       lbl.className = 'check-item';
       lbl.innerHTML = `<input type="checkbox" data-key="${s.key}"><i class="fa-solid ${s.icon}"></i> ${s.label}`;
@@ -64,45 +87,118 @@
       grid.appendChild(lbl);
     });
 
+    /* ---------- perfil ---------- */
     async function carregarPerfil() {
-      const p = await API.prestador(PID);
+      const { data: p } = await sb.from('prestadores').select('*').eq('id', PID).single();
       if (!p) return;
-      nome.value = p.nome || ''; whatsapp.value = p.whatsapp || ''; telefone.value = p.telefone || '';
-      foto_url.value = p.foto_url || ''; regioes.value = p.atendimento_regioes || '';
-      API.SERVICOS.forEach((s) => {
-        const cb = grid.querySelector(`[data-key="${s.key}"]`);
-        cb.checked = !!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked);
-      });
+      nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||'';
+      foto_url.value=p.foto_url||''; bairro.value=p.bairro||''; regioes.value=p.atendimento_regioes||'';
+      SERVICOS.forEach((s) => { const cb=grid.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
     }
-
-    async function carregarStats() {
-      const st = await API.statsPrestador(PID);
-      if (!st) return;
-      s_views.textContent = st.views;
-      s_whats.textContent = st.clicks_whatsapp;
-      s_ligar.textContent = st.clicks_ligar;
-      s_aval.textContent  = Number(st.avaliacao).toFixed(1).replace('.', ',');
-      s_total.textContent = st.total_contatos;
-    }
-
     document.getElementById('perfilForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msgPerfil');
-      const patch = {
-        nome: nome.value.trim(),
-        whatsapp: whatsapp.value.replace(/\D/g, ''),
-        telefone: telefone.value.replace(/\D/g, ''),
-        foto_url: foto_url.value.trim(),
-        atendimento_regioes: regioes.value.trim(),
-      };
-      API.SERVICOS.forEach((s) => { patch[s.key] = grid.querySelector(`[data-key="${s.key}"]`).checked; });
-      const r = await API.salvarPerfil(PID, patch);
-      msg.className = 'form-msg ' + (r.ok ? 'ok' : 'error');
-      msg.textContent = r.ok ? '✓ Alterações salvas com sucesso!' : 'Erro ao salvar.';
+      const patch = { nome:nome.value.trim(), whatsapp:whatsapp.value.replace(/\D/g,''), telefone:telefone.value.replace(/\D/g,''),
+        foto_url:foto_url.value.trim(), bairro:bairro.value.trim(), atendimento_regioes:regioes.value.trim() };
+      SERVICOS.forEach((s) => { patch[s.key] = grid.querySelector(`[data-key="${s.key}"]`).checked; });
+      const { error } = await sb.from('prestadores').update(patch).eq('id', PID);
+      msg.className = 'form-msg ' + (error ? 'error' : 'ok');
+      msg.textContent = error ? ('Erro: ' + error.message) : '✓ Alterações salvas!';
     });
 
+    /* ---------- chamados + stats ---------- */
+    function stPillClass(s){ return 'st-' + s.replace(/\s/g,''); }
+    async function carregarChamados() {
+      const { data: chs, error } = await sb.from('chamados').select('*').eq('prestador_id', PID).order('created_at', { ascending:false }).limit(30);
+      const box = document.getElementById('listaChamados');
+      if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
+      const lista = chs || [];
+      // stats
+      document.getElementById('s_total').textContent = lista.length;
+      document.getElementById('s_caminho').textContent = lista.filter(c=>c.status==='A Caminho').length;
+      document.getElementById('s_fim').textContent = lista.filter(c=>c.status==='Finalizado').length;
+
+      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado ainda. Quando um cliente clicar no seu WhatsApp, aparece aqui na hora.</p>'; return; }
+      box.innerHTML = '';
+      lista.forEach((c) => {
+        const div = document.createElement('div');
+        div.className = 'chamado-card';
+        const hora = new Date(c.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+        let acao = '';
+        if (c.status === 'Pendente') {
+          acao = `<button class="cc-btn cc-iniciar" data-act="iniciar"><i class="fa-solid fa-location-arrow"></i> Iniciar Deslocamento</button>`;
+        } else if (c.status === 'A Caminho') {
+          const link = `${location.origin}/rastreio.html?t=${c.link_token}`;
+          acao = `
+            <div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
+            <button class="cc-btn cc-finalizar" data-act="finalizar"><i class="fa-solid fa-flag-checkered"></i> Finalizar Atendimento</button>`;
+        } else {
+          acao = `<p class="helper" style="margin:0">Atendimento concluído.</p>`;
+        }
+        div.innerHTML = `
+          <div class="cc-top">
+            <div><strong>${c.servico_solicitado||'Chamado'}</strong><br><small>${hora}</small></div>
+            <span class="st-pill ${stPillClass(c.status)}">${c.status==='A Caminho'?'A caminho':c.status}</span>
+          </div>${acao}`;
+        const btn = div.querySelector('[data-act]');
+        div.querySelectorAll('[data-act]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const act = b.dataset.act;
+            if (act === 'iniciar') iniciarDeslocamento(c);
+            else if (act === 'finalizar') finalizarAtendimento(c);
+            else if (act === 'copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
+          });
+        });
+        box.appendChild(div);
+      });
+    }
+
+    /* ---------- tracking GPS ---------- */
+    let watchId = null, tokenAtivo = null;
+    function pararTracking(){ if (watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; tokenAtivo=null; } }
+
+    async function iniciarDeslocamento(c) {
+      if (!navigator.geolocation) { alert('GPS não suportado neste dispositivo.'); return; }
+      pararTracking(); // garante um tracking por vez
+      tokenAtivo = c.link_token;
+      // status -> A Caminho + posição inicial
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        await sb.from('chamados').update({
+          status: 'A Caminho',
+          latitude_atual_guincho: pos.coords.latitude,
+          longitude_atual_guincho: pos.coords.longitude,
+        }).eq('id', c.id);
+        carregarChamados();
+        // começa a transmitir
+        watchId = navigator.geolocation.watchPosition(async (p) => {
+          await sb.from('chamados').update({
+            latitude_atual_guincho: p.coords.latitude,
+            longitude_atual_guincho: p.coords.longitude,
+          }).eq('link_token', tokenAtivo);
+        }, (err) => console.error('GPS:', err), { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+      }, (err) => {
+        alert('Não foi possível obter sua localização. Ative o GPS e permita o acesso.');
+        console.error(err);
+      }, { enableHighAccuracy:true, timeout:10000 });
+    }
+
+    async function finalizarAtendimento(c) {
+      pararTracking();
+      await sb.from('chamados').update({ status: 'Finalizado' }).eq('id', c.id);
+      carregarChamados();
+    }
+
+    /* ---------- realtime: novos chamados aparecem na hora ---------- */
+    function escutarChamados() {
+      sb.channel('painel-' + PID)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados', filter: `prestador_id=eq.${PID}` },
+            () => carregarChamados())
+        .subscribe();
+    }
+
     carregarPerfil();
-    carregarStats();
+    carregarChamados();
+    escutarChamados();
   </script>
 </body>
 </html>

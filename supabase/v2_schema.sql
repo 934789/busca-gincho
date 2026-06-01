@@ -108,6 +108,11 @@ ALTER TABLE avaliacoes  ENABLE ROW LEVEL SECURITY;
 -- Público lê só prestadores ativos
 CREATE POLICY "ler prestadores ativos" ON prestadores
   FOR SELECT USING (ativo = true);
+-- Protótipo: permite o prestador editar o perfil e o admin gerenciar.
+-- ⚠️ Em produção, restrinja a usuários autenticados (Supabase Auth).
+CREATE POLICY "gerenciar prestador insert" ON prestadores FOR INSERT WITH CHECK (true);
+CREATE POLICY "gerenciar prestador update" ON prestadores FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "gerenciar prestador delete" ON prestadores FOR DELETE USING (true);
 
 -- Cliente cria chamado (clique no WhatsApp)
 CREATE POLICY "criar chamado" ON chamados

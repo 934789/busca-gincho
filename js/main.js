@@ -1,6 +1,6 @@
 /* ============================================================
-   PÁGINA PRINCIPAL — BuscaGincho (cliente) — versão premium
-   Localização automática + lista simplificada + tracking.
+   HOME — Busca Guincho V2 (Supabase)
+   Lista prestadores do Supabase + cria chamado no clique do WhatsApp.
    ============================================================ */
 
 const feed       = document.getElementById('feed');
@@ -15,7 +15,7 @@ let userPos = null;
 function montarCard(p, i) {
   const node = tpl.content.cloneNode(true);
 
-  // avatar + nome -> abre o perfil detalhado do prestador
+  // avatar + nome -> perfil
   node.querySelector('.pc-avatar').href = '/perfil/' + p.id;
   node.querySelector('.avatar').src = p.foto_url ||
     'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.nome) + '&background=0A0A0A&color=ffc600&size=200';
@@ -23,45 +23,78 @@ function montarCard(p, i) {
   nome.textContent = p.nome;
   nome.href = '/perfil/' + p.id;
 
-  // meta: avaliação • distância • online
+  // meta
   node.querySelector('.m-rating').textContent = Number(p.avaliacao).toFixed(1).replace('.', ',');
-  // distância/ETA amigáveis (demo): mais próximo primeiro
-  const km = 3 + i;
-  const eta = 8 + i * 2;
+  const km = 3 + i, eta = 8 + i * 2;
   node.querySelector('.m-dist').textContent = km + ' km';
   node.querySelector('.eta strong').textContent = '~' + eta + ' min';
+  node.querySelector('.m-bairro').textContent = p.bairro || ((p.atendimento_regioes || '').split(',')[0].trim() + ', RJ');
 
-  // bairro
-  const bairro = p.bairro || ((p.atendimento_regioes || '').split(',')[0].trim() + ', RJ');
-  node.querySelector('.m-bairro').textContent = bairro;
+  // ação Ligar (tel direto)
+  node.querySelector('.btn-call').href = 'tel:+' + String(p.telefone || p.whatsapp).replace(/\D/g, '');
 
-  // ações (tracking via backend)
-  node.querySelector('.btn-whats').href = '/chamar/' + p.id;
-  node.querySelector('.btn-call').href = '/ligar/' + p.id;
+  // ação WhatsApp: cria chamado 'Pendente' (silencioso) + abre wa.me
+  const whats = node.querySelector('.btn-whats');
+  whats.href = 'https://wa.me/' + String(p.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(WHATSAPP_MSG);
+  whats.addEventListener('click', () => abrirChamado(p)); // fire-and-forget; o link navega normalmente
 
   return node;
+}
+
+async function abrirChamado(p) {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('chamados')
+      .insert({ prestador_id: p.id, status: 'Pendente', servico_solicitado: 'Contato WhatsApp' })
+      .select('id, link_token').single();
+    if (!error && data) {
+      localStorage.setItem('bg_chamado', JSON.stringify({
+        id: data.id, token: data.link_token, prestador: p.nome, ts: Date.now(),
+      }));
+    }
+  } catch (e) { console.error('Erro ao abrir chamado:', e); }
 }
 
 async function render() {
   loading.style.display = 'block';
   feed.querySelectorAll('.provider-card, .empty').forEach((el) => el.remove());
 
-  const lista = await API.listar({
-    lat: userPos?.lat, lng: userPos?.lng, regiao: regiaoSel.value || null,
-  });
-
-  loading.style.display = 'none';
-  if (!lista.length) {
-    const div = document.createElement('div');
-    div.className = 'empty';
-    div.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><br>Nenhum guincho encontrado para esta região.';
-    feed.appendChild(div);
+  if (!sb) {
+    loading.style.display = 'none';
+    mostrarVazio('Supabase não configurado. Preencha js/supabase-config.js.');
     return;
   }
+
+  let q = sb.from('prestadores').select('*').eq('ativo', true);
+  const { data, error } = await q;
+  loading.style.display = 'none';
+
+  if (error) {
+    mostrarVazio('Banco ainda não configurado. Rode o supabase/v2_schema.sql no Supabase.');
+    console.error(error);
+    return;
+  }
+
+  let lista = data || [];
+  const regiao = regiaoSel.value;
+  if (regiao) lista = lista.filter((x) => (x.atendimento_regioes || '').toLowerCase().includes(regiao.toLowerCase()));
+  if (userPos) {
+    lista.forEach((x) => { x._dist = distanciaKm(userPos.lat, userPos.lng, +x.latitude, +x.longitude); });
+    lista.sort((a, b) => a._dist - b._dist);
+  }
+
+  if (!lista.length) { mostrarVazio('Nenhum guincho encontrado para esta região.'); return; }
   lista.forEach((p, i) => feed.appendChild(montarCard(p, i)));
 }
 
-/* ---------- localização automática (sem botão) ---------- */
+function mostrarVazio(msg) {
+  const div = document.createElement('div');
+  div.className = 'empty';
+  div.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><br>' + msg;
+  feed.appendChild(div);
+}
+
+/* ---------- localização automática ---------- */
 function autoLocalizar() {
   if (!navigator.geolocation) { searchStatus.innerHTML = '<i class="fa-solid fa-location-dot"></i> Selecione sua região'; return; }
   navigator.geolocation.getCurrentPosition(
@@ -85,15 +118,14 @@ document.getElementById('verTodos')?.addEventListener('click', (e) => {
   document.getElementById('feed').scrollIntoView({ behavior: 'smooth' });
 });
 
-/* ---------- menu lateral (hambúrguer) ---------- */
+/* ---------- menu lateral ---------- */
 const drawer = document.getElementById('drawer');
 const drawerBg = document.getElementById('drawerBg');
-function abrirDrawer() { drawer.classList.add('open'); drawerBg.classList.add('open'); document.body.style.overflow = 'hidden'; }
-function fecharDrawer() { drawer.classList.remove('open'); drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
-document.getElementById('btnMenu').addEventListener('click', abrirDrawer);
+document.getElementById('btnMenu').addEventListener('click', () => { drawer.classList.add('open'); drawerBg.classList.add('open'); document.body.style.overflow = 'hidden'; });
 document.getElementById('drawerClose').addEventListener('click', fecharDrawer);
 drawerBg.addEventListener('click', fecharDrawer);
+function fecharDrawer() { drawer.classList.remove('open'); drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
 
 /* ---------- init ---------- */
-render();          // mostra a lista de imediato
-autoLocalizar();   // tenta ordenar por proximidade automaticamente
+render();
+autoLocalizar();
