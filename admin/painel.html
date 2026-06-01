@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a1f3c" />
-  <title>BuscaGincho — Administração</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Busca Guincho — Administração</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="dash">
     <header class="dash-header">
-      <img class="logo-img" src="../img/logo.png" alt="BuscaGincho" onerror="this.style.display='none'" />
+      <img class="logo-icon-img" src="/img/logo3.png" alt="Busca Guincho" onerror="this.style.display='none'" style="height:30px" />
       <h1>Administração</h1>
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
@@ -30,17 +30,17 @@
           <div class="field"><label>WhatsApp</label><input type="text" id="c_whats" placeholder="5521987654321" required></div>
           <div class="field"><label>Telefone</label><input type="text" id="c_tel" placeholder="552133334444"></div>
         </div>
+        <div class="field"><label>Bairro / base</label><input type="text" id="c_bairro" placeholder="Barra da Tijuca, RJ"></div>
         <div class="field"><label>URL da foto</label><input type="url" id="c_foto" placeholder="https://..."></div>
+        <div class="field"><label>URL do banner (capa)</label><input type="url" id="c_banner" placeholder="https://..."></div>
         <div class="field"><label>Regiões atendidas</label><input type="text" id="c_regioes" value="Centro, Zona Sul, Zona Norte, Barra e Região"></div>
         <div class="grid-2">
           <div class="field"><label>Latitude da base</label><input type="text" id="c_lat" placeholder="-22.9068" required></div>
           <div class="field"><label>Longitude da base</label><input type="text" id="c_lng" placeholder="-43.1729" required></div>
         </div>
-        <p class="helper" style="margin-bottom:12px">Pegue as coordenadas no Google Maps (botão direito na base → copiar lat/long).</p>
-
+        <p class="helper" style="margin-bottom:12px">Coordenadas: Google Maps → botão direito na base → copiar lat/long.</p>
         <h2 style="margin:6px 0 12px"><i class="fa-solid fa-list-check"></i> Serviços prestados</h2>
         <div class="check-grid" id="cadServicos"></div>
-
         <button type="submit" class="btn-primary" style="margin-top:18px">Cadastrar prestador</button>
         <p class="form-msg" id="msgCad"></p>
       </form>
@@ -49,12 +49,12 @@
     <!-- GESTÃO -->
     <section class="dash-section">
       <h2><i class="fa-solid fa-users-gear"></i> Prestadores cadastrados</h2>
-      <p class="helper" style="margin-bottom:12px">Editar, excluir, ver contatos e ativar/ocultar (conforme a mensalidade).</p>
+      <p class="helper" style="margin-bottom:12px">Editar, excluir, ver métricas e ativar/ocultar (mensalidade).</p>
       <div id="lista"><p class="helper">Carregando...</p></div>
     </section>
   </div>
 
-  <!-- MODAL: editar -->
+  <!-- MODAL EDITAR -->
   <div class="modal-bg" id="modalEditar">
     <div class="modal">
       <h3><span><i class="fa-solid fa-pen"></i> Editar prestador</span><span class="x" onclick="fecharModal('modalEditar')">✕</span></h3>
@@ -65,17 +65,15 @@
           <div class="field"><label>WhatsApp</label><input type="text" id="e_whats" required></div>
           <div class="field"><label>Telefone</label><input type="text" id="e_tel"></div>
         </div>
+        <div class="field"><label>Bairro</label><input type="text" id="e_bairro"></div>
         <div class="field"><label>URL da foto</label><input type="url" id="e_foto"></div>
+        <div class="field"><label>URL do banner</label><input type="url" id="e_banner"></div>
         <div class="field"><label>Regiões</label><input type="text" id="e_regioes"></div>
         <div class="grid-2">
           <div class="field"><label>Latitude</label><input type="text" id="e_lat"></div>
           <div class="field"><label>Longitude</label><input type="text" id="e_lng"></div>
         </div>
-        <div class="grid-2">
-          <div class="field"><label>Avaliação</label><input type="text" id="e_aval"></div>
-          <div class="field"><label>Nº avaliações</label><input type="text" id="e_totaval"></div>
-        </div>
-        <div class="field"><label>Nova senha (em branco = manter a atual)</label><input type="text" id="e_senha" placeholder="••••••• (não exibida por segurança)"></div>
+        <div class="field"><label>Nova senha (em branco = manter)</label><input type="text" id="e_senha" placeholder="•••••••"></div>
         <div class="check-grid" id="editServicos"></div>
         <button type="submit" class="btn-primary" style="margin-top:16px">Salvar</button>
         <p class="form-msg" id="msgEdit"></p>
@@ -83,40 +81,31 @@
     </div>
   </div>
 
-  <!-- MODAL: contatos -->
+  <!-- MODAL MÉTRICAS -->
   <div class="modal-bg" id="modalContatos">
     <div class="modal">
-      <h3><span><i class="fa-solid fa-address-book"></i> Contatos <span id="contNome"></span></span><span class="x" onclick="fecharModal('modalContatos')">✕</span></h3>
-
+      <h3><span><i class="fa-solid fa-chart-simple"></i> Métricas <span id="contNome"></span></span><span class="x" onclick="fecharModal('modalContatos')">✕</span></h3>
       <div class="filtro-bar">
         <div class="field"><label>De</label><input type="date" id="f_de"></div>
         <div class="field"><label>Até</label><input type="date" id="f_ate"></div>
         <button class="btn-filtro" id="btnFiltrar"><i class="fa-solid fa-filter"></i></button>
       </div>
-      <div class="field" style="margin-bottom:12px">
-        <label>Tipo de contato</label>
-        <select id="f_tipo">
-          <option value="">Todos</option>
-          <option value="whatsapp">Cliques no WhatsApp</option>
-          <option value="ligar">Cliques em Ligar</option>
-          <option value="view">Visualizações</option>
-        </select>
-      </div>
-
       <div class="stats-grid" id="contStats" style="margin-bottom:14px"></div>
-      <h4 style="color:var(--ink);font-size:14px;margin-bottom:8px">Histórico no período</h4>
+      <h4 style="color:var(--ink);font-size:14px;margin-bottom:8px">Chamados no período</h4>
       <div id="contLista"></div>
     </div>
   </div>
 
-  <script src="../js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
   <script>
-    if (!API.token('admin')) location.href = 'login.html';
+    if (!sessionStorage.getItem('admin_ok')) location.href = 'login.html';
+    if (!sb) alert('Supabase não conectado. Recarregue a página.');
     document.getElementById('btnSair').onclick = () => { sessionStorage.clear(); location.href = 'login.html'; };
 
     function montarServicos(container) {
       container.innerHTML = '';
-      API.SERVICOS.forEach((s) => {
+      SERVICOS.forEach((s) => {
         const lbl = document.createElement('label');
         lbl.className = 'check-item';
         lbl.innerHTML = `<input type="checkbox" data-key="${s.key}"><i class="fa-solid ${s.icon}"></i> ${s.label}`;
@@ -125,65 +114,53 @@
         container.appendChild(lbl);
       });
     }
-    const cadServ = document.getElementById('cadServicos');
-    const editServ = document.getElementById('editServicos');
+    const cadServ = document.getElementById('cadServicos'), editServ = document.getElementById('editServicos');
     montarServicos(cadServ); montarServicos(editServ);
-
-    function lerServicos(container) {
-      const o = {};
-      API.SERVICOS.forEach((s) => { o[s.key] = container.querySelector(`[data-key="${s.key}"]`).checked; });
-      return o;
-    }
+    function lerServicos(c){ const o={}; SERVICOS.forEach((s)=>o[s.key]=c.querySelector(`[data-key="${s.key}"]`).checked); return o; }
 
     /* ---------- cadastrar ---------- */
     document.getElementById('cadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msgCad');
-      const dados = {
-        nome: c_nome.value.trim(), email: c_email.value.trim(), senha_provisoria: c_senha.value,
-        whatsapp: c_whats.value, telefone: c_tel.value, foto_url: c_foto.value.trim(),
-        atendimento_regioes: c_regioes.value.trim(), latitude: c_lat.value, longitude: c_lng.value,
-        ...lerServicos(cadServ),
+      const novo = {
+        nome:c_nome.value.trim(), email:c_email.value.trim().toLowerCase(), senha_provisoria:c_senha.value,
+        whatsapp:c_whats.value.replace(/\D/g,''), telefone:c_tel.value.replace(/\D/g,''),
+        bairro:c_bairro.value.trim(), foto_url:c_foto.value.trim(), banner_url:c_banner.value.trim(),
+        atendimento_regioes:c_regioes.value.trim(),
+        latitude:parseFloat(c_lat.value), longitude:parseFloat(c_lng.value), ativo:true, ...lerServicos(cadServ),
       };
-      const r = await API.adminCriar(dados);
-      msg.className = 'form-msg ' + (r.ok ? 'ok' : 'error');
-      msg.textContent = r.ok ? '✓ Prestador cadastrado!' : ('Erro: ' + (r.data.error || ''));
-      if (r.ok) { e.target.reset(); c_senha.value='troque123'; cadServ.querySelectorAll('.check-item').forEach(el=>el.classList.remove('on')); listar(); }
+      const { error } = await sb.from('prestadores').insert(novo);
+      msg.className = 'form-msg ' + (error ? 'error' : 'ok');
+      msg.textContent = error ? ('Erro: ' + error.message) : '✓ Prestador cadastrado!';
+      if (!error) { e.target.reset(); c_senha.value='troque123'; cadServ.querySelectorAll('.check-item').forEach(el=>el.classList.remove('on')); listar(); }
     });
 
     /* ---------- listar ---------- */
-    let cache = [];
     async function listar() {
       const box = document.getElementById('lista');
-      cache = await API.adminListar();
-      if (!cache.length) { box.innerHTML = '<p class="helper">Nenhum prestador cadastrado.</p>'; return; }
+      const { data, error } = await sb.from('prestadores').select('*').order('created_at', { ascending:false });
+      if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
+      if (!data.length) { box.innerHTML = '<p class="helper">Nenhum prestador cadastrado.</p>'; return; }
       box.innerHTML = '';
-      cache.forEach((p) => {
+      data.forEach((p) => {
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
-          <img src="${p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0a1f3c&color=fff'}" alt="">
+          <img src="${p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffc600'}" alt="">
           <div class="ar-info">
-            <strong>${p.nome}</strong><small>${p.whatsapp}</small>
-            <div class="ar-stats">
-              <span><i class="fa-solid fa-eye"></i> ${p.views}</span>
-              <span><i class="fa-brands fa-whatsapp"></i> ${p.clicks_whatsapp}</span>
-              <span><i class="fa-solid fa-phone"></i> ${p.clicks_ligar}</span>
-            </div>
+            <strong>${p.nome}</strong><small>${p.whatsapp} · ${p.bairro||''}</small>
+            <div class="ar-stats"><span><i class="fa-solid fa-star"></i> ${Number(p.avaliacao||5).toFixed(1)}</span><span>${p.total_avaliacoes||0} aval.</span></div>
           </div>
           <div class="ar-buttons">
-            <button class="mini-btn ${p.ativo ? 'toggle-on' : 'toggle-off'}" data-act="toggle">
-              ${p.ativo ? '<i class="fa-solid fa-eye"></i> Ativo' : '<i class="fa-solid fa-eye-slash"></i> Oculto'}</button>
-            <button class="mini-btn mb-contatos" data-act="contatos"><i class="fa-solid fa-address-book"></i></button>
+            <button class="mini-btn ${p.ativo ? 'toggle-on' : 'toggle-off'}" data-act="toggle">${p.ativo ? '<i class="fa-solid fa-eye"></i> Ativo' : '<i class="fa-solid fa-eye-slash"></i> Oculto'}</button>
+            <button class="mini-btn mb-contatos" data-act="metricas"><i class="fa-solid fa-chart-simple"></i></button>
             <button class="mini-btn mb-edit" data-act="editar"><i class="fa-solid fa-pen"></i></button>
             <button class="mini-btn mb-del" data-act="excluir"><i class="fa-solid fa-trash"></i></button>
           </div>`;
-        row.querySelector('[data-act="toggle"]').onclick = async () => { await API.adminAtivo(p.id, !p.ativo); listar(); };
-        row.querySelector('[data-act="excluir"]').onclick = async () => {
-          if (confirm(`Excluir o anúncio de ${p.nome}? Esta ação não pode ser desfeita.`)) { await API.adminExcluir(p.id); listar(); }
-        };
+        row.querySelector('[data-act="toggle"]').onclick = async () => { await sb.from('prestadores').update({ ativo: !p.ativo }).eq('id', p.id); listar(); };
+        row.querySelector('[data-act="excluir"]').onclick = async () => { if (confirm(`Excluir ${p.nome}? Isso remove também os chamados/avaliações dele.`)) { await sb.from('prestadores').delete().eq('id', p.id); listar(); } };
         row.querySelector('[data-act="editar"]').onclick = () => abrirEditar(p);
-        row.querySelector('[data-act="contatos"]').onclick = () => abrirContatos(p);
+        row.querySelector('[data-act="metricas"]').onclick = () => abrirMetricas(p);
         box.appendChild(row);
       });
     }
@@ -191,62 +168,52 @@
     /* ---------- editar ---------- */
     function abrirEditar(p) {
       e_id.value=p.id; e_nome.value=p.nome; e_whats.value=p.whatsapp; e_tel.value=p.telefone||'';
-      e_foto.value=p.foto_url||''; e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude;
-      e_aval.value=p.avaliacao; e_totaval.value=p.total_avaliacoes; e_senha.value=p.senha_provisoria||'';
-      API.SERVICOS.forEach((s) => {
-        const cb = editServ.querySelector(`[data-key="${s.key}"]`);
-        cb.checked = !!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked);
-      });
+      e_bairro.value=p.bairro||''; e_foto.value=p.foto_url||''; e_banner.value=p.banner_url||'';
+      e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_senha.value='';
+      SERVICOS.forEach((s) => { const cb=editServ.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
       abrirModal('modalEditar');
     }
     document.getElementById('editForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('msgEdit');
-      const patch = {
-        nome:e_nome.value.trim(), whatsapp:e_whats.value.replace(/\D/g,''), telefone:e_tel.value.replace(/\D/g,''),
-        foto_url:e_foto.value.trim(), atendimento_regioes:e_regioes.value.trim(),
-        latitude:parseFloat(e_lat.value), longitude:parseFloat(e_lng.value),
-        avaliacao:parseFloat(e_aval.value), total_avaliacoes:parseInt(e_totaval.value)||1,
-        senha_provisoria:e_senha.value, ...lerServicos(editServ),
-      };
-      const r = await API.adminEditar(e_id.value, patch);
-      msg.className = 'form-msg ' + (r.ok ? 'ok' : 'error');
-      msg.textContent = r.ok ? '✓ Salvo!' : 'Erro ao salvar.';
-      if (r.ok) { setTimeout(()=>{ fecharModal('modalEditar'); listar(); }, 500); }
+      const patch = { nome:e_nome.value.trim(), whatsapp:e_whats.value.replace(/\D/g,''), telefone:e_tel.value.replace(/\D/g,''),
+        bairro:e_bairro.value.trim(), foto_url:e_foto.value.trim(), banner_url:e_banner.value.trim(), atendimento_regioes:e_regioes.value.trim(),
+        latitude:parseFloat(e_lat.value), longitude:parseFloat(e_lng.value), ...lerServicos(editServ) };
+      if (e_senha.value.trim()) patch.senha_provisoria = e_senha.value.trim();
+      const { error } = await sb.from('prestadores').update(patch).eq('id', e_id.value);
+      msg.className = 'form-msg ' + (error ? 'error' : 'ok');
+      msg.textContent = error ? ('Erro: '+error.message) : '✓ Salvo!';
+      if (!error) setTimeout(()=>{ fecharModal('modalEditar'); listar(); }, 500);
     });
 
-    /* ---------- contatos (com filtro por data/tipo) ---------- */
-    let contatoAtual = null;
-    async function abrirContatos(p) {
-      contatoAtual = p;
-      document.getElementById('contNome').textContent = '— ' + p.nome;
-      f_de.value = ''; f_ate.value = ''; f_tipo.value = '';
-      await renderContatos();
-      abrirModal('modalContatos');
-    }
-    async function renderContatos() {
-      if (!contatoAtual) return;
-      const data = await API.adminContatos(contatoAtual.id, { de: f_de.value, ate: f_ate.value, tipo: f_tipo.value });
-      const c = data?.contagem || { view:0, whatsapp:0, ligar:0, total:0 };
-      const periodo = (f_de.value || f_ate.value) ? ' no período' : ' (total)';
+    /* ---------- métricas (chamados por período) ---------- */
+    let metricaP = null;
+    async function abrirMetricas(p){ metricaP = p; document.getElementById('contNome').textContent='— '+p.nome; f_de.value=''; f_ate.value=''; await renderMetricas(); abrirModal('modalContatos'); }
+    async function renderMetricas() {
+      if (!metricaP) return;
+      let q = sb.from('chamados').select('*').eq('prestador_id', metricaP.id).order('created_at', { ascending:false });
+      if (f_de.value)  q = q.gte('created_at', f_de.value + 'T00:00:00');
+      if (f_ate.value) q = q.lte('created_at', f_ate.value + 'T23:59:59');
+      const { data: chs } = await q;
+      const lista = chs || [];
+      const total = lista.length, caminho = lista.filter(c=>c.status==='A Caminho').length, fim = lista.filter(c=>c.status==='Finalizado').length;
       document.getElementById('contStats').innerHTML = `
-        <div class="stat-card"><div class="stat-num">${c.view}</div><div class="stat-label">Visualizações${periodo}</div></div>
-        <div class="stat-card"><div class="stat-num">${c.whatsapp}</div><div class="stat-label">Cliques WhatsApp</div></div>
-        <div class="stat-card"><div class="stat-num">${c.ligar}</div><div class="stat-label">Cliques Ligar</div></div>
-        <div class="stat-card accent"><div class="stat-num">${c.total}</div><div class="stat-label">Total de contatos</div></div>`;
-      const lista = document.getElementById('contLista');
-      const ev = data?.eventos || [];
-      const nomes = { view:'Visualização', whatsapp:'WhatsApp', ligar:'Ligação' };
-      lista.innerHTML = ev.length ? ev.map((c) => `
+        <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Chamados</div></div>
+        <div class="stat-card"><div class="stat-num">${caminho}</div><div class="stat-label">A caminho</div></div>
+        <div class="stat-card"><div class="stat-num">${fim}</div><div class="stat-label">Finalizados</div></div>
+        <div class="stat-card accent"><div class="stat-num">${Number(metricaP.avaliacao||5).toFixed(1)}</div><div class="stat-label">Avaliação</div></div>`;
+      const box = document.getElementById('contLista');
+      const nomes = { 'Pendente':'st-Pendente', 'A Caminho':'st-ACaminho', 'Finalizado':'st-Finalizado' };
+      box.innerHTML = lista.length ? lista.slice(0,50).map((c) => `
         <div class="evento-item">
-          <span class="evento-tipo et-${c.tipo}">${nomes[c.tipo]||c.tipo}</span>
-          <span>${c.ip || '—'}</span>
-          <span>${new Date(c.created_at).toLocaleString('pt-BR')}</span>
-        </div>`).join('') : '<p class="helper">Nenhum contato neste período/tipo.</p>';
+          <span class="evento-tipo">${c.servico_solicitado||'Chamado'}</span>
+          <span>${c.status}</span>
+          <span>${new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+        </div>`).join('') : '<p class="helper">Nenhum chamado neste período.</p>';
     }
-    document.getElementById('btnFiltrar').addEventListener('click', renderContatos);
-    document.getElementById('f_tipo').addEventListener('change', renderContatos);
+    document.getElementById('btnFiltrar').addEventListener('click', renderMetricas);
 
+    /* ---------- modais ---------- */
     window.abrirModal = (id) => document.getElementById(id).classList.add('open');
     window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
     document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));

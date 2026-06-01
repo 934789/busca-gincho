@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a1f3c" />
-  <title>BuscaGincho — Administração</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Busca Guincho — Administração</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="auth-page">
     <div class="auth-logo">
-      <img class="logo-img" src="../img/logo.png" alt="BuscaGincho"
+      <img class="logo-icon-img" src="/img/logo3.png" alt="Busca Guincho"
            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-      <h1 style="display:none">BUSCA<span>GINCHO</span></h1>
+      <h1 style="display:none">Busca<span>Guincho</span></h1>
       <p><i class="fa-solid fa-crown" style="color:var(--yellow)"></i> Painel Administrativo</p>
     </div>
 
@@ -28,17 +28,20 @@
       </form>
       <p class="helper" style="margin-top:14px">Demo: <strong>admin</strong> / <strong>admin</strong></p>
     </div>
-    <p class="auth-link"><a href="../index.html">← Voltar ao site</a></p>
+    <p class="auth-link"><a href="/">← Voltar ao site</a></p>
   </div>
 
-  <script src="../js/api.js"></script>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    // ⚠️ Gate de protótipo (client-side). A proteção real dos dados é via RLS do Supabase.
+    // Em produção, trocar por Supabase Auth.
+    const ADMIN_USER = 'admin', ADMIN_PASS = 'admin';
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg');
-      const r = await API.loginAdmin(user.value.trim(), pass.value);
-      if (r.ok) location.href = 'painel.html';
-      else { msg.className = 'form-msg error'; msg.textContent = 'Credenciais inválidas.'; }
+      if (user.value.trim() === ADMIN_USER && pass.value === ADMIN_PASS) {
+        sessionStorage.setItem('admin_ok', '1');
+        location.href = 'painel.html';
+      } else { msg.className = 'form-msg error'; msg.textContent = 'Credenciais inválidas.'; }
     });
   </script>
 </body>

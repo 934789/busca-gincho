@@ -22,90 +22,100 @@
     const id = location.pathname.split('/').pop();
     const box = document.getElementById('conteudo');
 
+    function erro(msg) {
+      box.innerHTML = '<div class="empty" style="padding:60px 24px">'
+        + '<i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:#999"></i><br><br>'
+        + msg + '<br><br><a href="/" class="back-btn" style="display:inline-flex">← Voltar ao início</a></div>';
+    }
+
     (async () => {
-      if (!sb) { box.innerHTML = '<div class="empty" style="padding:60px 0">Supabase não configurado.</div>'; return; }
-      const { data: p, error } = await sb.from('prestadores').select('*').eq('id', id).single();
-      if (error || !p) { box.innerHTML = '<div class="empty" style="padding:60px 0">Perfil não encontrado.</div>'; return; }
+      try {
+        if (typeof sb === 'undefined' || !sb) return erro('Conexão indisponível. Recarregue a página (Ctrl+Shift+R).');
+        if (!id) return erro('Perfil inválido.');
 
-      const servicos = SERVICOS.filter((s) => p[s.key]).map((s) =>
-        `<li><span class="service-icon"><i class="fa-solid ${s.icon}"></i></span>${s.label}</li>`).join('')
-        || '<li style="color:var(--text-soft)">Serviços não informados.</li>';
+        const { data: p, error } = await sb.from('prestadores').select('*').eq('id', id).maybeSingle();
+        if (error) { console.error(error); return erro('Erro ao carregar: ' + error.message); }
+        if (!p) return erro('Perfil não encontrado.');
 
-      const banner = p.banner_url || 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=700&h=340&fit=crop';
-      const foto = p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffc600&size=240';
-      const bairro = p.bairro || ((p.atendimento_regioes||'').split(',')[0].trim() + ', RJ');
-      const wlink = 'https://wa.me/' + String(p.whatsapp).replace(/\D/g,'') + '?text=' + encodeURIComponent(WHATSAPP_MSG);
+        const servicos = SERVICOS.filter((s) => p[s.key]).map((s) =>
+          `<li><span class="service-icon"><i class="fa-solid ${s.icon}"></i></span>${s.label}</li>`).join('')
+          || '<li style="color:var(--text-soft)">Serviços não informados.</li>';
 
-      box.innerHTML = `
-        <div class="perfil-banner">
-          <img src="${banner}" alt="Capa" onerror="this.style.display='none'">
-          <a href="/" class="back-btn" style="position:absolute;top:14px;left:14px;z-index:3"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
-          <img class="perfil-avatar" src="${foto}" alt="${p.nome}">
-        </div>
-        <div class="perfil-body">
-          <div class="pc-name-row" style="justify-content:center">
-            <h1>${p.nome}</h1>
-            <span class="seal"><i class="fa-solid fa-circle-check"></i> Verificado</span>
-          </div>
-          <div class="pc-meta" style="justify-content:center;margin-top:8px">
-            <i class="fa-solid fa-star star"></i><strong class="m-rating">${Number(p.avaliacao).toFixed(1).replace('.',',')}</strong>
-            <span class="rating-count">(${p.total_avaliacoes} avaliações)</span>
-            <span class="dot-sep">•</span><span class="m-online">Online agora</span>
-          </div>
-          <div class="pc-loc" style="justify-content:center;margin-top:8px">
-            <i class="fa-solid fa-location-dot"></i><span>${bairro}</span>
-          </div>
-          <div class="pc-chips" style="justify-content:center;margin-top:12px">
-            <span class="chip"><i class="fa-solid fa-truck-pickup"></i> Guincho</span>
-            <span class="chip"><i class="fa-solid fa-car"></i> Carros</span>
-            <span class="chip"><i class="fa-regular fa-clock"></i> 24h</span>
-            <span class="chip"><i class="fa-solid fa-shield-halved"></i> CNH Verificada</span>
-          </div>
-          <div class="perfil-actions">
-            <a class="btn-whats" id="btnWhats" href="${wlink}" target="_blank" rel="noopener" style="flex:1.3"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-            <a class="btn-call" href="tel:+${String(p.telefone||p.whatsapp).replace(/\D/g,'')}" style="flex:1"><i class="fa-solid fa-phone"></i> Ligar</a>
-          </div>
-          <div class="perfil-info">
-            <h3>Regiões de atendimento</h3>
-            <p><i class="fa-solid fa-map-location-dot"></i> ${p.atendimento_regioes || 'Rio de Janeiro - RJ'}</p>
-          </div>
-          <div class="perfil-info">
-            <h3>Serviços Prestados</h3>
-            <ul class="perfil-services">${servicos}</ul>
-          </div>
-          <div class="perfil-info" id="avaliacoesBox"></div>
+        const banner = p.banner_url || 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=700&h=340&fit=crop';
+        const foto = p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffc600&size=240';
+        const bairro = p.bairro || ((p.atendimento_regioes||'').split(',')[0].trim() + ', RJ');
+        const wlink = 'https://wa.me/' + String(p.whatsapp||'').replace(/\D/g,'') + '?text=' + encodeURIComponent(WHATSAPP_MSG);
 
-          <div class="perfil-info">
-            <p class="perfil-note"><i class="fa-solid fa-shield-halved"></i> Profissional cadastrado e verificado pela <strong>Busca Guincho</strong>. O pagamento é negociado diretamente com o prestador.</p>
+        box.innerHTML = `
+          <div class="perfil-banner">
+            <img src="${banner}" alt="Capa" onerror="this.style.display='none'">
+            <a href="/" class="back-btn" style="position:absolute;top:14px;left:14px;z-index:3"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+            <img class="perfil-avatar" src="${foto}" alt="${p.nome}">
           </div>
-        </div>`;
-      document.title = `${p.nome} — Busca Guincho`;
+          <div class="perfil-body">
+            <div class="pc-name-row" style="justify-content:center">
+              <h1>${p.nome}</h1>
+              <span class="seal"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+            </div>
+            <div class="pc-meta" style="justify-content:center;margin-top:8px">
+              <i class="fa-solid fa-star star"></i><strong class="m-rating">${Number(p.avaliacao||5).toFixed(1).replace('.',',')}</strong>
+              <span class="rating-count">(${p.total_avaliacoes||0} avaliações)</span>
+              <span class="dot-sep">•</span><span class="m-online">Online agora</span>
+            </div>
+            <div class="pc-loc" style="justify-content:center;margin-top:8px">
+              <i class="fa-solid fa-location-dot"></i><span>${bairro}</span>
+            </div>
+            <div class="pc-chips" style="justify-content:center;margin-top:12px">
+              <span class="chip"><i class="fa-solid fa-truck-pickup"></i> Guincho</span>
+              <span class="chip"><i class="fa-solid fa-car"></i> Carros</span>
+              <span class="chip"><i class="fa-regular fa-clock"></i> 24h</span>
+              <span class="chip"><i class="fa-solid fa-shield-halved"></i> CNH Verificada</span>
+            </div>
+            <div class="perfil-actions">
+              <a class="btn-whats" id="btnWhats" href="${wlink}" target="_blank" rel="noopener" style="flex:1.3"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+              <a class="btn-call" href="tel:+${String(p.telefone||p.whatsapp||'').replace(/\D/g,'')}" style="flex:1"><i class="fa-solid fa-phone"></i> Ligar</a>
+            </div>
+            <div class="perfil-info">
+              <h3>Regiões de atendimento</h3>
+              <p><i class="fa-solid fa-map-location-dot"></i> ${p.atendimento_regioes || 'Rio de Janeiro - RJ'}</p>
+            </div>
+            <div class="perfil-info">
+              <h3>Serviços Prestados</h3>
+              <ul class="perfil-services">${servicos}</ul>
+            </div>
+            <div class="perfil-info" id="avaliacoesBox"></div>
+            <div class="perfil-info">
+              <p class="perfil-note"><i class="fa-solid fa-shield-halved"></i> Profissional cadastrado e verificado pela <strong>Busca Guincho</strong>. O pagamento é negociado diretamente com o prestador.</p>
+            </div>
+          </div>`;
+        document.title = `${p.nome} — Busca Guincho`;
 
-      // ---- Avaliações (comentários + estrelas) ----
-      const box = document.getElementById('avaliacoesBox');
-      const { data: avs } = await sb.from('avaliacoes')
-        .select('nota, comentario, created_at').eq('prestador_id', id)
-        .order('created_at', { ascending: false }).limit(30);
-      if (avs && avs.length) {
-        box.innerHTML = `<h3>Avaliações (${avs.length})</h3>` + avs.map((a) => {
-          const estrelas = '★★★★★'.slice(0, a.nota) + '☆☆☆☆☆'.slice(0, 5 - a.nota);
-          const data = new Date(a.created_at).toLocaleDateString('pt-BR');
-          return `<div class="review">
-              <div class="review-top"><span class="review-stars">${estrelas}</span><small>${data}</small></div>
-              ${a.comentario ? `<p>${a.comentario.replace(/</g,'&lt;')}</p>` : ''}
-            </div>`;
-        }).join('');
-      } else {
-        box.innerHTML = `<h3>Avaliações</h3><p class="helper">Este prestador ainda não recebeu avaliações.</p>`;
-      }
+        document.getElementById('btnWhats').addEventListener('click', async () => {
+          try {
+            const { data } = await sb.from('chamados').insert({ prestador_id: p.id, status:'Pendente', servico_solicitado:'Contato WhatsApp (perfil)' }).select('id,link_token').single();
+            if (data) localStorage.setItem('bg_chamado', JSON.stringify({ id:data.id, token:data.link_token, prestador:p.nome, ts:Date.now() }));
+          } catch(e){ console.error(e); }
+        });
 
-      // WhatsApp também abre um chamado (silencioso)
-      document.getElementById('btnWhats').addEventListener('click', async () => {
+        // avaliações (não bloqueia o render se falhar)
         try {
-          const { data } = await sb.from('chamados').insert({ prestador_id: p.id, status:'Pendente', servico_solicitado:'Contato WhatsApp (perfil)' }).select('id,link_token').single();
-          if (data) localStorage.setItem('bg_chamado', JSON.stringify({ id:data.id, token:data.link_token, prestador:p.nome, ts:Date.now() }));
-        } catch(e){ console.error(e); }
-      });
+          const box2 = document.getElementById('avaliacoesBox');
+          const { data: avs } = await sb.from('avaliacoes').select('nota, comentario, created_at').eq('prestador_id', id).order('created_at', { ascending:false }).limit(30);
+          if (avs && avs.length) {
+            box2.innerHTML = `<h3>Avaliações (${avs.length})</h3>` + avs.map((a) => {
+              const estrelas = '★★★★★'.slice(0, a.nota) + '☆☆☆☆☆'.slice(0, 5 - a.nota);
+              const data = new Date(a.created_at).toLocaleDateString('pt-BR');
+              return `<div class="review"><div class="review-top"><span class="review-stars">${estrelas}</span><small>${data}</small></div>${a.comentario ? `<p>${a.comentario.replace(/</g,'&lt;')}</p>` : ''}</div>`;
+            }).join('');
+          } else {
+            box2.innerHTML = `<h3>Avaliações</h3><p class="helper">Este prestador ainda não recebeu avaliações.</p>`;
+          }
+        } catch (e) { console.error('avaliacoes:', e); }
+
+      } catch (e) {
+        console.error(e);
+        erro('Erro ao carregar o perfil: ' + (e && e.message ? e.message : e));
+      }
     })();
   </script>
 </body>
