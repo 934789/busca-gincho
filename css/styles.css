@@ -8,8 +8,8 @@
   --ink:        #0A0A0A;   /* preto premium (estrutura) */
   --ink-2:      #151517;
   --ink-3:      #232327;
-  --yellow:     #ffc600;   /* amarelo (ação) */
-  --yellow-dark:#e6b200;
+  --yellow:     #ffdd00;   /* amarelo da marca (ação) */
+  --yellow-dark:#e6c500;
   --white:      #ffffff;
   --bg:         #f4f5f7;
   --card:       #ffffff;
@@ -390,3 +390,83 @@ html, body {
 .evento-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; align-items: center; }
 .evento-tipo { font-weight: 700; }
 .et-view { color: #2b7de9; } .et-whatsapp { color: var(--yellow-dark); } .et-ligar { color: var(--ink); }
+
+/* ============================================================
+   V4 — HOME PREMIUM (estilo Uber/99)
+   ============================================================ */
+.app.has-fab { padding-bottom: 104px; }
+
+/* header amarelo */
+.home-header { background: var(--yellow); display:flex; align-items:center; justify-content:space-between; padding: 16px 18px 14px; }
+.hh-logo { display:flex; align-items:center; gap:11px; text-decoration:none; }
+.hh-truck { color:#000; font-size:30px; }
+.hh-name { font-size:23px; font-weight:800; letter-spacing:.5px; line-height:1; }
+.hh-name b { color:#000; } .hh-name i { color:#fff; font-style:normal; }
+.hh-menu { width:42px; height:42px; border:none; background:transparent; color:#000; font-size:22px; cursor:pointer; border-radius:50%; display:grid; place-items:center; }
+.hh-menu:active { background:rgba(0,0,0,.08); }
+
+/* mapa */
+.map-wrap { position:relative; background:var(--yellow); }
+#homeMap { height:330px; width:100%; background:#e8eaed; z-index:1; }
+.loc-card { position:absolute; top:-26px; left:16px; right:16px; z-index:20; background:#fff; border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; box-shadow:0 12px 30px rgba(0,0,0,.16); }
+.loc-pin { color:#000; font-size:20px; }
+.loc-txt { flex:1; } .loc-txt strong { display:block; font-size:16px; color:#111; } .loc-txt small { font-size:12.5px; color:var(--text-soft); }
+.loc-chevron { color:#aab; font-size:14px; }
+.eta-card { position:absolute; top:118px; left:50%; transform:translateX(-50%); z-index:15; background:#fff; border-radius:16px; padding:9px 16px; display:flex; align-items:center; gap:11px; box-shadow:0 8px 22px rgba(0,0,0,.2); }
+.eta-card i { color:#000; font-size:18px; }
+.eta-card strong { display:block; font-size:16px; line-height:1; } .eta-card small { font-size:12px; color:var(--text-soft); }
+.map-recenter { position:absolute; left:16px; bottom:16px; z-index:15; width:46px; height:46px; border-radius:50%; border:none; background:#fff; color:#000; font-size:18px; box-shadow:0 6px 16px rgba(0,0,0,.2); cursor:pointer; }
+.car-divicon, .meu-local-icon { background:transparent; border:none; }
+.meu-local-dot { width:18px; height:18px; border-radius:50%; background:var(--yellow); border:3px solid #000; box-shadow:0 0 0 8px rgba(255,221,0,.35); }
+
+/* benefícios */
+.benefits { margin:16px; background:#fff; border-radius:18px; box-shadow:var(--shadow); display:grid; grid-template-columns:repeat(3,1fr); padding:16px 8px; }
+.bf { display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; position:relative; }
+.bf:not(:last-child)::after { content:''; position:absolute; right:0; top:15%; height:70%; width:1px; background:var(--line); }
+.bf i { color:#000; font-size:20px; background:var(--yellow); width:40px; height:40px; border-radius:12px; display:grid; place-items:center; }
+.bf strong { font-size:12.5px; color:#111; } .bf small { font-size:11px; color:var(--text-soft); }
+
+/* bottom nav com FAB */
+.bottom-nav { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); width:calc(100% - 22px); max-width:458px; background:#fff; border-radius:32px; box-shadow:0 12px 34px rgba(0,0,0,.16); display:flex; align-items:center; justify-content:space-between; padding:10px 34px; z-index:50; }
+.bn-item { display:flex; flex-direction:column; align-items:center; gap:4px; color:#000; text-decoration:none; font-size:11px; font-weight:600; background:none; border:none; cursor:pointer; font-family:inherit; }
+.bn-item i { font-size:20px; }
+.bn-fab { background:var(--yellow); border:5px solid #fff; color:#000; width:80px; height:80px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; margin-top:-46px; box-shadow:0 10px 26px rgba(255,221,0,.6); cursor:pointer; font-family:inherit; transition:transform .12s; }
+.bn-fab:active { transform:scale(.94); }
+.bn-fab i { font-size:25px; }
+.fab-text { font-size:10px; font-weight:800; line-height:1.05; text-align:center; }
+/* versão B (só ícone): adicione a classe .fab-icon-only no <body> */
+body.fab-icon-only .fab-text { display:none; }
+body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
+
+/* drawer nav (3 pontos) */
+.drawer-nav { display:flex; flex-direction:column; gap:4px; }
+.drawer-nav a { display:flex; align-items:center; gap:13px; color:#e7e9ed; text-decoration:none; font-size:14.5px; font-weight:600; padding:14px 12px; border-radius:12px; transition:background .15s; }
+.drawer-nav a:active { background:rgba(255,255,255,.08); }
+.drawer-nav a i { color:var(--yellow); width:20px; text-align:center; }
+.drawer-foot { color:#7d828c; font-size:12px; text-align:center; margin-top:20px; }
+
+/* rodapé com grid de links */
+.foot-links-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; padding-bottom:20px; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,.08); }
+.foot-links-grid a { color:#d4d7dd; text-decoration:none; font-size:13px; font-weight:500; }
+.foot-links-grid a:active { color:var(--yellow); }
+
+/* botão WhatsApp amarelo #ffdd00 com texto preto (já via var) — Ligar preto */
+.btn-whats { background:var(--yellow); color:#000; box-shadow:0 6px 14px rgba(255,221,0,.4); }
+
+/* ============================================================
+   V4 — PÁGINAS INSTITUCIONAIS
+   ============================================================ */
+.legal-page { max-width:480px; margin:0 auto; min-height:100vh; background:#fff; }
+.legal-header { background:var(--yellow); display:flex; align-items:center; gap:14px; padding:16px 18px; position:sticky; top:0; z-index:10; }
+.legal-header a { color:#000; font-size:20px; text-decoration:none; }
+.legal-header h1 { font-size:17px; font-weight:800; color:#000; }
+.legal-body { padding:22px 20px 60px; }
+.legal-body h2 { font-size:17px; color:#111; margin:22px 0 8px; }
+.legal-body h2:first-child { margin-top:0; }
+.legal-body p, .legal-body li { font-size:14px; color:#3a3f47; line-height:1.65; margin-bottom:10px; }
+.legal-body ul { padding-left:20px; margin-bottom:12px; }
+.legal-body strong { color:#111; }
+.legal-cta { display:block; text-align:center; background:var(--yellow); color:#000; font-weight:800; text-decoration:none; padding:16px; border-radius:14px; margin-top:20px; }
+.legal-card { background:#f6f7f9; border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0; }
+.legal-contact { display:flex; align-items:center; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); font-size:14px; color:#222; }
+.legal-contact i { color:#000; background:var(--yellow); width:42px; height:42px; border-radius:12px; display:grid; place-items:center; font-size:17px; flex-shrink:0; }

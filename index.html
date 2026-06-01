@@ -3,66 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0A0A0A" />
-  <title>BuscaGincho — Precisou de guincho?</title>
+  <meta name="theme-color" content="#ffdd00" />
+  <title>Busca Guincho — Encontre o guincho certo, onde você estiver</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div class="app">
+  <div class="app has-fab">
 
-    <!-- ===== HEADER ===== -->
-    <header class="app-header">
-      <div class="header-top">
-        <div class="logo">
-          <img class="logo-icon-img" src="img/logo3.png" alt="BuscaGincho"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" />
-          <span class="logo-icon" style="display:none"><i class="fa-solid fa-truck-pickup"></i></span>
-        </div>
-
-        <button class="hamburger" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
-      </div>
-
-      <!-- HERO: banner de fundo (caminhão) + texto premium -->
-      <div class="hero">
-        <div class="hero-text">
-          <h1>Precisou de <span class="hl">guincho?</span></h1>
-          <p class="hero-sub">Encontre ajuda perto de você agora.</p>
-        </div>
-        <div class="hero-trust">
-          <div class="ht"><i class="fa-solid fa-shield-halved"></i><span>Atendimento<br>24h</span></div>
-          <div class="sep"></div>
-          <div class="ht"><i class="fa-solid fa-user-check"></i><span>Motoristas<br>verificados</span></div>
-          <div class="sep"></div>
-          <div class="ht"><i class="fa-solid fa-star"></i><span>+2.400<br>atendimentos</span></div>
-        </div>
-      </div>
+    <!-- ===== HEADER AMARELO ===== -->
+    <header class="home-header">
+      <a class="hh-logo" href="/">
+        <span class="hh-truck"><i class="fa-solid fa-truck-pickup"></i></span>
+        <span class="hh-name"><b>BUSCA</b><i>GINCHO</i></span>
+      </a>
+      <button class="hh-menu" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-ellipsis-vertical"></i></button>
     </header>
 
-    <!-- ===== BUSCA / LOCALIZAÇÃO AUTOMÁTICA ===== -->
-    <div class="search-wrap">
-      <div class="search-bar">
-        <span class="search-pin"><i class="fa-solid fa-location-dot"></i></span>
-        <div class="search-info">
-          <select class="search-select" id="regiaoSelect" aria-label="Selecione a região">
-            <option value="">Rio de Janeiro - RJ</option>
-            <option value="Centro">Centro</option>
-            <option value="Zona Sul">Zona Sul</option>
-            <option value="Zona Norte">Zona Norte</option>
-            <option value="Zona Oeste">Zona Oeste</option>
-            <option value="Barra">Barra da Tijuca</option>
-            <option value="Niterói">Niterói</option>
-          </select>
-          <div class="search-status" id="searchStatus"><i class="fa-solid fa-location-crosshairs"></i> Localizando você...</div>
+    <!-- ===== MAPA + LOCALIZAÇÃO ===== -->
+    <section class="map-wrap">
+      <div id="homeMap"></div>
+
+      <div class="loc-card" id="locCard">
+        <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
+        <div class="loc-txt">
+          <strong id="locTitulo">Rio de Janeiro - RJ</strong>
+          <small id="locSub">Localizando você...</small>
         </div>
-        <button class="search-btn" id="btnBuscar" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <i class="fa-solid fa-chevron-down loc-chevron"></i>
       </div>
+
+      <div class="eta-card" id="etaCard" style="display:none">
+        <i class="fa-solid fa-car"></i>
+        <div><strong id="etaTempo">—</strong><small id="etaDist"></small></div>
+      </div>
+
+      <button class="map-recenter" id="btnRecenter" aria-label="Centralizar"><i class="fa-solid fa-location-crosshairs"></i></button>
+    </section>
+
+    <!-- ===== BENEFÍCIOS ===== -->
+    <div class="benefits">
+      <div class="bf"><i class="fa-solid fa-shield-halved"></i><div><strong>Atendimento</strong><small>24h</small></div></div>
+      <div class="bf"><i class="fa-solid fa-bolt"></i><div><strong>Chegada rápida</strong><small>em minutos</small></div></div>
+      <div class="bf"><i class="fa-solid fa-circle-check"></i><div><strong>Seguro</strong><small>e confiável</small></div></div>
     </div>
 
-    <!-- ===== FILTROS RÁPIDOS (tipo de pane) ===== -->
+    <!-- ===== FILTROS RÁPIDOS ===== -->
     <div class="quick-filters" id="quickFilters"></div>
 
     <!-- ===== SEÇÃO ===== -->
@@ -71,77 +61,67 @@
       <a href="#" id="verTodos">Ver todos <i class="fa-solid fa-chevron-right"></i></a>
     </div>
 
-    <!-- ===== LISTA ===== -->
     <main class="feed" id="feed">
       <div class="loading" id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Carregando guinchos...</div>
     </main>
 
-    <!-- ===== PAGAMENTO / SUPORTE ===== -->
-    <div class="info-block">
-      <div class="ib">
-        <i class="fa-solid fa-credit-card"></i>
-        <div><strong>Pagamento direto<br>com o prestador</strong><small>Você negocia o valor.</small></div>
-      </div>
-      <div class="divider"></div>
-      <div class="ib">
-        <i class="fa-solid fa-headset"></i>
-        <div><strong>Suporte rápido</strong><small>Fale conosco se precisar de ajuda.</small></div>
-      </div>
-    </div>
-
     <!-- ===== RODAPÉ ===== -->
     <footer class="main-footer">
+      <div class="foot-links-grid">
+        <a href="sobre.html">Sobre Nós</a>
+        <a href="termos.html">Termos de Uso</a>
+        <a href="privacidade.html">Política de Privacidade</a>
+        <a href="isencao.html">Isenção de Responsabilidade</a>
+        <a href="parceiro.html">Seja um Parceiro</a>
+        <a href="contato.html">Contato</a>
+      </div>
       <div class="foot-bottom">
         <p>© 2026 Busca Guincho — Todos os direitos reservados.</p>
-        <p class="foot-tag">Conectando motoristas aos melhores prestadores de serviços de reboque e assistência veicular.</p>
+        <p class="foot-tag">Conectando motoristas aos melhores prestadores de reboque e assistência veicular.</p>
       </div>
     </footer>
   </div>
 
-  <!-- ===== MENU LATERAL (hambúrguer) ===== -->
+  <!-- ===== BOTTOM NAV (3 itens com FAB central) ===== -->
+  <nav class="bottom-nav">
+    <a href="#" class="bn-item" id="bnLista"><i class="fa-solid fa-list-ul"></i><span>Lista</span></a>
+    <button class="bn-fab" id="bnChamar">
+      <i class="fa-solid fa-truck-pickup"></i>
+      <span class="fab-text">Chamar<br>Guincho</span>
+    </button>
+    <a href="contato.html" class="bn-item"><i class="fa-regular fa-circle-question"></i><span>Ajuda</span></a>
+  </nav>
+
+  <!-- ===== MENU LATERAL (3 pontos) ===== -->
   <div class="drawer-bg" id="drawerBg"></div>
   <aside class="drawer" id="drawer" aria-hidden="true">
     <div class="drawer-head">
       <span><i class="fa-solid fa-truck-pickup"></i> Menu</span>
       <button class="drawer-close" id="drawerClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
     </div>
-
-    <div class="drawer-sec">
-      <h4>Sobre Nós</h4>
-      <p class="drawer-brand">BUSCA GINCHO</p>
-      <p>O Busca Guincho é uma plataforma que conecta motoristas a prestadores de serviços de reboque e assistência veicular de forma rápida, prática e segura.</p>
-      <p>Nossa missão é facilitar a busca por profissionais verificados, permitindo que você encontre o atendimento ideal para sua necessidade em poucos cliques, com acesso direto ao WhatsApp, informações de contato e serviços disponíveis.</p>
-      <p>Seja para reboque leve, reboque pesado, carga de bateria, troca de pneu ou resgate veicular, o Busca Guincho ajuda você a encontrar ajuda quando mais precisa.</p>
-    </div>
-
-    <div class="drawer-sec">
-      <h4>Contato</h4>
-      <p>Precisa de ajuda ou quer anunciar na plataforma?</p>
-      <ul class="drawer-contact">
-        <li><i class="fa-brands fa-whatsapp"></i> WhatsApp: (XX) XXXXX-XXXX</li>
-        <li><i class="fa-solid fa-envelope"></i> contato@buscagincho.com.br</li>
-        <li><i class="fa-solid fa-clock"></i> Atendimento: 24 horas por dia, 7 dias por semana</li>
-      </ul>
-    </div>
+    <nav class="drawer-nav">
+      <a href="sobre.html"><i class="fa-solid fa-circle-info"></i> Sobre nós</a>
+      <a href="parceiro.html"><i class="fa-solid fa-handshake"></i> Seja um parceiro</a>
+      <a href="termos.html"><i class="fa-solid fa-file-contract"></i> Termos de uso</a>
+      <a href="privacidade.html"><i class="fa-solid fa-user-shield"></i> Política de privacidade</a>
+      <a href="isencao.html"><i class="fa-solid fa-scale-balanced"></i> Isenção de responsabilidade</a>
+      <a href="contato.html"><i class="fa-solid fa-headset"></i> Suporte e contato</a>
+    </nav>
+    <div class="drawer-foot">© 2026 Busca Guincho</div>
   </aside>
 
   <!-- ===== TEMPLATE DO CARD ===== -->
   <template id="cardTemplate">
     <article class="provider-card">
-      <a class="pc-avatar" rel="noopener">
-        <img class="avatar" alt="Foto do prestador" src="" />
-        <span class="online-dot"></span>
-      </a>
+      <a class="pc-avatar" rel="noopener"><img class="avatar" alt="" src="" /><span class="online-dot"></span></a>
       <div class="pc-main">
         <div class="pc-name-row">
           <a class="provider-name"></a>
           <span class="seal"><i class="fa-solid fa-circle-check"></i> Verificado</span>
         </div>
-        <div class="pc-meta">
-          <i class="fa-solid fa-star star"></i><strong class="m-rating"></strong>
+        <div class="pc-meta"><i class="fa-solid fa-star star"></i><strong class="m-rating"></strong>
           <span class="dot-sep">•</span><span class="m-dist"></span>
-          <span class="dot-sep">•</span><span class="m-online">Online agora</span>
-        </div>
+          <span class="dot-sep">•</span><span class="m-online">Online agora</span></div>
         <div class="pc-loc"><i class="fa-solid fa-location-dot"></i><span class="m-bairro"></span></div>
         <div class="pc-chips">
           <span class="chip"><i class="fa-solid fa-truck-pickup"></i> Guincho</span>
@@ -159,6 +139,7 @@
     </article>
   </template>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/main.js"></script>
