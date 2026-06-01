@@ -7,7 +7,7 @@
   <title>BuscaGincho — Perfil do Prestador</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="app">
@@ -16,7 +16,7 @@
     </div>
   </div>
 
-  <script src="js/api.js"></script>
+  <script src="/js/api.js"></script>
   <script>
     const id = location.pathname.split('/').pop();
     const box = document.getElementById('conteudo');
@@ -36,7 +36,7 @@
       box.innerHTML = `
         <div class="perfil-banner">
           <img src="${banner}" alt="Capa" onerror="this.style.display='none'">
-          <a href="index.html" class="back-btn" style="position:absolute;top:14px;left:14px;z-index:3">
+          <a href="/" class="back-btn" style="position:absolute;top:14px;left:14px;z-index:3">
             <i class="fa-solid fa-arrow-left"></i> Voltar</a>
           <img class="perfil-avatar" src="${foto}" alt="${p.nome}">
         </div>
