@@ -95,7 +95,11 @@ function carIcon(deg, size = 40) {
   });
 }
 function meuLocalIcon() {
-  return L.divIcon({ className: 'meu-local-icon', html: '<span class="meu-local-dot"></span>', iconSize: [18,18], iconAnchor: [9,9] });
+  return L.divIcon({
+    className: 'voce-icon',
+    html: `<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">Seu local</span>`,
+    iconSize: [0, 0], iconAnchor: [0, 0],
+  });
 }
 function bearing(a, b) {
   const toR = (d)=>d*Math.PI/180, toD=(r)=>r*180/Math.PI;

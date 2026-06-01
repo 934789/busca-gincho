@@ -416,8 +416,13 @@ html, body {
 .eta-card i { color:#000; font-size:18px; }
 .eta-card strong { display:block; font-size:16px; line-height:1; } .eta-card small { font-size:12px; color:var(--text-soft); }
 .map-recenter { position:absolute; left:16px; bottom:16px; z-index:15; width:46px; height:46px; border-radius:50%; border:none; background:#fff; color:#000; font-size:18px; box-shadow:0 6px 16px rgba(0,0,0,.2); cursor:pointer; }
-.car-divicon, .meu-local-icon { background:transparent; border:none; }
-.meu-local-dot { width:18px; height:18px; border-radius:50%; background:var(--yellow); border:3px solid #000; box-shadow:0 0 0 8px rgba(255,221,0,.35); }
+.car-divicon, .voce-icon { background:transparent; border:none; }
+/* ponto "Seu local": amarelo+preto pulsante com label */
+.voce-dot { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); border:3px solid #000; box-shadow:0 1px 5px rgba(0,0,0,.4); z-index:3; }
+.voce-pulse { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); z-index:1; animation:vocePulse 1.8s ease-out infinite; }
+@keyframes vocePulse { 0%{transform:scale(1);opacity:.65} 70%{transform:scale(3.6);opacity:0} 100%{opacity:0} }
+.voce-label { position:absolute; left:16px; top:-12px; white-space:nowrap; background:#000; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:9px; box-shadow:0 3px 9px rgba(0,0,0,.35); z-index:4; }
+.voce-label::before { content:''; position:absolute; left:-5px; top:50%; transform:translateY(-50%); border:5px solid transparent; border-right-color:#000; }
 
 /* benefícios */
 .benefits { margin:16px; background:#fff; border-radius:18px; box-shadow:var(--shadow); display:grid; grid-template-columns:repeat(3,1fr); padding:16px 8px; }
