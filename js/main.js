@@ -55,25 +55,24 @@ async function abrirChamado(p) {
   } catch (e) { console.error('Erro ao abrir chamado:', e); }
 }
 
+let renderGen = 0; // evita duplicação quando 2 renders concorrem (init + geolocalização)
 async function render() {
+  const gen = ++renderGen;
   loading.style.display = 'block';
-  feed.querySelectorAll('.provider-card, .empty').forEach((el) => el.remove());
 
   if (!sb) {
     loading.style.display = 'none';
-    mostrarVazio('Supabase não configurado. Preencha js/supabase-config.js.');
+    limpar(); mostrarVazio('Supabase não configurado. Preencha js/supabase-config.js.');
     return;
   }
 
-  let q = sb.from('prestadores').select('*').eq('ativo', true);
-  const { data, error } = await q;
+  const { data, error } = await sb.from('prestadores').select('*').eq('ativo', true);
+  if (gen !== renderGen) return; // um render mais novo já assumiu — aborta este
+
   loading.style.display = 'none';
+  limpar();
 
-  if (error) {
-    mostrarVazio('Banco ainda não configurado. Rode o supabase/v2_schema.sql no Supabase.');
-    console.error(error);
-    return;
-  }
+  if (error) { mostrarVazio('Banco ainda não configurado. Rode o SQL no Supabase.'); console.error(error); return; }
 
   let lista = data || [];
   const regiao = regiaoSel.value;
@@ -86,6 +85,8 @@ async function render() {
   if (!lista.length) { mostrarVazio('Nenhum guincho encontrado para esta região.'); return; }
   lista.forEach((p, i) => feed.appendChild(montarCard(p, i)));
 }
+
+function limpar() { feed.querySelectorAll('.provider-card, .empty').forEach((el) => el.remove()); }
 
 function mostrarVazio(msg) {
   const div = document.createElement('div');
