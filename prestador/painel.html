@@ -41,6 +41,17 @@
 
     canvas#fatChart { max-height:200px; }
     .pdf-template { position:fixed; left:-9999px; top:0; width:760px; }
+
+    /* popup (toast) de novo chamado */
+    .toast { position:fixed; top:14px; left:50%; transform:translateX(-50%) translateY(-160%); z-index:5000;
+      background:var(--ink); color:#fff; border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:13px;
+      box-shadow:0 16px 44px rgba(0,0,0,.45); width:92%; max-width:440px; cursor:pointer;
+      border-left:5px solid #1f9d57; transition:transform .4s cubic-bezier(.2,.9,.3,1.25); }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast .t-ico { width:42px; height:42px; flex-shrink:0; border-radius:50%; background:var(--yellow); color:var(--ink);
+      display:grid; place-items:center; font-size:20px; animation:blink 1s infinite; }
+    .toast strong { display:block; font-size:14px; }
+    .toast small { color:#c3c6cc; font-size:12px; }
   </style>
 </head>
 <body>
@@ -100,6 +111,12 @@
         <p class="form-msg" id="msgPerfil"></p>
       </form>
     </section>
+  </div>
+
+  <!-- POPUP de novo chamado -->
+  <div class="toast" id="toast" onclick="this.classList.remove('show')">
+    <span class="t-ico"><i class="fa-solid fa-bell"></i></span>
+    <div><strong id="toastTit"></strong><small id="toastMsg"></small></div>
   </div>
 
   <!-- MODAL COMPROVANTE -->
@@ -194,15 +211,36 @@
     const somIniciar = new Audio('/audio/iniciar.mp3'); somIniciar.preload = 'auto';
     const somCall = new Audio('/audio/call.mp3'); somCall.preload = 'auto';
     function tocarSom() { try { somIniciar.currentTime = 0; somIniciar.play().catch(()=>{}); } catch(e){} }
-    function tocarCall() { try { somCall.currentTime = 0; somCall.play().catch(()=>{}); } catch(e){} }
-    // desbloqueia o áudio no 1º toque/clique (navegadores bloqueiam autoplay sem interação)
+    // toca o call.mp3 até 3 vezes seguidas
+    function tocarCall() {
+      let n = 0;
+      somCall.onended = () => { if (++n < 3) { somCall.currentTime = 0; somCall.play().catch(()=>{}); } };
+      try { somCall.currentTime = 0; somCall.play().catch(()=>{}); } catch (e) {}
+    }
+    // desbloqueia o áudio + pede permissão de notificação no 1º toque/clique
     let audioUnlocked = false;
     function unlockAudio() {
       if (audioUnlocked) return; audioUnlocked = true;
       [somCall, somIniciar].forEach((a) => { const p = a.play(); if (p) p.then(() => { a.pause(); a.currentTime = 0; }).catch(()=>{}); });
+      if ('Notification' in window && Notification.permission === 'default') { try { Notification.requestPermission(); } catch (e) {} }
       document.removeEventListener('click', unlockAudio); document.removeEventListener('touchstart', unlockAudio);
     }
     document.addEventListener('click', unlockAudio); document.addEventListener('touchstart', unlockAudio);
+
+    /* ---------- notificações (popup na tela + notificação do sistema) ---------- */
+    let toastTimer;
+    function mostrarToast(tit, msg) {
+      document.getElementById('toastTit').textContent = tit;
+      document.getElementById('toastMsg').textContent = msg;
+      const t = document.getElementById('toast'); t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
+    }
+    function notificar(tit, msg) {
+      mostrarToast(tit, msg);
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { const n = new Notification(tit, { body: msg, icon: '/img/logo3.png', tag: 'bg-chamado' }); n.onclick = () => { window.focus(); n.close(); }; } catch (e) {}
+      }
+    }
 
     /* ---------- tracking GPS ---------- */
     let watchId = null, tokenAtivo = null;
@@ -368,7 +406,10 @@
     /* ---------- realtime ---------- */
     sb.channel('painel-' + PID).on('postgres_changes', { event:'*', schema:'public', table:'chamados', filter:`prestador_id=eq.${PID}` },
       (payload) => {
-        if (payload.eventType === 'INSERT') tocarCall(); // novo contato pelo WhatsApp -> toca notificação
+        if (payload.eventType === 'INSERT') {           // novo contato pelo WhatsApp
+          tocarCall();
+          notificar('🚨 Novo contato!', 'Um cliente acionou você pelo WhatsApp. Abra e inicie o deslocamento.');
+        }
         carregarChamados();
       }).subscribe();
 
