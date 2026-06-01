@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>BuscaGincho — Perfil do Prestador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <div id="conteudo">
+      <div class="loading" style="padding:60px 0"><i class="fa-solid fa-spinner fa-spin"></i> Carregando perfil...</div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const id = location.pathname.split('/').pop();
+    const box = document.getElementById('conteudo');
+
+    (async () => {
+      const p = await API.prestador(id);
+      if (!p) { box.innerHTML = '<div class="empty" style="padding:60px 0">Perfil não encontrado.</div>'; return; }
+
+      const servicos = API.SERVICOS.filter((s) => p[s.key]).map((s) =>
+        `<li><span class="service-icon"><i class="fa-solid ${s.icon}"></i></span>${s.label}</li>`).join('')
+        || '<li style="color:var(--text-soft)">Serviços não informados.</li>';
+
+      const banner = p.banner_url || 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=700&h=340&fit=crop';
+      const foto = p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffc600&size=240';
+      const bairro = p.bairro || ((p.atendimento_regioes||'').split(',')[0].trim() + ', RJ');
+
+      box.innerHTML = `
+        <div class="perfil-banner">
+          <img src="${banner}" alt="Capa" onerror="this.style.display='none'">
+          <a href="index.html" class="back-btn" style="position:absolute;top:14px;left:14px;z-index:3">
+            <i class="fa-solid fa-arrow-left"></i> Voltar</a>
+          <img class="perfil-avatar" src="${foto}" alt="${p.nome}">
+        </div>
+
+        <div class="perfil-body">
+          <div class="pc-name-row" style="justify-content:center">
+            <h1>${p.nome}</h1>
+            <span class="seal"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+          </div>
+
+          <div class="pc-meta" style="justify-content:center;margin-top:8px">
+            <i class="fa-solid fa-star star"></i><strong class="m-rating">${Number(p.avaliacao).toFixed(1).replace('.',',')}</strong>
+            <span class="rating-count">(${p.total_avaliacoes} avaliações)</span>
+            <span class="dot-sep">•</span><span class="m-online">Online agora</span>
+          </div>
+
+          <div class="pc-loc" style="justify-content:center;margin-top:8px">
+            <i class="fa-solid fa-location-dot"></i><span>${bairro}</span>
+          </div>
+
+          <div class="pc-chips" style="justify-content:center;margin-top:12px">
+            <span class="chip"><i class="fa-solid fa-truck-pickup"></i> Guincho</span>
+            <span class="chip"><i class="fa-solid fa-car"></i> Carros</span>
+            <span class="chip"><i class="fa-regular fa-clock"></i> 24h</span>
+            <span class="chip"><i class="fa-solid fa-shield-halved"></i> CNH Verificada</span>
+          </div>
+
+          <div class="perfil-actions">
+            <a class="btn-whats" href="/chamar/${p.id}" target="_blank" rel="noopener" style="flex:1.3">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            <a class="btn-call" href="/ligar/${p.id}" style="flex:1"><i class="fa-solid fa-phone"></i> Ligar</a>
+          </div>
+
+          <div class="perfil-info">
+            <h3>Regiões de atendimento</h3>
+            <p><i class="fa-solid fa-map-location-dot"></i> ${p.atendimento_regioes || 'Rio de Janeiro - RJ'}</p>
+          </div>
+
+          <div class="perfil-info">
+            <h3>Serviços Prestados</h3>
+            <ul class="perfil-services">${servicos}</ul>
+          </div>
+
+          <div class="perfil-info">
+            <p class="perfil-note"><i class="fa-solid fa-shield-halved"></i> Profissional cadastrado e verificado pela <strong>BuscaGincho</strong>. O pagamento é negociado diretamente com o prestador.</p>
+          </div>
+        </div>
+      </div>`;
+      document.title = `${p.nome} — BuscaGincho`;
+    })();
+  </script>
+</body>
+</html>

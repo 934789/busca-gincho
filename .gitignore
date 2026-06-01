@@ -1,0 +1,18 @@
+# Banco de dados local (recriado automaticamente)
+data.db
+data.db-journal
+*.sqlite
+
+# Logs
+*.log
+
+# Backups de versões anteriores
+_backup_*/
+
+# Dependências (não usamos, mas por segurança)
+node_modules/
+
+# Sistema operacional / editor
+Thumbs.db
+.DS_Store
+.vscode/

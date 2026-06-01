@@ -1,0 +1,16 @@
+Salve DUAS imagens nesta pasta, com estes nomes EXATOS:
+
+1) logo3.png   -> o logo do guinchо (caminhão amarelo). Aparece no header
+                  sobre fundo preto, então use a versão AMARELA/CLARA.
+
+2) banner.png  -> o banner da hero (caminhão à noite com o texto
+                  "Encontre o guincho certo, onde você estiver.").
+                  Ele é usado como imagem de fundo da hero, em largura cheia.
+                  Proporção recomendada: ~1.9:1 (ex.: 1800x950).
+
+Enquanto os arquivos não existirem:
+- sem logo3.png  -> aparece o ícone + texto "BuscaGincho" (fallback).
+- sem banner.png -> aparece o texto da hero em HTML (fallback).
+
+O pin de localização amarelo é desenhado em CSS e fica flutuando por cima
+do banner (canto superior direito) automaticamente.

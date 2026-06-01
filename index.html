@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>BuscaGincho — Precisou de guincho?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="logo">
+          <img class="logo-icon-img" src="img/logo3.png" alt="BuscaGincho"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" />
+          <span class="logo-icon" style="display:none"><i class="fa-solid fa-truck-pickup"></i></span>
+        </div>
+
+        <button class="hamburger" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      </div>
+
+      <!-- HERO: banner de fundo (caminhão) + texto premium -->
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Precisou de <span class="hl">guincho?</span></h1>
+          <p class="hero-sub">Encontre ajuda perto de você agora.</p>
+        </div>
+        <div class="hero-trust">
+          <div class="ht"><i class="fa-solid fa-shield-halved"></i><span>Atendimento<br>24h</span></div>
+          <div class="sep"></div>
+          <div class="ht"><i class="fa-solid fa-user-check"></i><span>Motoristas<br>verificados</span></div>
+          <div class="sep"></div>
+          <div class="ht"><i class="fa-solid fa-star"></i><span>+2.400<br>atendimentos</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== BUSCA / LOCALIZAÇÃO AUTOMÁTICA ===== -->
+    <div class="search-wrap">
+      <div class="search-bar">
+        <span class="search-pin"><i class="fa-solid fa-location-dot"></i></span>
+        <div class="search-info">
+          <select class="search-select" id="regiaoSelect" aria-label="Selecione a região">
+            <option value="">Rio de Janeiro - RJ</option>
+            <option value="Centro">Centro</option>
+            <option value="Zona Sul">Zona Sul</option>
+            <option value="Zona Norte">Zona Norte</option>
+            <option value="Zona Oeste">Zona Oeste</option>
+            <option value="Barra">Barra da Tijuca</option>
+            <option value="Niterói">Niterói</option>
+          </select>
+          <div class="search-status" id="searchStatus"><i class="fa-solid fa-location-crosshairs"></i> Localizando você...</div>
+        </div>
+        <button class="search-btn" id="btnBuscar" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+    </div>
+
+    <!-- ===== SEÇÃO ===== -->
+    <div class="section-head">
+      <h2>Guinchos mais próximos</h2>
+      <a href="#" id="verTodos">Ver todos <i class="fa-solid fa-chevron-right"></i></a>
+    </div>
+
+    <!-- ===== LISTA ===== -->
+    <main class="feed" id="feed">
+      <div class="loading" id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Carregando guinchos...</div>
+    </main>
+
+    <!-- ===== PAGAMENTO / SUPORTE ===== -->
+    <div class="info-block">
+      <div class="ib">
+        <i class="fa-solid fa-credit-card"></i>
+        <div><strong>Pagamento direto<br>com o prestador</strong><small>Você negocia o valor.</small></div>
+      </div>
+      <div class="divider"></div>
+      <div class="ib">
+        <i class="fa-solid fa-headset"></i>
+        <div><strong>Suporte rápido</strong><small>Fale conosco se precisar de ajuda.</small></div>
+      </div>
+    </div>
+
+    <!-- ===== RODAPÉ ===== -->
+    <footer class="main-footer">
+      <div class="foot-bottom">
+        <p>© 2026 Busca Guincho — Todos os direitos reservados.</p>
+        <p class="foot-tag">Conectando motoristas aos melhores prestadores de serviços de reboque e assistência veicular.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ===== MENU LATERAL (hambúrguer) ===== -->
+  <div class="drawer-bg" id="drawerBg"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <span><i class="fa-solid fa-truck-pickup"></i> Menu</span>
+      <button class="drawer-close" id="drawerClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="drawer-sec">
+      <h4>Sobre Nós</h4>
+      <p class="drawer-brand">BUSCA GINCHO</p>
+      <p>O Busca Guincho é uma plataforma que conecta motoristas a prestadores de serviços de reboque e assistência veicular de forma rápida, prática e segura.</p>
+      <p>Nossa missão é facilitar a busca por profissionais verificados, permitindo que você encontre o atendimento ideal para sua necessidade em poucos cliques, com acesso direto ao WhatsApp, informações de contato e serviços disponíveis.</p>
+      <p>Seja para reboque leve, reboque pesado, carga de bateria, troca de pneu ou resgate veicular, o Busca Guincho ajuda você a encontrar ajuda quando mais precisa.</p>
+    </div>
+
+    <div class="drawer-sec">
+      <h4>Contato</h4>
+      <p>Precisa de ajuda ou quer anunciar na plataforma?</p>
+      <ul class="drawer-contact">
+        <li><i class="fa-brands fa-whatsapp"></i> WhatsApp: (XX) XXXXX-XXXX</li>
+        <li><i class="fa-solid fa-envelope"></i> contato@buscagincho.com.br</li>
+        <li><i class="fa-solid fa-clock"></i> Atendimento: 24 horas por dia, 7 dias por semana</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ===== TEMPLATE DO CARD ===== -->
+  <template id="cardTemplate">
+    <article class="provider-card">
+      <a class="pc-avatar" rel="noopener">
+        <img class="avatar" alt="Foto do prestador" src="" />
+        <span class="online-dot"></span>
+      </a>
+      <div class="pc-main">
+        <div class="pc-name-row">
+          <a class="provider-name"></a>
+          <span class="seal"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+        </div>
+        <div class="pc-meta">
+          <i class="fa-solid fa-star star"></i><strong class="m-rating"></strong>
+          <span class="dot-sep">•</span><span class="m-dist"></span>
+          <span class="dot-sep">•</span><span class="m-online">Online agora</span>
+        </div>
+        <div class="pc-loc"><i class="fa-solid fa-location-dot"></i><span class="m-bairro"></span></div>
+        <div class="pc-chips">
+          <span class="chip"><i class="fa-solid fa-truck-pickup"></i> Guincho</span>
+          <span class="chip"><i class="fa-solid fa-car"></i> Carros</span>
+          <span class="chip"><i class="fa-regular fa-clock"></i> 24h</span>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <div class="acts-row">
+          <a class="btn-whats" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+          <a class="btn-call"><i class="fa-solid fa-phone"></i> Ligar</a>
+        </div>
+        <span class="eta">Chegada em <strong></strong></span>
+      </div>
+    </article>
+  </template>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

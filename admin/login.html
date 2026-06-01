@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a1f3c" />
+  <title>BuscaGincho — Administração</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-logo">
+      <img class="logo-img" src="../img/logo.png" alt="BuscaGincho"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+      <h1 style="display:none">BUSCA<span>GINCHO</span></h1>
+      <p><i class="fa-solid fa-crown" style="color:var(--yellow)"></i> Painel Administrativo</p>
+    </div>
+
+    <div class="auth-card">
+      <h2><i class="fa-solid fa-lock"></i> Acesso restrito</h2>
+      <form id="loginForm">
+        <div class="field"><label>Usuário</label><input type="text" id="user" placeholder="admin" required></div>
+        <div class="field"><label>Senha</label><input type="password" id="pass" required></div>
+        <button type="submit" class="btn-primary">Entrar</button>
+        <p class="form-msg" id="msg"></p>
+      </form>
+      <p class="helper" style="margin-top:14px">Demo: <strong>admin</strong> / <strong>admin</strong></p>
+    </div>
+    <p class="auth-link"><a href="../index.html">← Voltar ao site</a></p>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      const r = await API.loginAdmin(user.value.trim(), pass.value);
+      if (r.ok) location.href = 'painel.html';
+      else { msg.className = 'form-msg error'; msg.textContent = 'Credenciais inválidas.'; }
+    });
+  </script>
+</body>
+</html>
