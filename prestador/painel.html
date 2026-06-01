@@ -16,10 +16,16 @@
     .st-Pendente { background:#fff6d6; color:#9a7400; }
     .st-ACaminho { background:#e0eeff; color:#1d6fe0; }
     .st-Finalizado { background:#e0f7ea; color:#1f9d57; }
+    .st-Recusado { background:#f1f1f4; color:#8a8f98; }
+    .st-Expirado { background:#f1f1f4; color:#8a8f98; }
+    .cc-expira { font-size:12px; color:#9a7400; background:#fff6d6; border-radius:9px; padding:7px 10px; text-align:center; font-weight:600; }
+    .cc-expira strong { font-variant-numeric:tabular-nums; }
     .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
     .cc-iniciar { background:var(--yellow); color:var(--ink); }
+    .cc-recusar { background:#f1f1f4; color:#e23c3c; }
     .cc-finalizar { background:var(--ink); color:#fff; }
     .cc-pdf { background:#1f9d57; color:#fff; }
+    .cc-pdf-done { background:#e6e7ea; color:#8a8f98; }
     .cc-link { background:#f4f5f7; border:1px dashed #cfd3da; border-radius:11px; padding:10px 12px; font-size:12px; color:var(--text); display:flex; gap:8px; align-items:center; margin-bottom:6px; word-break:break-all; }
     .cc-link button { margin-left:auto; background:var(--ink); color:var(--yellow); border:none; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
     .live-dot { width:9px; height:9px; border-radius:50%; background:#1f9d57; display:inline-block; animation:blink 1.2s infinite; }
@@ -259,7 +265,18 @@
     }
 
     /* ---------- chamados + faturamento ---------- */
-    let fatChart = null;
+    const EXPIRA_MS = 5 * 60 * 1000;          // solicitação expira em 5 min
+    let fatChart = null, pendentesAtivos = [];
+    const pdfGerados = new Set();
+    function mmss(ms){ if(ms<0)ms=0; const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+    async function recusarChamado(c){ pararTracking(); await sb.from('chamados').update({ status:'Recusado' }).eq('id', c.id); carregarChamados(); }
+    // contador regressivo das solicitações pendentes (atualiza a cada segundo)
+    setInterval(() => {
+      if (!pendentesAtivos.length) return;
+      const now = Date.now(); let recarregar = false;
+      pendentesAtivos.forEach((p) => { const r = p.fim - now; const el = document.getElementById('cd-'+p.id); if (r <= 0) recarregar = true; else if (el) el.textContent = mmss(r); });
+      if (recarregar) { pendentesAtivos = []; carregarChamados(); }
+    }, 1000);
     async function carregarChamados() {
       const { data: chs, error } = await sb.from('chamados').select('*').eq('prestador_id', PID).order('created_at', { ascending:false }).limit(60);
       const box = document.getElementById('listaChamados');
@@ -277,32 +294,56 @@
       f_atend.textContent = fin.filter(c=>new Date(c.created_at)>=iniMes).length;
       desenharGrafico(fin);
 
+      // expira solicitações pendentes com mais de 5 min
+      const agora = Date.now();
+      const vencidos = lista.filter(c => c.status==='Pendente' && (agora - new Date(c.created_at).getTime()) >= EXPIRA_MS);
+      if (vencidos.length) {
+        vencidos.forEach(c => c.status = 'Expirado');
+        const cutoff = new Date(agora - EXPIRA_MS).toISOString();
+        sb.from('chamados').update({ status:'Expirado' }).eq('prestador_id', PID).eq('status','Pendente').lt('created_at', cutoff).then(()=>{});
+      }
+
+      pendentesAtivos = [];
       if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado ainda. Quando um cliente clicar no seu WhatsApp, aparece aqui na hora.</p>'; return; }
       box.innerHTML = '';
-      lista.forEach((c) => {
+      lista.slice(0, 3).forEach((c) => {  // mostra só os 3 mais recentes
         const div = document.createElement('div'); div.className = 'chamado-card';
         const hora = new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
         let acao = '';
-        if (c.status === 'Pendente') acao = `<button class="cc-btn cc-iniciar" data-act="iniciar"><i class="fa-solid fa-location-arrow"></i> Iniciar Deslocamento</button>`;
-        else if (c.status === 'A Caminho') {
+        if (c.status === 'Pendente') {
+          const fim = new Date(c.created_at).getTime() + EXPIRA_MS;
+          pendentesAtivos.push({ id:c.id, fim });
+          acao = `<div class="cc-expira"><i class="fa-solid fa-hourglass-half"></i> Expira em <strong id="cd-${c.id}">${mmss(fim-agora)}</strong></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="cc-btn cc-iniciar" data-act="iniciar" style="flex:2;margin-top:0"><i class="fa-solid fa-location-arrow"></i> Iniciar Deslocamento</button>
+              <button class="cc-btn cc-recusar" data-act="recusar" style="flex:1;margin-top:0"><i class="fa-solid fa-xmark"></i> Recusar</button>
+            </div>`;
+        } else if (c.status === 'A Caminho') {
           const link = `${location.origin}/rastreio.html?t=${c.link_token}`;
           acao = `<div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
                   <button class="cc-btn cc-finalizar" data-act="finalizar"><i class="fa-solid fa-flag-checkered"></i> Finalizar Atendimento</button>`;
-        } else {
+        } else if (c.status === 'Finalizado') {
           const temComp = c.valor_servico != null;
-          acao = `<button class="cc-btn cc-pdf" data-act="pdf"><i class="fa-solid fa-file-pdf"></i> ${temComp ? 'Gerar Comprovante PDF' : 'Preencher comprovante'}</button>`;
+          const jaGerou = pdfGerados.has(c.id);
+          acao = `<button class="cc-btn ${jaGerou?'cc-pdf-done':'cc-pdf'}" data-act="pdf"><i class="fa-solid fa-file-pdf"></i> ${temComp ? (jaGerou?'Comprovante gerado ✓':'Gerar Comprovante PDF') : 'Preencher comprovante'}</button>`;
+        } else {
+          const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : 'Chamado recusado.';
+          acao = `<p class="helper" style="margin:6px 0 0">${txt}</p>`;
         }
         div.innerHTML = `<div class="cc-top"><div><strong>${c.servico_solicitado||'Chamado'}</strong>${c.valor_servico!=null?` · <span style="color:#1f9d57">${fmtR(c.valor_servico)}</span>`:''}<br><small>${hora}</small></div>
             <span class="st-pill st-${(c.status||'').replace(/\s/g,'')}">${c.status==='A Caminho'?'A caminho':c.status}</span></div>${acao}`;
         div.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
           const a = b.dataset.act;
           if (a==='iniciar') iniciarDeslocamento(c);
-          else if (a==='finalizar' || a==='pdf' && c.valor_servico==null) abrirComprovante(c);
-          else if (a==='pdf') gerarPDF(c);
+          else if (a==='recusar') { if (confirm('Recusar este chamado? Ele sai da sua lista de pendentes.')) recusarChamado(c); }
+          else if (a==='finalizar') abrirComprovante(c);
+          else if (a==='pdf' && c.valor_servico==null) abrirComprovante(c);
+          else if (a==='pdf') { gerarPDF(c); pdfGerados.add(c.id); b.classList.remove('cc-pdf'); b.classList.add('cc-pdf-done'); b.innerHTML='<i class="fa-solid fa-file-pdf"></i> Comprovante gerado ✓'; }
           else if (a==='copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
         }));
         box.appendChild(div);
       });
+      if (lista.length > 3) { const m = document.createElement('p'); m.className='helper'; m.style.cssText='text-align:center;margin-top:6px'; m.textContent = `+ ${lista.length-3} chamado(s) anteriores`; box.appendChild(m); }
     }
 
     function desenharGrafico(fin) {
@@ -346,6 +387,7 @@
       if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
       pararTracking();
       const finalizado = { ...chamadoComp, ...patch };
+      pdfGerados.add(chamadoComp.id);
       fecharModal('modalComprovante'); carregarChamados();
       // gera o PDF na hora
       setTimeout(() => gerarPDF(finalizado), 300);
