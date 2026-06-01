@@ -94,6 +94,7 @@ EXECUTE FUNCTION atualizar_media_prestador();
 -- ============================================================
 -- 5. REALTIME: o mapa do cliente escuta a tabela de chamados
 -- ============================================================
+ALTER TABLE chamados REPLICA IDENTITY FULL;   -- garante todas as colunas no payload
 ALTER PUBLICATION supabase_realtime ADD TABLE chamados;
 
 -- ============================================================
