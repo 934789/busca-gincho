@@ -84,7 +84,7 @@ function mostrarVazio(msg) { const d = document.createElement('div'); d.classNam
 /* ============================================================
    MAPA DA HOME (Leaflet) — você + guinchos ao redor (Acompanhamento)
    ============================================================ */
-let mapa, marcadorVoce, marcadorGuincho, rota, fakeCars = [];
+let mapa, cenaLayer = null;
 const RJ = { lat: -22.9068, lng: -43.1729 };
 
 function carIcon(deg, size = 40) {
@@ -105,42 +105,42 @@ function bearing(a, b) {
   return (toD(Math.atan2(y, x)) + 360) % 360;
 }
 
-function initHomeMap(lat, lng) {
-  if (mapa) { mapa.setView([lat, lng], 15); desenharCena(lat, lng); return; }
-  mapa = L.map('homeMap', { zoomControl: false, attributionControl: false }).setView([lat, lng], 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapa);
-  desenharCena(lat, lng);
+function initHomeMap(lat, lng, acc) {
+  if (!mapa) {
+    mapa = L.map('homeMap', { zoomControl: false, attributionControl: false }).setView([lat, lng], 16);
+    // tiles do Google Maps (estilo oficial)
+    L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 20,
+    }).addTo(mapa);
+  }
+  desenharCena(lat, lng, acc);
 }
 
-function desenharCena(lat, lng) {
-  // limpa cena anterior
-  [marcadorVoce, marcadorGuincho, rota].forEach((m) => m && mapa.removeLayer(m));
-  fakeCars.forEach((c) => mapa.removeLayer(c)); fakeCars = [];
+function desenharCena(lat, lng, acc) {
+  if (cenaLayer) mapa.removeLayer(cenaLayer);
+  cenaLayer = L.layerGroup().addTo(mapa);
 
   const voce = { lat, lng };
-  // guincho "a caminho" (demo) — um pouco a noroeste
-  const guincho = { lat: lat + 0.014, lng: lng - 0.018 };
+  // círculo de precisão (estilo Google)
+  if (acc) L.circle([lat, lng], { radius: Math.min(acc, 500), color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: .12 }).addTo(cenaLayer);
+  L.marker([voce.lat, voce.lng], { icon: meuLocalIcon() }).addTo(cenaLayer);
 
-  marcadorVoce = L.marker([voce.lat, voce.lng], { icon: meuLocalIcon() }).addTo(mapa);
-
-  // rota (polyline) preta com curva leve até você
-  const meio = { lat: (voce.lat + guincho.lat)/2 + 0.002, lng: (voce.lng + guincho.lng)/2 - 0.001 };
+  // guincho "a caminho" (demo) + rota preta até você
+  const guincho = { lat: lat + 0.012, lng: lng - 0.015 };
+  const meio = { lat: (voce.lat + guincho.lat)/2 + 0.0018, lng: (voce.lng + guincho.lng)/2 - 0.001 };
   const pts = [[guincho.lat, guincho.lng], [meio.lat, meio.lng], [voce.lat, voce.lng]];
-  L.polyline(pts, { color: '#fff', weight: 8, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(mapa); // casing
-  rota = L.polyline(pts, { color: '#000', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(mapa);
-
-  marcadorGuincho = L.marker([guincho.lat, guincho.lng], { icon: carIcon(bearing(guincho, voce), 46) }).addTo(mapa);
+  L.polyline(pts, { color: '#fff', weight: 8, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(cenaLayer);
+  L.polyline(pts, { color: '#000', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(cenaLayer);
+  L.marker([guincho.lat, guincho.lng], { icon: carIcon(bearing(guincho, voce), 46) }).addTo(cenaLayer);
 
   // carrinhos "fake" ao redor pra encher o mapa
   for (let i = 0; i < 6; i++) {
-    const fl = lat + (Math.random()-.5)*0.03, fg = lng + (Math.random()-.5)*0.03;
-    fakeCars.push(L.marker([fl, fg], { icon: carIcon(Math.random()*360, 30), interactive: false }).addTo(mapa));
+    const fl = lat + (Math.random()-.5)*0.025, fg = lng + (Math.random()-.5)*0.025;
+    L.marker([fl, fg], { icon: carIcon(Math.random()*360, 30), interactive: false }).addTo(cenaLayer);
   }
 
-  // enquadra você + guincho
-  mapa.fitBounds(L.latLngBounds([[voce.lat, voce.lng], [guincho.lat, guincho.lng]]), { padding: [70, 70], maxZoom: 15 });
+  mapa.fitBounds(L.latLngBounds([[voce.lat, voce.lng], [guincho.lat, guincho.lng]]), { padding: [70, 70], maxZoom: 16 });
 
-  // card de ETA
   const dist = distanciaKm(voce.lat, voce.lng, guincho.lat, guincho.lng);
   const etaMin = Math.max(2, Math.round(dist * 2.3));
   document.getElementById('etaCard').style.display = 'flex';
@@ -149,6 +149,16 @@ function desenharCena(lat, lng) {
 }
 
 /* ---------- geolocalização ---------- */
+const locTitulo = document.getElementById('locTitulo');
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&accept-language=pt-BR`);
+    const d = await r.json(); const a = d.address || {};
+    const cidade = a.city || a.town || a.municipality || a.village || a.suburb || '';
+    const uf = (a['ISO3166-2-lvl4'] || '').split('-')[1] || '';
+    if (cidade) locTitulo.textContent = cidade + (uf ? ' - ' + uf : '');
+  } catch (e) { /* mantém o título padrão */ }
+}
 function autoLocalizar() {
   initHomeMap(RJ.lat, RJ.lng); // mostra Rio enquanto pede permissão
   if (!navigator.geolocation) { locSub.textContent = 'Selecione sua região'; return; }
@@ -157,11 +167,12 @@ function autoLocalizar() {
     (pos) => {
       userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       locSub.textContent = 'Usando sua localização atual';
-      initHomeMap(userPos.lat, userPos.lng);
+      initHomeMap(userPos.lat, userPos.lng, pos.coords.accuracy);
+      reverseGeocode(userPos.lat, userPos.lng);
       render();
     },
     () => { locSub.textContent = 'Ative a localização para ver guinchos próximos'; },
-    { enableHighAccuracy: true, timeout: 8000 }
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
   );
 }
 
@@ -180,8 +191,8 @@ document.getElementById('drawerClose').addEventListener('click', fecharDrawer);
 drawerBg.addEventListener('click', fecharDrawer);
 function fecharDrawer() { drawer.classList.remove('open'); drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
 
-/* ---------- A/B do botão central: ?fab=b => só ícone ---------- */
-if (new URLSearchParams(location.search).get('fab') === 'b') document.body.classList.add('fab-icon-only');
+/* ---------- A/B do botão central: padrão B (só ícone); ?fab=a => com texto ---------- */
+if (new URLSearchParams(location.search).get('fab') === 'a') document.body.classList.remove('fab-icon-only');
 
 /* ---------- init ---------- */
 render();
