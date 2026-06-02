@@ -14,7 +14,7 @@ const WHATSAPP_MSG = 'Olá, estou no Busca Guincho e preciso de suporte próximo
 
 // Chave do MapTiler (mapa estilo Google, gratuito). Restrinja por domínio no painel do MapTiler.
 const MAPTILER_KEY = 'yxBCmp6NSGE3ej2Ylqix';
-const MAPTILER_STYLE = 'streets-v2'; // estilo mais parecido com o Google Maps
+const MAPTILER_STYLE = 'dataviz'; // clarinho/minimalista estilo Uber (alterne p/ 'positron' se quiser)
 
 // Cria o client global `sb`
 let sb = null;
