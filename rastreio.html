@@ -33,21 +33,27 @@
     .track-bubble span { font-size:12px; color:#555; font-weight:600; }
     .track-bubble::after { content:''; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); border:7px solid transparent; border-top-color:#fff; }
 
-    /* card inferior moderno (caminhão 3D + foto + Cancelar) */
+    /* card inferior moderno (caminhão 3D + foto + selo/nota + Cancelar) */
     .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
-      background:#fff; border-radius:24px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 14px 40px rgba(0,0,0,.4); min-height:92px; }
-    .tc-truck { position:relative; width:76px; height:62px; flex-shrink:0; }
-    .tc-truck-img { width:76px; height:62px; object-fit:contain; display:block; filter:drop-shadow(0 4px 6px rgba(0,0,0,.18)); }
-    .tc-foto { position:absolute; right:-2px; bottom:-3px; width:32px; height:32px; border-radius:50%; object-fit:cover; border:2.5px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); background:#e6e8ec; }
+      background:#fff; border-radius:26px; padding:16px 18px; display:flex; align-items:center; gap:15px; box-shadow:0 16px 44px rgba(0,0,0,.42); min-height:112px; }
+    .tc-truck { position:relative; width:98px; height:80px; flex-shrink:0; }
+    .tc-truck-img { width:98px; height:80px; object-fit:contain; display:block; filter:drop-shadow(0 5px 8px rgba(0,0,0,.2)); }
+    .tc-foto { position:absolute; right:-3px; bottom:-3px; width:42px; height:42px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,.32); background:#e6e8ec; }
     .tc-info { flex:1; min-width:0; }
-    .tc-info strong { font-size:18px; color:var(--ink); font-weight:800; display:block; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tc-info small { font-size:12.5px; color:#3a3f47; display:block; margin-top:3px; }
-    .tc-right { display:flex; flex-direction:column; gap:8px; align-items:flex-end; flex-shrink:0; }
-    .tc-chat { background:var(--ink); color:#fff; border:none; border-radius:12px; width:42px; height:34px; cursor:pointer; position:relative; }
-    .tc-chat i { color:var(--yellow); font-size:16px; }
-    .tc-cancelar { background:#fff; color:#000; border:1.5px solid #000; border-radius:14px; padding:9px 18px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .12s; }
+    .tc-info strong { font-size:20px; color:var(--ink); font-weight:800; display:block; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tc-meta { display:flex; align-items:center; gap:10px; margin-top:5px; font-size:13px; }
+    .tc-verif { color:#2b7de9; font-weight:700; display:flex; align-items:center; gap:4px; }
+    .tc-verif i { font-size:14px; }
+    .tc-rating { color:#000; font-weight:700; display:flex; align-items:center; gap:4px; }
+    .tc-rating i { color:var(--yellow); font-size:13px; }
+    .tc-status { font-size:12.5px; color:#5b6675; margin-top:5px; }
+    .tc-right { display:flex; flex-direction:column; gap:10px; align-items:center; flex-shrink:0; }
+    .tc-chat { width:50px; height:50px; border-radius:50%; background:#fff; border:1px solid #f0f0f0; box-shadow:0 5px 14px rgba(0,0,0,.18); cursor:pointer; position:relative; display:grid; place-items:center; transition:transform .1s; }
+    .tc-chat:active { transform:scale(.93); }
+    .tc-chat i { color:#000; font-size:20px; }
+    .tc-cancelar { background:#fff; color:#000; border:1.5px solid #000; border-radius:14px; padding:9px 16px; font-family:inherit; font-weight:700; font-size:12.5px; cursor:pointer; transition:all .12s; }
     .tc-cancelar:active { background:#000; color:#fff; }
-    .chat-badge { position:absolute; top:-6px; right:-5px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
+    .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
 
     /* ícones do mapa */
     .car-divicon, .voce-icon { background:transparent; border:none; }
@@ -111,9 +117,16 @@
         <img class="tc-truck-img" src="/img/truck.png" alt="">
         <img class="tc-foto" id="cardFoto" src="" alt="">
       </div>
-      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">A caminho</small></div>
+      <div class="tc-info">
+        <strong id="cardNome">—</strong>
+        <div class="tc-meta">
+          <span class="tc-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+          <span class="tc-rating"><i class="fa-solid fa-star"></i> <span id="cardNota">5,0</span></span>
+        </div>
+        <div class="tc-status" id="cardStatus">A caminho</div>
+      </div>
       <div class="tc-right">
-        <button class="tc-chat" id="btnChat"><i class="fa-solid fa-comments"></i><span class="chat-badge" id="chatBadge">0</span></button>
+        <button class="tc-chat" id="btnChat" aria-label="Chat"><i class="fa-solid fa-comment-dots"></i><span class="chat-badge" id="chatBadge">0</span></button>
         <button class="tc-cancelar" id="btnCancelarRota">Cancelar</button>
       </div>
     </div>
@@ -204,7 +217,7 @@
       chamado = data;
 
       const pid = chamado.prestador_id || chamado.prestador_notificado_id;
-      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro').eq('id', pid).single();
+      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,avaliacao').eq('id', pid).single();
       prestador = pr || { nome:'Prestador' };
       preencherCard();
 
@@ -224,6 +237,7 @@
     function preencherCard() {
       document.getElementById('cardNome').textContent = prestador.nome;
       document.getElementById('chatNome').textContent = prestador.nome;
+      document.getElementById('cardNota').textContent = Number(prestador.avaliacao || 5).toFixed(1).replace('.', ',');
       const foto = prestador.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(prestador.nome)+'&background=0D0D0D&color=ffdd00');
       document.getElementById('cardFoto').src = foto;
       document.getElementById('chatFoto').src = foto;
@@ -393,10 +407,17 @@
       setTimeout(()=>{ location.href='/'; }, 2600);
     });
 
-    /* ---------- cancelar ---------- */
+    /* ---------- cancelar (cancela o serviço de verdade) ---------- */
     document.getElementById('btnCancelarRota').addEventListener('click', async () => {
-      if (!confirm('Deseja cancelar o chamado do guincho?')) return;
-      if (chamado && sb) { try { await sb.from('chamados').update({ status:'Recusado' }).eq('id', chamado.id); } catch (e) {} }
+      if (!confirm('Deseja cancelar o chamado do guincho? O serviço será encerrado.')) return;
+      try {
+        if (chamado && sb) {
+          await sb.from('chamados').update({ status: 'Cancelado' }).eq('id', chamado.id);
+          const pid = chamado.prestador_id || chamado.prestador_notificado_id;
+          if (pid) await sb.from('prestadores').update({ status_disponibilidade: 'Online' }).eq('id', pid); // libera o motorista
+        }
+      } catch (e) { console.error(e); }
+      if (canal) canal.unsubscribe();
       location.href = '/';
     });
 

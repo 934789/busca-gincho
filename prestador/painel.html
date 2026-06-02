@@ -18,6 +18,7 @@
     .st-Finalizado { background:#e0f7ea; color:#1f9d57; }
     .st-Recusado { background:#f1f1f4; color:#8a8f98; }
     .st-Expirado { background:#f1f1f4; color:#8a8f98; }
+    .st-Cancelado { background:#ffe0e0; color:#e23c3c; }
     .cc-expira { font-size:12px; color:#9a7400; background:#fff6d6; border-radius:9px; padding:7px 10px; text-align:center; font-weight:600; }
     .cc-expira strong { font-variant-numeric:tabular-nums; }
     .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
@@ -360,7 +361,7 @@
           const jaGerou = pdfGerados.has(c.id);
           acao = `<button class="cc-btn ${jaGerou?'cc-pdf-done':'cc-pdf'}" data-act="pdf"><i class="fa-solid fa-file-pdf"></i> ${temComp ? (jaGerou?'Comprovante gerado ✓':'Gerar Comprovante PDF') : 'Preencher comprovante'}</button>`;
         } else {
-          const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : 'Chamado recusado.';
+          const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : c.status === 'Cancelado' ? 'Cancelado pelo cliente.' : 'Chamado recusado.';
           acao = `<p class="helper" style="margin:6px 0 0">${txt}</p>`;
         }
         div.innerHTML = `<div class="cc-top"><div><strong>${c.servico_solicitado||'Chamado'}</strong>${c.valor_servico!=null?` · <span style="color:#1f9d57">${fmtR(c.valor_servico)}</span>`:''}<br><small>${hora}</small></div>
