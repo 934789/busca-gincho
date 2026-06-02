@@ -33,25 +33,25 @@
     .track-bubble span { font-size:12px; color:#555; font-weight:600; }
     .track-bubble::after { content:''; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); border:7px solid transparent; border-top-color:#fff; }
 
-    /* card inferior moderno (caminhão 3D + foto + selo/nota + Cancelar) */
+    /* card inferior moderno (avatar + selo/nota/status + chat + Cancelar) */
     .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
-      background:#fff; border-radius:26px; padding:16px 18px; display:flex; align-items:center; gap:15px; box-shadow:0 16px 44px rgba(0,0,0,.42); min-height:112px; }
-    .tc-truck { position:relative; width:98px; height:80px; flex-shrink:0; }
-    .tc-truck-img { width:98px; height:80px; object-fit:contain; display:block; filter:drop-shadow(0 5px 8px rgba(0,0,0,.2)); }
-    .tc-foto { position:absolute; right:-3px; bottom:-3px; width:42px; height:42px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,.32); background:#e6e8ec; }
+      background:#fff; border-radius:24px; box-shadow:0 16px 44px rgba(0,0,0,.42); overflow:hidden; }
+    .tc-top { display:flex; align-items:center; gap:14px; padding:16px 18px 14px; }
+    .tc-avatar { width:62px; height:62px; border-radius:50%; object-fit:cover; border:3px solid var(--yellow); box-shadow:0 2px 8px rgba(0,0,0,.15); background:#e6e8ec; flex-shrink:0; }
     .tc-info { flex:1; min-width:0; }
     .tc-info strong { font-size:20px; color:var(--ink); font-weight:800; display:block; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tc-meta { display:flex; align-items:center; gap:10px; margin-top:5px; font-size:13px; }
+    .tc-meta { display:flex; align-items:center; gap:7px; margin-top:5px; font-size:13px; flex-wrap:wrap; }
     .tc-verif { color:#2b7de9; font-weight:700; display:flex; align-items:center; gap:4px; }
     .tc-verif i { font-size:14px; }
     .tc-rating { color:#000; font-weight:700; display:flex; align-items:center; gap:4px; }
     .tc-rating i { color:var(--yellow); font-size:13px; }
-    .tc-status { font-size:12.5px; color:#5b6675; margin-top:5px; }
-    .tc-right { display:flex; flex-direction:column; gap:10px; align-items:center; flex-shrink:0; }
-    .tc-chat { width:50px; height:50px; border-radius:50%; background:#fff; border:1px solid #f0f0f0; box-shadow:0 5px 14px rgba(0,0,0,.18); cursor:pointer; position:relative; display:grid; place-items:center; transition:transform .1s; }
+    .tc-sep, .tc-bar { color:#cfd3da; }
+    .tc-status { color:#5b6675; }
+    .tc-chat { width:50px; height:50px; border-radius:50%; background:#fff; border:1px solid #f0f0f0; box-shadow:0 5px 14px rgba(0,0,0,.18); cursor:pointer; position:relative; display:grid; place-items:center; flex-shrink:0; transition:transform .1s; }
     .tc-chat:active { transform:scale(.93); }
     .tc-chat i { color:#000; font-size:20px; }
-    .tc-cancelar { background:#fff; color:#000; border:1.5px solid #000; border-radius:14px; padding:9px 16px; font-family:inherit; font-weight:700; font-size:12.5px; cursor:pointer; transition:all .12s; }
+    .tc-bottom { border-top:1px solid #eef0f3; padding:12px 18px; display:flex; justify-content:flex-end; }
+    .tc-cancelar { background:#fff; color:#000; border:1.5px solid #000; border-radius:14px; padding:10px 26px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; transition:all .12s; }
     .tc-cancelar:active { background:#000; color:#fff; }
     .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
 
@@ -113,20 +113,21 @@
     </div>
 
     <div class="track-card" id="trackCard" style="display:none">
-      <div class="tc-truck">
-        <img class="tc-truck-img" src="/img/truck.png" alt="">
-        <img class="tc-foto" id="cardFoto" src="" alt="">
-      </div>
-      <div class="tc-info">
-        <strong id="cardNome">—</strong>
-        <div class="tc-meta">
-          <span class="tc-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span>
-          <span class="tc-rating"><i class="fa-solid fa-star"></i> <span id="cardNota">5,0</span></span>
+      <div class="tc-top">
+        <img class="tc-avatar" id="cardFoto" src="" alt="">
+        <div class="tc-info">
+          <strong id="cardNome">—</strong>
+          <div class="tc-meta">
+            <span class="tc-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+            <span class="tc-sep">·</span>
+            <span class="tc-rating"><i class="fa-solid fa-star"></i> <span id="cardNota">5,0</span></span>
+            <span class="tc-bar">|</span>
+            <span class="tc-status" id="cardStatus">A caminho</span>
+          </div>
         </div>
-        <div class="tc-status" id="cardStatus">A caminho</div>
-      </div>
-      <div class="tc-right">
         <button class="tc-chat" id="btnChat" aria-label="Chat"><i class="fa-solid fa-comment-dots"></i><span class="chat-badge" id="chatBadge">0</span></button>
+      </div>
+      <div class="tc-bottom">
         <button class="tc-cancelar" id="btnCancelarRota">Cancelar</button>
       </div>
     </div>
