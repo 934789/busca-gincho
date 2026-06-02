@@ -17,9 +17,36 @@
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
+    <!-- RELATÓRIO DE CHAMADOS -->
+    <section class="dash-section">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-clipboard-list"></i></span>
+        <div class="sh-txt"><strong>Relatório de Chamados</strong><small>Todos os chamados da plataforma — data, hora, prestador e status</small></div>
+      </div>
+      <div class="rel-resumo" id="relResumo"></div>
+      <div class="rel-filtros">
+        <div class="field"><label>De</label><input type="date" id="r_de"></div>
+        <div class="field"><label>Até</label><input type="date" id="r_ate"></div>
+        <button class="rel-btn" id="btnRelFiltrar"><i class="fa-solid fa-filter"></i></button>
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Status</label>
+        <select id="r_status">
+          <option value="">Todos os status</option>
+          <option>Finalizado</option><option>A Caminho</option><option>Aceito</option>
+          <option>Notificando</option><option>Pendente</option><option>Recusado</option>
+          <option>Expirado</option><option>Cancelado</option>
+        </select>
+      </div>
+      <div id="relLista"><p class="helper">Carregando...</p></div>
+    </section>
+
     <!-- CADASTRO -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-user-plus"></i> Cadastrar novo prestador</h2>
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-user-plus"></i></span>
+        <div class="sh-txt"><strong>Cadastrar prestador</strong><small>Adicione um novo guincho à plataforma</small></div>
+      </div>
       <form id="cadForm">
         <div class="field"><label>Nome</label><input type="text" id="c_nome" required></div>
         <div class="grid-2">
@@ -55,7 +82,10 @@
 
     <!-- GESTÃO -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-users-gear"></i> Prestadores cadastrados</h2>
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-users-gear"></i></span>
+        <div class="sh-txt"><strong>Prestadores</strong><small>Editar, excluir, ver métricas e ativar/ocultar</small></div>
+      </div>
       <p class="helper" style="margin-bottom:12px">Editar, excluir, ver métricas e ativar/ocultar (mensalidade).</p>
       <div id="lista"><p class="helper">Carregando...</p></div>
     </section>
@@ -306,6 +336,43 @@
     window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
     document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));
 
+    /* ---------- relatório de chamados (todos) ---------- */
+    async function carregarRelatorio() {
+      let q = sb.from('chamados').select('id,created_at,status,valor_servico,servico_solicitado,endereco_destino,prestadores!chamados_prestador_id_fkey(nome,foto_url)').order('created_at', { ascending:false }).limit(300);
+      if (r_de.value)  q = q.gte('created_at', r_de.value + 'T00:00:00');
+      if (r_ate.value) q = q.lte('created_at', r_ate.value + 'T23:59:59');
+      if (r_status.value) q = q.eq('status', r_status.value);
+      const { data, error } = await q;
+      const box = document.getElementById('relLista');
+      if (error) { box.innerHTML = '<p class="helper">Erro: ' + error.message + '</p>'; return; }
+      const lista = data || [];
+      const fin = lista.filter(c => c.status === 'Finalizado');
+      const andamento = lista.filter(c => ['A Caminho','Aceito','Notificando'].includes(c.status)).length;
+      const fat = fin.reduce((s, c) => s + (Number(c.valor_servico) || 0), 0);
+      document.getElementById('relResumo').innerHTML = `
+        <div class="stat-card"><div class="stat-num">${lista.length}</div><div class="stat-label">Chamados</div></div>
+        <div class="stat-card"><div class="stat-num">${andamento}</div><div class="stat-label">Em andamento</div></div>
+        <div class="stat-card"><div class="stat-num">${fin.length}</div><div class="stat-label">Finalizados</div></div>
+        <div class="stat-card accent"><div class="stat-num" style="font-size:17px">R$ ${fat.toFixed(2).replace('.', ',')}</div><div class="stat-label">Faturado</div></div>`;
+      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado neste período.</p>'; return; }
+      box.innerHTML = lista.map((c) => {
+        const p = c.prestadores;
+        const foto = p ? (p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffdd00') : 'https://ui-avatars.com/api/?name=?&background=cccccc&color=fff';
+        const dt = new Date(c.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+        const val = c.valor_servico != null ? '<b>R$ ' + Number(c.valor_servico).toFixed(2).replace('.', ',') + '</b>' : '';
+        return `<div class="chamado-row">
+          <img class="cr-av" src="${foto}">
+          <div class="cr-main"><strong>${p ? p.nome : '(aguardando aceite)'}</strong>
+            <small>${c.servico_solicitado || 'Chamado'}${c.endereco_destino ? ' → ' + c.endereco_destino : ''}</small>
+            <small><i class="fa-regular fa-clock"></i> ${dt}</small></div>
+          <div class="cr-val">${val}<br><span class="cr-pill crp-${(c.status||'').replace(/\s/g,'')}">${c.status}</span></div>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('btnRelFiltrar').addEventListener('click', carregarRelatorio);
+    document.getElementById('r_status').addEventListener('change', carregarRelatorio);
+
+    carregarRelatorio();
     listar();
   </script>
 </body>

@@ -540,3 +540,29 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .loc-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
 .loc-chips button { background:#f1f2f5; border:none; border-radius:999px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; color:#333; cursor:pointer; }
 .loc-chips button:active { background:var(--yellow); }
+
+/* ===== Cabeçalho didático de seção (painéis) ===== */
+.sec-head { display:flex; align-items:center; gap:13px; margin-bottom:16px; }
+.sh-ico { width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+.sh-txt strong { font-size:16px; color:var(--ink); display:block; line-height:1.15; }
+.sh-txt small { font-size:12px; color:var(--text-soft); }
+
+/* ===== Relatório de chamados (admin) ===== */
+.rel-filtros { display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:14px; }
+.rel-filtros .field { margin:0; }
+.rel-filtros .field label { font-size:11px; }
+.rel-filtros .field input, .rel-filtros select { padding:10px 11px; font-size:13px; }
+.rel-btn { background:var(--ink); color:var(--yellow); border:none; border-radius:11px; padding:11px 13px; font-weight:700; cursor:pointer; font-family:inherit; font-size:13px; height:42px; }
+.chamado-row { display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:13px; padding:12px 13px; margin-bottom:9px; }
+.chamado-row .cr-av { width:40px; height:40px; border-radius:50%; object-fit:cover; background:#e6e8ec; flex-shrink:0; }
+.chamado-row .cr-main { flex:1; min-width:0; }
+.chamado-row .cr-main strong { font-size:14px; color:var(--ink); display:block; }
+.chamado-row .cr-main small { font-size:11.5px; color:var(--text-soft); display:block; }
+.chamado-row .cr-val { text-align:right; flex-shrink:0; }
+.chamado-row .cr-val b { font-size:14px; color:#1f9d57; }
+.cr-pill { font-size:10px; font-weight:800; padding:3px 9px; border-radius:999px; white-space:nowrap; display:inline-block; margin-top:3px; }
+.crp-Finalizado { background:#e0f7ea; color:#1f9d57; }
+.crp-ACaminho, .crp-Aceito, .crp-Notificando { background:#e0eeff; color:#1d6fe0; }
+.crp-Pendente { background:#fff6d6; color:#9a7400; }
+.crp-Recusado, .crp-Expirado, .crp-Cancelado { background:#f1f1f4; color:#8a8f98; }
+.rel-resumo { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }

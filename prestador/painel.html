@@ -75,6 +75,14 @@
     .sh-txt strong { font-size:16px; color:var(--ink); display:block; line-height:1.15; }
     .sh-txt small { font-size:12px; color:var(--text-soft); }
     .sec-divider { height:8px; }
+    /* abas do painel */
+    .tabs { display:flex; gap:6px; background:#fff; margin:14px 16px 0; padding:6px; border-radius:16px; box-shadow:var(--shadow); }
+    .tab { flex:1; border:none; background:transparent; border-radius:11px; padding:11px 4px; font-family:inherit; font-weight:700; font-size:12px; color:#8a8f98; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px; transition:all .15s; }
+    .tab i { font-size:18px; }
+    .tab.active { background:var(--ink); color:#fff; }
+    .tab.active i { color:var(--yellow); }
+    .tabpane { display:none; }
+    .tabpane.active { display:block; }
 
     /* modal de despacho (novo chamado) */
     .desp-modal { text-align:center; }
@@ -125,8 +133,15 @@
       </div>
     </section>
 
+    <!-- ABAS -->
+    <div class="tabs">
+      <button class="tab active" data-pane="corridas"><i class="fa-solid fa-truck-pickup"></i> Corridas</button>
+      <button class="tab" data-pane="financeiro"><i class="fa-solid fa-sack-dollar"></i> Financeiro</button>
+      <button class="tab" data-pane="perfil"><i class="fa-solid fa-id-card"></i> Perfil</button>
+    </div>
+
     <!-- CORRIDAS (chamados) -->
-    <section class="dash-section">
+    <section class="dash-section tabpane active" data-pane="corridas">
       <div class="sec-head">
         <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-truck-pickup"></i></span>
         <div class="sh-txt"><strong>Corridas <span class="live-dot" title="Ao vivo"></span></strong><small>Seus chamados — aceite, acompanhe e finalize</small></div>
@@ -136,7 +151,7 @@
     </section>
 
     <!-- FINANCEIRO -->
-    <section class="dash-section">
+    <section class="dash-section tabpane" data-pane="financeiro">
       <div class="sec-head">
         <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-sack-dollar"></i></span>
         <div class="sh-txt"><strong>Financeiro</strong><small>Quanto você faturou pela plataforma</small></div>
@@ -152,7 +167,7 @@
     </section>
 
     <!-- PERFIL -->
-    <section class="dash-section">
+    <section class="dash-section tabpane" data-pane="perfil">
       <div class="sec-head">
         <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-id-card"></i></span>
         <div class="sh-txt"><strong>Meu Perfil</strong><small>Seus dados, serviços e informações fiscais</small></div>
@@ -668,6 +683,15 @@
     window.abrirModal = (id) => document.getElementById(id).classList.add('open');
     window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
     document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));
+
+    /* ---------- abas ---------- */
+    document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      const pane = t.dataset.pane;
+      document.querySelectorAll('.tabpane').forEach((p) => p.classList.toggle('active', p.dataset.pane === pane));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }));
 
     carregarPerfil();
     carregarChamados();
