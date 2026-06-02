@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alexandre — Busca Guincho</title>
+<meta name="description" content="Alexandre — Guincho 24h no Méier, Rio de Janeiro. Atendimento rápido, seguro e confiável." />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<style>
+  :root{ --ink:#0D0D0D; --yellow:#FFC400; --yellow-soft:#FFF4D1; --line:#EFEFF2;
+         --text:#15171c; --soft:#8A8F98; --green:#1FBF5B; --bg:#EAEAEC; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Poppins',system-ui,sans-serif; background:var(--bg); color:var(--text);
+        display:flex; justify-content:center; padding:0; }
+  .wrap{ width:100%; max-width:460px; background:#fff; min-height:100vh; }
+
+  /* ===== HERO ===== */
+  .hero{ position:relative; background:#0B0B0B; padding:18px 22px 22px; overflow:hidden;
+         border-bottom:5px solid var(--yellow); }
+  .hero::before{ content:''; position:absolute; inset:0; z-index:0;
+        background:radial-gradient(120% 90% at 80% 10%, #242424 0%, #0B0B0B 60%); }
+  /* escurece a esquerda (texto) e a base (benefícios) por cima da capa */
+  .hero::after{ content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+        background:linear-gradient(to right, #0B0B0B 16%, rgba(11,11,11,.35) 48%, transparent 64%),
+                  linear-gradient(to top, #0B0B0B 6%, rgba(11,11,11,.55) 20%, transparent 46%); }
+  .hero > *{ position:relative; z-index:2; }
+  .hero-top{ display:flex; align-items:center; justify-content:space-between; }
+  .hero-logo{ height:42px; }
+  .pill-online{ display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.10);
+        border:1px solid rgba(255,255,255,.16); color:#fff; font-size:12.5px; font-weight:600;
+        padding:7px 13px; border-radius:999px; }
+  .pill-online .dot{ width:8px; height:8px; border-radius:50%; background:var(--green);
+        box-shadow:0 0 0 3px rgba(31,191,91,.25); }
+
+  .hero-h1{ color:#fff; font-size:27px; font-weight:800; line-height:1.18; letter-spacing:-.5px;
+        margin-top:18px; max-width:54%; }
+  /* CAPA: banner como fundo de altura total à direita, descendo até a faixa amarela */
+  .hero-truck{ position:absolute; right:0; top:0; bottom:0; width:62%; z-index:1; pointer-events:none;
+        background:url(/img/banner.png) no-repeat right center / cover;
+        -webkit-mask-image:linear-gradient(to left, #000 64%, transparent 100%);
+                mask-image:linear-gradient(to left, #000 64%, transparent 100%); }
+
+  .hero-benes{ display:flex; gap:12px; margin-top:32px; z-index:3; }
+  .bene{ flex:1 1 0; min-width:0; }
+  .bene .ico{ width:46px; height:46px; border-radius:13px; background:#171717;
+        border:1px solid #2a2a2a; display:grid; place-items:center; color:var(--yellow); font-size:18px; }
+  .bene p{ color:#EDEDED; font-size:12.5px; font-weight:600; line-height:1.25; margin-top:10px; }
+
+  /* ===== AVATAR ===== */
+  .avatar-wrap{ display:flex; justify-content:center; margin-top:-46px; position:relative; z-index:5; }
+  .avatar{ width:96px; height:96px; border-radius:50%; background:#0D0D0D; border:5px solid #fff;
+        display:grid; place-items:center; color:var(--yellow); font-size:32px; font-weight:800;
+        position:relative; box-shadow:0 10px 24px rgba(0,0,0,.20); }
+  .avatar .on{ position:absolute; right:6px; bottom:6px; width:18px; height:18px; border-radius:50%;
+        background:var(--green); border:3px solid #fff; }
+
+  /* ===== IDENTIDADE ===== */
+  .ident{ text-align:center; padding:10px 22px 0; }
+  .ident h1{ font-size:27px; font-weight:800; letter-spacing:-.4px; }
+  .verif{ display:inline-flex; align-items:center; gap:7px; background:var(--yellow-soft);
+        color:#9a6b00; font-weight:700; font-size:13.5px; padding:6px 15px; border-radius:999px; margin-top:9px; }
+  .verif i{ color:#FFC400; }
+  .meta{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px 14px;
+        margin-top:14px; font-size:13.5px; color:#3c3f46; font-weight:500; }
+  .meta .sep{ width:1px; height:14px; background:#e2e2e6; }
+  .meta i.star{ color:var(--yellow); } .meta b{ font-weight:700; } .meta .gdot{ color:var(--green); }
+  .meta .loc i{ color:#e23c3c; }
+
+  /* ===== BOTÕES ===== */
+  .actions{ padding:20px 22px 4px; display:flex; flex-direction:column; gap:12px; }
+  .btn{ display:flex; align-items:center; justify-content:center; gap:11px; padding:16px;
+        border-radius:15px; font-weight:700; font-size:16px; text-decoration:none; }
+  .btn-wa{ background:var(--yellow); color:#0D0D0D; box-shadow:0 8px 18px rgba(255,196,0,.30); }
+  .btn-wa i{ font-size:22px; -webkit-text-stroke:.6px #0D0D0D; }
+  .btn-call{ background:#0D0D0D; color:#fff; }
+  .btn-call i{ color:var(--yellow); }
+
+  /* ===== SEÇÕES ===== */
+  .sec{ padding:22px 22px 0; }
+  .sec-title{ font-size:16px; font-weight:800; position:relative; display:inline-block; margin-bottom:16px; }
+  .sec-title::after{ content:''; position:absolute; left:0; bottom:-5px; width:46px; height:4px;
+        background:var(--yellow); border-radius:3px; }
+
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .scard{ display:flex; align-items:center; gap:11px; padding:13px; border:1.5px solid var(--line);
+        border-radius:14px; background:#fff; }
+  .scard .ico{ width:40px; height:40px; border-radius:11px; background:var(--yellow-soft);
+        display:grid; place-items:center; color:#C79100; font-size:16px; flex-shrink:0; }
+  .scard span{ font-size:13.5px; font-weight:700; line-height:1.15; }
+
+  .card{ background:#fff; border:1.5px solid var(--line); border-radius:18px; padding:18px; }
+  .card-head{ display:flex; align-items:center; gap:12px; margin-bottom:15px; }
+  .card-head .ci{ width:40px; height:40px; border-radius:50%; background:var(--yellow);
+        display:grid; place-items:center; color:#0D0D0D; font-size:17px; flex-shrink:0; }
+  .card-head strong{ font-size:16px; font-weight:800; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+  .chip{ background:#F4F5F7; color:#3c3f46; font-size:13px; font-weight:600;
+        padding:9px 16px; border-radius:999px; }
+
+  .sobre-txt{ color:#5b606b; font-size:14px; line-height:1.55; }
+  .stats{ display:flex; margin-top:18px; }
+  .stat{ flex:1; text-align:center; padding:0 6px; }
+  .stat + .stat{ border-left:1px solid var(--line); }
+  .stat i{ color:#0D0D0D; font-size:18px; }
+  .stat p{ font-size:12.5px; font-weight:600; color:#3c3f46; margin-top:7px; line-height:1.25; }
+  .stat p b{ display:block; font-weight:800; font-size:14px; }
+
+  .foot{ text-align:center; color:#6b7079; font-size:14px; padding:26px 22px 34px; }
+  .foot b{ color:#0D0D0D; font-weight:700; }
+</style>
+</head>
+<body>
+  <!-- ============================================================
+       PERFIL DO PRESTADOR — PÁGINA ESTÁTICA
+       Para criar outro prestador: copie esta pasta, renomeie
+       (ex.: /joao) e edite os campos marcados com  << EDITE >>
+       ============================================================ -->
+  <div class="wrap">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-top">
+        <img class="hero-logo" src="/img/logo3.png" alt="Busca Guincho" />
+        <span class="pill-online"><span class="dot"></span> Online agora</span>
+      </div>
+      <h1 class="hero-h1">Atendimento rápido, quando você mais precisa.</h1>
+      <div class="hero-truck"></div>
+      <div class="hero-benes">
+        <div class="bene"><div class="ico"><i class="fa-solid fa-shield-halved"></i></div><p>Atendimento<br>24 horas</p></div>
+        <div class="bene"><div class="ico"><i class="fa-solid fa-bolt"></i></div><p>Chegada<br>rápida</p></div>
+        <div class="bene"><div class="ico"><i class="fa-solid fa-shield-heart"></i></div><p>Seguro e<br>confiável</p></div>
+      </div>
+    </header>
+
+    <!-- AVATAR -->
+    <div class="avatar-wrap">
+      <div class="avatar">AL<span class="on"></span></div> <!-- << EDITE: iniciais ou troque por <img> -->
+    </div>
+
+    <!-- IDENTIDADE -->
+    <div class="ident">
+      <h1>Alexandre</h1> <!-- << EDITE: nome -->
+      <div class="verif"><i class="fa-solid fa-circle-check"></i> Verificado</div>
+      <div class="meta">
+        <span><i class="fa-solid fa-star star"></i> <b>5,0</b> (0 avaliações)</span>
+        <span class="sep"></span>
+        <span class="gdot"><i class="fa-solid fa-circle" style="font-size:8px"></i> <b>Online agora</b></span>
+        <span class="sep"></span>
+        <span class="loc"><i class="fa-solid fa-location-dot"></i> Méier, Rio de Janeiro - RJ</span> <!-- << EDITE: cidade -->
+      </div>
+    </div>
+
+    <!-- BOTÕES -->
+    <div class="actions">
+      <!-- << EDITE: número do WhatsApp (formato 55 + DDD + número) -->
+      <a class="btn btn-wa" href="https://wa.me/5521999999999?text=Ol%C3%A1%20Alexandre%2C%20vim%20pelo%20Busca%20Guincho%20e%20preciso%20de%20um%20guincho."><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+      <!-- << EDITE: telefone -->
+      <a class="btn btn-call" href="tel:+5521999999999"><i class="fa-solid fa-phone"></i> Ligar agora</a>
+    </div>
+
+    <!-- SERVIÇOS -->
+    <section class="sec">
+      <div class="sec-title">Serviços oferecidos</div>
+      <div class="grid">
+        <div class="scard"><div class="ico"><i class="fa-solid fa-truck-pickup"></i></div><span>Reboque leve</span></div>
+        <div class="scard"><div class="ico"><i class="fa-solid fa-truck-moving"></i></div><span>Reboque pesado</span></div>
+        <div class="scard"><div class="ico"><i class="fa-solid fa-car-battery"></i></div><span>Carga de bateria</span></div>
+        <div class="scard"><div class="ico"><i class="fa-solid fa-record-vinyl"></i></div><span>Auxílio troca de pneu</span></div>
+        <div class="scard"><div class="ico"><i class="fa-solid fa-bolt"></i></div><span>Pane elétrica</span></div>
+        <div class="scard"><div class="ico"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Resgate veicular</span></div>
+      </div>
+    </section>
+
+    <!-- REGIÕES -->
+    <section class="sec">
+      <div class="card">
+        <div class="card-head"><div class="ci"><i class="fa-solid fa-location-dot"></i></div><strong>Regiões de atendimento</strong></div>
+        <div class="chips"><!-- << EDITE: regiões -->
+          <span class="chip">Zona Norte</span><span class="chip">Méier</span><span class="chip">Tijuca</span>
+          <span class="chip">Madureira</span><span class="chip">Vicente de Carvalho</span>
+          <span class="chip">Centro</span><span class="chip">Barra da Tijuca</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE -->
+    <section class="sec">
+      <div class="card">
+        <div class="card-head"><div class="ci"><i class="fa-solid fa-user"></i></div><strong>Sobre o prestador</strong></div>
+        <p class="sobre-txt">Profissional experiente e comprometido. Atendimento 24 horas com agilidade e segurança para você e seu veículo.</p>
+        <div class="stats">
+          <div class="stat"><i class="fa-solid fa-clock"></i><p><b>Atendimento</b>24h</p></div>
+          <div class="stat"><i class="fa-solid fa-users"></i><p><b>+2.400</b>atendimentos</p></div>
+          <div class="stat"><i class="fa-solid fa-shield-halved"></i><p><b>Seguro e</b>confiável</p></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">Precisa de ajuda? Estou <b>pronto para te atender!</b></p>
+  </div>
+</body>
+</html>

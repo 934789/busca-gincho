@@ -216,8 +216,12 @@ const MIME = { '.html':'text/html','.css':'text/css','.js':'text/javascript','.j
 function serveStatic(req, res, urlPath) {
   let rel = decodeURIComponent(urlPath.split('?')[0]);
   if (rel === '/') rel = '/index.html';
-  const filePath = path.join(ROOT, path.normalize(rel));
+  let filePath = path.join(ROOT, path.normalize(rel));
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Forbidden'); }
+  // DirectoryIndex: igual ao Apache da HostGator — /alexandre ou /alexandre/ servem index.html da pasta
+  if (!path.extname(filePath)) {
+    try { if (fs.statSync(filePath).isDirectory()) filePath = path.join(filePath, 'index.html'); } catch (e) {}
+  }
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, {'Content-Type':'text/html'}); return res.end('<h1>404</h1>'); }
     res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
