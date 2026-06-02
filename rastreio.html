@@ -169,7 +169,8 @@
       const x=Math.cos(toR(a.lat))*Math.sin(toR(b.lat))-Math.sin(toR(a.lat))*Math.cos(toR(b.lat))*Math.cos(dLon);
       return (toD(Math.atan2(y,x))+360)%360;
     }
-    const carIcon = (deg) => L.divIcon({ className:'car-divicon', html:`<img src="/img/car.png" style="width:46px;height:46px;display:block;transform:rotate(${deg}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))">`, iconSize:[46,46], iconAnchor:[23,23] });
+    // car.png aponta pra ESQUERDA por padrão -> offset +90 p/ alinhar com a direção (bearing)
+    const carIcon = (deg) => L.divIcon({ className:'car-divicon', html:`<img src="/img/car.png" style="width:48px;height:48px;display:block;transition:transform .4s ease;transform:rotate(${deg + 90}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))">`, iconSize:[48,48], iconAnchor:[24,24] });
     const voceIcon = () => L.divIcon({ className:'voce-icon', html:`<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">Seu local</span>`, iconSize:[0,0], iconAnchor:[0,0] });
 
     let mapa, mGuincho, mVoce, rota, prevGuincho = null, lastDeg = 0, cliente = null, chamado, prestador, canal, canalMsg, notaSel = 0;
@@ -276,7 +277,14 @@
         { event:'UPDATE', schema:'public', table:'chamados', filter:`link_token=eq.${token}` },
         (p) => {
           const { latitude_atual_guincho:la, longitude_atual_guincho:lo, status } = p.new;
-          document.getElementById('topTitulo').textContent = status === 'Chegou' ? 'Guincho chegou!' : status === 'Iniciado' ? 'A caminho do destino' : 'Guincho a caminho';
+          if (status === 'Chegou') {
+            document.getElementById('topTitulo').textContent = 'Seu Guincho chegou! 🎉';
+            document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · ele está no seu local';
+            document.getElementById('cardStatus').textContent = 'Chegou ao seu local';
+            const eta = document.getElementById('etaMin'); eta.textContent = '✓'; eta.parentElement.querySelector('small').textContent = 'aqui';
+          } else {
+            document.getElementById('topTitulo').textContent = status === 'Iniciado' ? 'A caminho do destino' : 'Guincho a caminho';
+          }
           if (status === 'Finalizado') { if (canal) canal.unsubscribe(); desativarMapaEMostrarAvaliacao(); return; }
           if (la) atualizarGuincho(la, lo);
         }).subscribe();
@@ -284,18 +292,28 @@
 
     /* ---------- CHAT em tempo real ---------- */
     const chatOverlay = document.getElementById('chatOverlay');
+    const somChat = new Audio('/audio/chat.mp3'); somChat.preload = 'auto';
+    function tocarChat() { try { somChat.currentTime = 0; somChat.play().catch(()=>{}); } catch(e){} }
+    function checkHtml(lida) { return `<i class="fa-solid fa-check-double" style="font-size:11px;margin-left:4px;color:${lida ? '#34b7f1' : '#b9bdc4'}"></i>`; }
     let naoLidas = 0;
-    function iniciarChat(pid) {
+    function iniciarChat() {
       carregarMensagens();
-      canalMsg = sb.channel('chat-'+chamado.id).on('postgres_changes',
-        { event:'INSERT', schema:'public', table:'mensagens', filter:`chamado_id=eq.${chamado.id}` },
-        (p) => { addMsg(p.new); if (!chatOverlay.classList.contains('open') && p.new.autor==='prestador') { naoLidas++; const b=document.getElementById('chatBadge'); b.textContent=naoLidas; b.style.display='inline-block'; } }
-      ).subscribe();
+      canalMsg = sb.channel('chat-'+chamado.id)
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'mensagens', filter:`chamado_id=eq.${chamado.id}` }, (p) => {
+          addMsg(p.new); tocarChat();
+          if (p.new.autor === 'prestador') {
+            if (chatOverlay.classList.contains('open')) marcarLidas();
+            else { naoLidas++; const b=document.getElementById('chatBadge'); b.textContent=naoLidas; b.style.display='inline-block'; }
+          }
+        })
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'mensagens', filter:`chamado_id=eq.${chamado.id}` }, (p) => atualizarCheck(p.new))
+        .subscribe();
     }
     async function carregarMensagens() {
       const { data } = await sb.from('mensagens').select('*').eq('chamado_id', chamado.id).order('created_at', { ascending:true });
       const box = document.getElementById('chatMsgs');
       if (data && data.length) { box.innerHTML = ''; data.forEach(addMsg); }
+      if (chatOverlay.classList.contains('open')) marcarLidas();
     }
     function addMsg(m) {
       const box = document.getElementById('chatMsgs');
@@ -303,12 +321,22 @@
       const div = document.createElement('div');
       div.className = 'msg ' + (m.autor === 'cliente' ? 'cliente' : 'prestador');
       const hora = new Date(m.created_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-      div.innerHTML = `${m.texto.replace(/</g,'&lt;')}<small>${hora}</small>`;
+      const ck = m.autor === 'cliente' ? `<span class="ck" data-id="${m.id}">${checkHtml(m.lida)}</span>` : '';
+      div.innerHTML = `${m.texto.replace(/</g,'&lt;')}<small>${hora}${ck}</small>`;
       box.appendChild(div); box.scrollTop = box.scrollHeight;
+    }
+    function atualizarCheck(m) {
+      if (m.autor !== 'cliente') return;
+      const ck = document.querySelector('.ck[data-id="'+m.id+'"]');
+      if (ck) ck.innerHTML = checkHtml(m.lida);
+    }
+    async function marcarLidas() {
+      await sb.from('mensagens').update({ lida:true }).eq('chamado_id', chamado.id).eq('autor', 'prestador').eq('lida', false);
     }
     document.getElementById('btnChat').addEventListener('click', () => {
       chatOverlay.classList.add('open'); naoLidas=0; document.getElementById('chatBadge').style.display='none';
       document.getElementById('chatMsgs').scrollTop = document.getElementById('chatMsgs').scrollHeight;
+      marcarLidas();
     });
     document.getElementById('chatClose').addEventListener('click', () => chatOverlay.classList.remove('open'));
     async function enviarMsg() {

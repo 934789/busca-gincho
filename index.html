@@ -21,7 +21,7 @@
         <span class="hh-truck"><i class="fa-solid fa-truck-pickup"></i></span>
         <span class="hh-name"><b>BUSCA</b><i>GINCHO</i></span>
       </a>
-      <button class="hh-menu" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+      <button class="hh-menu" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
     </header>
 
     <!-- ===== MAPA + LOCALIZAÇÃO ===== -->
@@ -47,9 +47,9 @@
 
     <!-- ===== BENEFÍCIOS ===== -->
     <div class="benefits">
-      <div class="bf"><i class="fa-solid fa-shield-halved"></i><div><strong>Atendimento</strong><small>24h</small></div></div>
-      <div class="bf"><i class="fa-solid fa-bolt"></i><div><strong>Chegada rápida</strong><small>em minutos</small></div></div>
-      <div class="bf"><i class="fa-solid fa-circle-check"></i><div><strong>Seguro</strong><small>e confiável</small></div></div>
+      <div class="bf"><i class="fa-solid fa-shield-halved"></i><strong>Atendimento 24h</strong></div>
+      <div class="bf"><i class="fa-solid fa-bolt"></i><strong>Chegada rápida</strong></div>
+      <div class="bf"><i class="fa-solid fa-circle-check"></i><strong>Seguro e confiável</strong></div>
     </div>
 
     <!-- ===== FILTROS RÁPIDOS ===== -->
@@ -91,6 +91,18 @@
     </button>
     <a href="contato.html" class="bn-item"><i class="fa-regular fa-circle-question"></i><span>Ajuda</span></a>
   </nav>
+
+  <!-- ===== SELETOR DE LOCALIZAÇÃO ===== -->
+  <div class="chamar-overlay" id="locOverlay">
+    <div class="chamar-sheet">
+      <div class="chamar-head"><h2>Onde você está?</h2><button class="chamar-close" id="locClose"><i class="fa-solid fa-xmark"></i></button></div>
+      <button class="loc-usar" id="locUsar"><i class="fa-solid fa-location-crosshairs"></i> Usar minha localização atual</button>
+      <div class="loc-ou"><span>ou digite o endereço / região</span></div>
+      <div class="loc-search"><i class="fa-solid fa-magnifying-glass"></i><input id="locInput" placeholder="Bairro, cidade ou endereço" autocomplete="off"></div>
+      <div class="chamar-sugestoes" id="locSugestoes"></div>
+      <div class="loc-chips" id="locChips"></div>
+    </div>
+  </div>
 
   <!-- ===== CHAMAR GUINCHO (fluxo de despacho) ===== -->
   <div class="chamar-overlay" id="chamarOverlay">

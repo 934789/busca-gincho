@@ -90,7 +90,7 @@ const RJ = { lat: -22.9068, lng: -43.1729 };
 function carIcon(deg, size = 40) {
   return L.divIcon({
     className: 'car-divicon',
-    html: `<img src="/img/car.png" style="width:${size}px;height:${size}px;display:block;transform:rotate(${deg}deg);filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))">`,
+    html: `<img src="/img/car.png" style="width:${size}px;height:${size}px;display:block;transform:rotate(${deg + 90}deg);filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))">`,
     iconSize: [size, size], iconAnchor: [size/2, size/2],
   });
 }
@@ -128,9 +128,10 @@ function desenharCena(lat, lng, acc) {
   if (acc) L.circle([lat, lng], { radius: Math.min(acc, 500), color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: .12 }).addTo(cenaLayer);
   L.marker([lat, lng], { icon: meuLocalIcon() }).addTo(cenaLayer);
 
-  // guinchos disponíveis ao redor (decorativo) — SEM rota (a rota só aparece no acompanhar)
-  for (let i = 0; i < 6; i++) {
-    const fl = lat + (Math.random()-.5)*0.022, fg = lng + (Math.random()-.5)*0.022;
+  // guinchos disponíveis ao redor (sempre aparecem, dão a impressão de guinchos por perto)
+  for (let i = 0; i < 7; i++) {
+    const ang = Math.random() * Math.PI * 2, raio = 0.004 + Math.random() * 0.013; // entre ~0,4 e ~1,7 km
+    const fl = lat + Math.cos(ang) * raio, fg = lng + Math.sin(ang) * raio;
     L.marker([fl, fg], { icon: carIcon(Math.random()*360, 30), interactive: false }).addTo(cenaLayer);
   }
 
@@ -150,7 +151,7 @@ async function reverseGeocode(lat, lng) {
   } catch (e) { /* mantém o título padrão */ }
 }
 function autoLocalizar() {
-  initHomeMap(RJ.lat, RJ.lng); // mostra Rio enquanto pede permissão
+  if (!mapa) initHomeMap(RJ.lat, RJ.lng); // mostra Rio só na 1ª vez (enquanto pede permissão)
   if (!navigator.geolocation) { locSub.textContent = 'Selecione sua região'; return; }
   locSub.textContent = 'Localizando você...';
   navigator.geolocation.getCurrentPosition(
@@ -167,21 +168,59 @@ function autoLocalizar() {
 }
 
 /* ---------- controles ---------- */
-document.getElementById('btnRecenter').addEventListener('click', () => {
-  const p = userPos || RJ; if (mapa) mapa.setView([p.lat, p.lng], 15);
+document.getElementById('btnRecenter').addEventListener('click', autoLocalizar);
+
+/* ---------- seletor de localização (digitar região/endereço ou usar GPS) ---------- */
+const locOverlay = document.getElementById('locOverlay');
+const REGIOES = ['Centro', 'Zona Sul', 'Zona Norte', 'Zona Oeste', 'Barra da Tijuca', 'Niterói', 'São Paulo - SP', 'Rio de Janeiro - RJ'];
+(function () {
+  const box = document.getElementById('locChips');
+  REGIOES.forEach((r) => { const b = document.createElement('button'); b.textContent = r; b.addEventListener('click', () => { document.getElementById('locInput').value = r; buscarLoc(r); }); box.appendChild(b); });
+})();
+function abrirLoc() { document.getElementById('locInput').value = ''; document.getElementById('locSugestoes').innerHTML = ''; locOverlay.classList.add('open'); }
+document.getElementById('locCard').addEventListener('click', abrirLoc);
+document.getElementById('locClose').addEventListener('click', () => locOverlay.classList.remove('open'));
+document.getElementById('locUsar').addEventListener('click', () => { locOverlay.classList.remove('open'); autoLocalizar(); });
+let locTimer;
+document.getElementById('locInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim(); clearTimeout(locTimer);
+  if (q.length < 3) { document.getElementById('locSugestoes').innerHTML = ''; return; }
+  locTimer = setTimeout(() => buscarLoc(q), 400);
 });
+async function buscarLoc(q) {
+  const prox = userPos ? `&proximity=${userPos.lng},${userPos.lat}` : '';
+  try {
+    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&country=br&language=pt&limit=5${prox}`);
+    const d = await r.json();
+    const box = document.getElementById('locSugestoes');
+    box.innerHTML = (d.features || []).map((f, i) => `<button data-i="${i}"><i class="fa-solid fa-location-dot"></i> ${f.place_name || f.text}</button>`).join('');
+    box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { const f = d.features[+b.dataset.i]; definirLocal(f.center[1], f.center[0], f.place_name || f.text); }));
+  } catch (e) { console.error('geo local:', e); }
+}
+function definirLocal(lat, lng, nome) {
+  userPos = { lat, lng };
+  document.getElementById('locTitulo').textContent = nome.split(',')[0];
+  document.getElementById('locSub').textContent = nome;
+  initHomeMap(lat, lng);
+  render();
+  locOverlay.classList.remove('open');
+}
 document.getElementById('verTodos').addEventListener('click', (e) => { e.preventDefault(); document.querySelector('.section-head').scrollIntoView({ behavior: 'smooth' }); });
 document.getElementById('bnLista').addEventListener('click', (e) => { e.preventDefault(); document.querySelector('.section-head').scrollIntoView({ behavior: 'smooth' }); });
 /* ============================================================
    CHAMAR GUINCHO (fluxo de despacho) — sem valores, só distância
    ============================================================ */
 const chamarOverlay = document.getElementById('chamarOverlay');
-let destinoSel = null, chamadoAtual = null, canalChamar = null, modoAcompanhar = false, tokenAcompanhar = null;
+let destinoSel = null, chamadoAtual = null, canalChamar = null, jaRedirecionou = false;
+const somAceite = new Audio('/audio/iniciar.mp3'); somAceite.preload = 'auto';
+let audioPrimed = false;
+function primeAudio() { if (audioPrimed) return; audioPrimed = true; somAceite.play().then(() => { somAceite.pause(); somAceite.currentTime = 0; }).catch(() => {}); }
 
 function abrirChamar() {
   if (!sb) return;
   if (!userPos) { alert('Precisamos da sua localização. Ative o GPS e recarregue a página.'); return; }
-  destinoSel = null; chamadoAtual = null; modoAcompanhar = false;
+  primeAudio();
+  destinoSel = null; chamadoAtual = null;
   document.getElementById('chamarDestino').value = '';
   document.getElementById('chamarSugestoes').innerHTML = '';
   document.getElementById('chamarEstimativa').style.display = 'none';
@@ -257,18 +296,23 @@ async function checarSemPrestador(id) {
 }
 
 function escutarChamado(id, token) {
+  jaRedirecionou = false;
   if (canalChamar) canalChamar.unsubscribe();
   canalChamar = sb.channel('chamar-' + id).on('postgres_changes',
     { event: 'UPDATE', schema: 'public', table: 'chamados', filter: `id=eq.${id}` },
-    async (p) => {
+    (p) => {
       const st = p.new.status;
       if (st === 'Notificando') {
         document.getElementById('procTitulo').textContent = 'Guincho encontrado! Aguardando confirmação...';
         document.getElementById('procSub').textContent = 'O prestador tem até 2 minutos para aceitar.';
-      } else if (st === 'Aceito' || st === 'A Caminho') {
-        const pid = p.new.prestador_notificado_id || p.new.prestador_id;
-        const { data: pr } = await sb.from('prestadores').select('nome, foto_url').eq('id', pid).single();
-        mostrarPrestadorAceito(pr, token);
+      } else if ((st === 'Aceito' || st === 'A Caminho') && !jaRedirecionou) {
+        jaRedirecionou = true;
+        try { somAceite.currentTime = 0; somAceite.play().catch(() => {}); } catch (e) {} // toca iniciar.mp3
+        document.getElementById('procTitulo').textContent = 'Guincho a caminho! 🚚';
+        document.getElementById('procSub').textContent = 'Abrindo o acompanhamento...';
+        document.querySelector('.proc-anim').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        document.querySelector('.proc-anim').style.animation = 'none';
+        setTimeout(() => { location.href = '/rastreio.html?t=' + token; }, 1000); // vai direto pro mapa2
       } else if (st === 'Pendente') {
         document.getElementById('procTitulo').textContent = 'Procurando outro guincho...';
         document.getElementById('procSub').textContent = 'O anterior não respondeu, chamando o próximo mais próximo.';
@@ -276,21 +320,7 @@ function escutarChamado(id, token) {
     }).subscribe();
 }
 
-function mostrarPrestadorAceito(pr, token) {
-  modoAcompanhar = true; tokenAcompanhar = token;
-  document.getElementById('procTitulo').textContent = 'Guincho a caminho! 🚚';
-  document.getElementById('procSub').textContent = 'Acompanhe a chegada em tempo real.';
-  document.querySelector('.proc-anim').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-  document.querySelector('.proc-anim').style.animation = 'none';
-  const box = document.getElementById('procPrestador');
-  box.style.display = 'flex';
-  box.innerHTML = `<img src="${(pr && pr.foto_url) || 'https://ui-avatars.com/api/?name=Guincho&background=0A0A0A&color=ffdd00'}">
-    <div style="flex:1"><strong>${pr ? pr.nome : 'Prestador'}</strong><small>Aceitou seu chamado</small></div>`;
-  const bc = document.getElementById('btnCancelarChamado'); bc.textContent = 'Acompanhar no mapa'; bc.classList.remove('btn-cancelar');
-}
-
 document.getElementById('btnCancelarChamado').addEventListener('click', () => {
-  if (modoAcompanhar && tokenAcompanhar) { location.href = '/rastreio.html?t=' + tokenAcompanhar; return; }
   if (chamadoAtual && sb) sb.from('chamados').update({ status: 'Recusado' }).eq('id', chamadoAtual.id).then(() => {});
   fecharChamar();
 });

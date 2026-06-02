@@ -489,20 +489,27 @@
         carregarChamados();
       }).subscribe();
 
-    /* ---------- chat com o cliente ---------- */
+    /* ---------- chat com o cliente (som + leitura) ---------- */
+    const somChat = new Audio('/audio/chat.mp3'); somChat.preload = 'auto';
+    function tocarChat() { try { somChat.currentTime = 0; somChat.play().catch(()=>{}); } catch(e){} }
+    function checkHtml(lida) { return `<i class="fa-solid fa-check-double" style="font-size:11px;margin-left:4px;color:${lida ? '#34b7f1' : '#b9bdc4'}"></i>`; }
     let chatChamadoId = null, canalChatP = null;
     function abrirChatPrestador(c) {
       chatChamadoId = c.id;
       document.getElementById('chatMsgs').innerHTML = '<div class="chat-vazio">Carregando...</div>';
       carregarMsgsP(c.id);
       if (canalChatP) canalChatP.unsubscribe();
-      canalChatP = sb.channel('chatP-'+c.id).on('postgres_changes', { event:'INSERT', schema:'public', table:'mensagens', filter:`chamado_id=eq.${c.id}` }, (p)=>addMsgP(p.new)).subscribe();
+      canalChatP = sb.channel('chatP-'+c.id)
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'mensagens', filter:`chamado_id=eq.${c.id}` }, (p)=>{ addMsgP(p.new); tocarChat(); if (p.new.autor === 'cliente') marcarLidasP(); })
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'mensagens', filter:`chamado_id=eq.${c.id}` }, (p)=>atualizarCheckP(p.new))
+        .subscribe();
       document.getElementById('chatOverlay').classList.add('open');
     }
     async function carregarMsgsP(id) {
       const { data } = await sb.from('mensagens').select('*').eq('chamado_id', id).order('created_at', { ascending:true });
       const box = document.getElementById('chatMsgs'); box.innerHTML = (data && data.length) ? '' : '<div class="chat-vazio">Nenhuma mensagem ainda. Diga olá!</div>';
       (data||[]).forEach(addMsgP);
+      marcarLidasP();
     }
     function addMsgP(m) {
       if (m.chamado_id !== chatChamadoId) return;
@@ -510,8 +517,17 @@
       const div = document.createElement('div');
       div.className = 'msg ' + (m.autor === 'prestador' ? 'mine' : 'theirs');
       const hora = new Date(m.created_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-      div.innerHTML = `${m.texto.replace(/</g,'&lt;')}<small>${hora}</small>`;
+      const ck = m.autor === 'prestador' ? `<span class="ck" data-id="${m.id}">${checkHtml(m.lida)}</span>` : '';
+      div.innerHTML = `${m.texto.replace(/</g,'&lt;')}<small>${hora}${ck}</small>`;
       box.appendChild(div); box.scrollTop = box.scrollHeight;
+    }
+    function atualizarCheckP(m) {
+      if (m.autor !== 'prestador') return;
+      const ck = document.querySelector('.ck[data-id="'+m.id+'"]'); if (ck) ck.innerHTML = checkHtml(m.lida);
+    }
+    async function marcarLidasP() {
+      if (!chatChamadoId) return;
+      await sb.from('mensagens').update({ lida:true }).eq('chamado_id', chatChamadoId).eq('autor', 'cliente').eq('lida', false);
     }
     async function enviarMsgP() {
       const inp = document.getElementById('chatInput'); const t = inp.value.trim(); if (!t || !chatChamadoId) return; inp.value = '';
