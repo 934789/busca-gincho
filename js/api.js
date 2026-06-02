@@ -1,5 +1,5 @@
 /* ============================================================
-   API CLIENT — BuscaGincho (front-end)
+   API CLIENT — Busca Guincho (front-end)
    Conversa com o backend Node (server.js). Sem dependências.
    ============================================================ */
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   BuscaGincho — Backend (Node puro + node:sqlite)
+   Busca Guincho — Backend (Node puro + node:sqlite)
    Sem dependências externas. Roda com:  node server.js
    ------------------------------------------------------------
    - Banco SQLite real (arquivo data.db) com tabelas de verdade
@@ -19,7 +19,7 @@ const ROOT = __dirname;
 const DB_FILE = path.join(ROOT, 'data.db');
 const VIEW_DEDUPE_MS = 30 * 60 * 1000; // 30 minutos
 
-const WHATSAPP_MSG = 'Olá, estou no BuscaGincho e preciso de suporte próximo à minha localização atual.';
+const WHATSAPP_MSG = 'Olá, estou no Busca Guincho e preciso de suporte próximo à minha localização atual.';
 
 /* ===================== BANCO DE DADOS ===================== */
 const db = new DatabaseSync(DB_FILE);
@@ -433,7 +433,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n🚛 BuscaGincho rodando em  http://localhost:${PORT}`);
+  console.log(`\n🚛 Busca Guincho rodando em  http://localhost:${PORT}`);
   console.log(`   Cliente   ->  http://localhost:${PORT}/`);
   console.log(`   Prestador ->  http://localhost:${PORT}/prestador/login.html  (ex: marcos@buscagincho.com / troque123)`);
   console.log(`   Admin     ->  http://localhost:${PORT}/admin/login.html       (admin / admin)\n`);

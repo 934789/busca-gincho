@@ -19,7 +19,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase-config.js"></script>
   <script>
-    const id = location.pathname.split('/').pop();
+    // aceita /perfil.html?id=UUID (hospedagem estática) e também /perfil/UUID (se houver rewrite)
+    const id = new URLSearchParams(location.search).get('id') || location.pathname.split('/').pop();
     const box = document.getElementById('conteudo');
 
     function erro(msg) {

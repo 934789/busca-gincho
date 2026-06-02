@@ -31,11 +31,11 @@ let filtroServico = null;
 /* ---------- lista de prestadores ---------- */
 function montarCard(p, i) {
   const node = tpl.content.cloneNode(true);
-  node.querySelector('.pc-avatar').href = '/perfil/' + p.id;
+  node.querySelector('.pc-avatar').href = '/perfil.html?id=' + p.id;
   node.querySelector('.avatar').src = p.foto_url ||
     'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.nome) + '&background=0A0A0A&color=ffdd00&size=200';
   const nome = node.querySelector('.provider-name');
-  nome.textContent = p.nome; nome.href = '/perfil/' + p.id;
+  nome.textContent = p.nome; nome.href = '/perfil.html?id=' + p.id;
   node.querySelector('.m-rating').textContent = Number(p.avaliacao || 5).toFixed(1).replace('.', ',');
   const km = 3 + i, eta = 8 + i * 2;
   node.querySelector('.m-dist').textContent = km + ' km';
