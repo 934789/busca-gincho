@@ -68,6 +68,32 @@
     .chat-input button { width:46px; height:46px; border-radius:50%; border:none; background:var(--yellow); color:#000; font-size:17px; cursor:pointer; flex-shrink:0; }
     .chat-badge { background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 7px; }
 
+    /* cabeçalho didático de cada seção */
+    .dash-section { margin:16px; }
+    .sec-head { display:flex; align-items:center; gap:13px; margin-bottom:16px; }
+    .sh-ico { width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:20px; flex-shrink:0; }
+    .sh-txt strong { font-size:16px; color:var(--ink); display:block; line-height:1.15; }
+    .sh-txt small { font-size:12px; color:var(--text-soft); }
+    .sec-divider { height:8px; }
+
+    /* modal de despacho (novo chamado) */
+    .desp-modal { text-align:center; }
+    .desp-timer-wrap { width:96px; height:96px; margin:4px auto 14px; border-radius:50%; background:var(--yellow); display:flex; flex-direction:column; align-items:center; justify-content:center; animation:procPulse 1.3s infinite; }
+    @keyframes procPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,221,0,.5)} 60%{box-shadow:0 0 0 20px rgba(255,221,0,0)} }
+    .desp-timer { font-size:30px; font-weight:800; color:#000; line-height:1; font-variant-numeric:tabular-nums; }
+    .desp-timer-wrap small { font-size:10px; font-weight:700; color:#000; text-transform:uppercase; }
+    .desp-info { background:#f6f6f8; border-radius:14px; padding:6px 14px; margin:14px 0; text-align:left; }
+    .di-row { display:flex; gap:12px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); }
+    .di-row:last-child { border-bottom:none; }
+    .di-row > i { color:var(--ink); font-size:17px; width:20px; text-align:center; }
+    .di-row small { font-size:11px; color:var(--text-soft); display:block; }
+    .di-row strong { font-size:14px; color:var(--ink); }
+    .desp-acts { display:flex; gap:10px; }
+    .desp-btn { flex:1; border:none; border-radius:14px; padding:15px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .desp-recusar { background:#0A0A0A; color:#fff; }
+    .desp-aceitar { background:var(--yellow); color:#000; }
+    .desp-btn:active { filter:brightness(.95); }
+
     /* popup (toast) de novo chamado */
     .toast { position:fixed; top:14px; left:50%; transform:translateX(-50%) translateY(-160%); z-index:5000;
       background:var(--ink); color:#fff; border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:13px;
@@ -88,39 +114,49 @@
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
-    <!-- ONLINE / OFFLINE -->
-    <section class="dash-section">
+    <!-- STATUS (online) -->
+    <section class="dash-section" style="margin-bottom:0">
       <div class="online-bar">
         <div class="ob-txt">
           <strong>Status de plantão <span class="status-badge sb-on" id="statusBadge">ONLINE</span></strong>
-          <small id="statusHint">Você aparece para os clientes na busca.</small>
+          <small id="statusHint">Você recebe chamados e aparece na busca.</small>
         </div>
         <label class="switch"><input type="checkbox" id="onlineToggle" checked><span class="slider"></span></label>
       </div>
     </section>
 
-    <!-- FATURAMENTO -->
+    <!-- CORRIDAS (chamados) -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-sack-dollar"></i> Faturamento</h2>
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-truck-pickup"></i></span>
+        <div class="sh-txt"><strong>Corridas <span class="live-dot" title="Ao vivo"></span></strong><small>Seus chamados — aceite, acompanhe e finalize</small></div>
+      </div>
+      <p class="helper" style="margin-bottom:12px">Quando um cliente te chamar, aparece aqui na hora. Toque em <strong>Iniciar Deslocamento</strong> e, ao terminar, em <strong>Finalizar</strong> (gera o comprovante).</p>
+      <div id="listaChamados"><p class="helper">Carregando...</p></div>
+    </section>
+
+    <!-- FINANCEIRO -->
+    <section class="dash-section">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-sack-dollar"></i></span>
+        <div class="sh-txt"><strong>Financeiro</strong><small>Quanto você faturou pela plataforma</small></div>
+      </div>
       <div class="stats-grid" style="margin-bottom:14px">
         <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div><div class="stat-num" id="f_semana">—</div><div class="stat-label">Esta semana</div></div>
         <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div><div class="stat-num" id="f_mes">—</div><div class="stat-label">Este mês</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div><div class="stat-num" id="f_atend">—</div><div class="stat-label">Atendimentos (mês)</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="f_aval">—</div><div class="stat-label">Avaliação</div></div>
       </div>
+      <p class="helper" style="margin-bottom:8px">Faturamento dos últimos 7 dias:</p>
       <canvas id="fatChart"></canvas>
-    </section>
-
-    <!-- CHAMADOS -->
-    <section class="dash-section">
-      <h2><i class="fa-solid fa-headset"></i> Chamados Recentes <span class="live-dot" title="Ao vivo"></span></h2>
-      <p class="helper" style="margin-bottom:12px">Ao combinar pelo WhatsApp, clique em <strong>Iniciar Deslocamento</strong> e envie o link ao cliente. Ao terminar, <strong>Finalizar</strong> abre o comprovante.</p>
-      <div id="listaChamados"><p class="helper">Carregando...</p></div>
     </section>
 
     <!-- PERFIL -->
     <section class="dash-section">
-      <h2><i class="fa-solid fa-id-card"></i> Meu Perfil</h2>
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-id-card"></i></span>
+        <div class="sh-txt"><strong>Meu Perfil</strong><small>Seus dados, serviços e informações fiscais</small></div>
+      </div>
       <form id="perfilForm">
         <div class="field"><label>Nome de exibição</label><input type="text" id="nome" required></div>
         <div class="field"><label>WhatsApp (com DDD, só números)</label><input type="text" id="whatsapp" placeholder="5521987654321" required></div>
@@ -175,6 +211,24 @@
     </div>
   </div>
 
+  <!-- MODAL DE NOVO CHAMADO (despacho) -->
+  <div class="modal-bg" id="modalDespacho">
+    <div class="modal desp-modal">
+      <div class="desp-timer-wrap"><span class="desp-timer" id="despTimer">2:00</span><small>para aceitar</small></div>
+      <h3 style="justify-content:center"><i class="fa-solid fa-bell" style="color:var(--yellow)"></i> Novo chamado!</h3>
+      <p class="helper" style="text-align:center;margin-top:-6px">Um cliente precisa de guincho perto de você.</p>
+      <div class="desp-info">
+        <div class="di-row"><i class="fa-solid fa-location-dot"></i><div><small>Buscar o cliente em</small><strong id="despPartida">Local do cliente</strong></div></div>
+        <div class="di-row"><i class="fa-solid fa-flag-checkered"></i><div><small>Levar até</small><strong id="despDestino">—</strong></div></div>
+        <div class="di-row"><i class="fa-solid fa-route"></i><div><small>Distância da corrida</small><strong id="despDist">—</strong></div></div>
+      </div>
+      <div class="desp-acts">
+        <button class="desp-btn desp-recusar" id="btnRecusarDesp"><i class="fa-solid fa-xmark"></i> Recusar</button>
+        <button class="desp-btn desp-aceitar" id="btnAceitarDesp"><i class="fa-solid fa-check"></i> Aceitar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="pdf-template" id="pdfTemplate"></div>
 
   <!-- CHAT com o cliente -->
@@ -218,9 +272,10 @@
       nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||''; bairro.value=p.bairro||'';
       regioes.value=p.atendimento_regioes||''; documento.value=p.documento||''; razao_social.value=p.razao_social||''; endereco_base.value=p.endereco_base||'';
       SERVICOS.forEach((s) => { const cb=grid.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
-      // status online
+      // status online + transmissão
       const on = p.online !== false;
       onlineToggle.checked = on; atualizarBadgeOnline(on);
+      if (on) iniciarTransmissao();
       f_aval.textContent = Number(p.avaliacao||5).toFixed(1).replace('.', ',');
     }
     document.getElementById('perfilForm').addEventListener('submit', async (e) => {
@@ -235,16 +290,86 @@
       if (!error) perfilAtual = { ...perfilAtual, ...patch };
     });
 
-    /* ---------- online/offline ---------- */
+    /* ---------- online/offline + transmissão de localização ---------- */
+    let watchOnline = null, chamadoAtivoId = null;
+    function iniciarTransmissao() {
+      if (watchOnline !== null || !navigator.geolocation) return;
+      watchOnline = navigator.geolocation.watchPosition((pos) => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        sb.from('prestadores').update({ latitude_atual: lat, longitude_atual: lng }).eq('id', PID).then(() => {});
+        if (chamadoAtivoId) sb.from('chamados').update({ latitude_atual_guincho: lat, longitude_atual_guincho: lng }).eq('id', chamadoAtivoId).then(() => {});
+      }, (e) => console.error('GPS:', e), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    }
+    function pararTransmissao() { if (watchOnline !== null) { navigator.geolocation.clearWatch(watchOnline); watchOnline = null; } }
+
     function atualizarBadgeOnline(on) {
       const b = document.getElementById('statusBadge'); const h = document.getElementById('statusHint');
       b.textContent = on ? 'ONLINE' : 'OFFLINE'; b.className = 'status-badge ' + (on ? 'sb-on' : 'sb-off');
-      h.textContent = on ? 'Você aparece para os clientes na busca.' : 'Você está oculto da busca (em atendimento).';
+      h.textContent = on ? 'Você recebe chamados e aparece na busca.' : 'Você está offline (não recebe chamados).';
     }
     onlineToggle.addEventListener('change', async () => {
       const on = onlineToggle.checked; atualizarBadgeOnline(on);
-      await sb.from('prestadores').update({ online: on }).eq('id', PID);
+      await sb.from('prestadores').update({ online: on, status_disponibilidade: on ? 'Online' : 'Offline' }).eq('id', PID);
+      if (on) iniciarTransmissao(); else pararTransmissao();
     });
+
+    /* ---------- DESPACHO: modal de novo chamado (Uber-like) ---------- */
+    const somDespacho = new Audio('/audio/call.mp3'); somDespacho.loop = true;
+    let despachoAtual = null, despTimer = null;
+    function mostrarDespacho(c) {
+      if (despachoAtual && despachoAtual.id === c.id) return;
+      despachoAtual = c;
+      document.getElementById('despDestino').textContent = c.endereco_destino || 'Destino informado pelo cliente';
+      document.getElementById('despDist').textContent = (c.distancia_estimada_km != null ? Number(c.distancia_estimada_km).toFixed(1).replace('.', ',') + ' km' : '—');
+      abrirModal('modalDespacho');
+      try { somDespacho.currentTime = 0; somDespacho.play().catch(() => {}); } catch (e) {}
+      iniciarCountdown(c.tempo_notificacao_enviada);
+    }
+    function iniciarCountdown(tns) {
+      pararCountdown();
+      const fim = (tns ? new Date(tns).getTime() : Date.now()) + 2 * 60 * 1000;
+      const el = document.getElementById('despTimer');
+      function tick() {
+        const r = fim - Date.now();
+        if (r <= 0) { el.textContent = '0:00'; fecharDespacho(); return; }
+        const s = Math.floor(r / 1000); el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      }
+      tick(); despTimer = setInterval(tick, 250);
+    }
+    function pararCountdown() { if (despTimer) { clearInterval(despTimer); despTimer = null; } }
+    function fecharDespacho() { despachoAtual = null; pararCountdown(); try { somDespacho.pause(); somDespacho.currentTime = 0; } catch (e) {} fecharModal('modalDespacho'); }
+
+    document.getElementById('btnAceitarDesp').addEventListener('click', () => {
+      if (!despachoAtual) return;
+      const c = despachoAtual; pararCountdown(); try { somDespacho.pause(); } catch (e) {}
+      chamadoAtivoId = c.id;
+      const aplicar = async (lat, lng) => {
+        const patch = { status: 'A Caminho', prestador_id: PID };
+        if (lat != null) { patch.latitude_atual_guincho = lat; patch.longitude_atual_guincho = lng; }
+        await sb.from('chamados').update(patch).eq('id', c.id);
+        await sb.from('prestadores').update({ status_disponibilidade: 'Ocupado' }).eq('id', PID);
+        iniciarTransmissao();
+        despachoAtual = null; fecharModal('modalDespacho'); carregarChamados();
+      };
+      if (navigator.geolocation) navigator.geolocation.getCurrentPosition((p) => aplicar(p.coords.latitude, p.coords.longitude), () => aplicar(null, null), { enableHighAccuracy: true, timeout: 8000 });
+      else aplicar(null, null);
+    });
+    document.getElementById('btnRecusarDesp').addEventListener('click', async () => {
+      if (!despachoAtual) return;
+      const c = despachoAtual; fecharDespacho();
+      const recusou = [...(c.prestadores_recusaram || []), PID];
+      await sb.from('chamados').update({ status: 'Pendente', prestador_notificado_id: null, tempo_notificacao_enviada: null, prestadores_recusaram: recusou }).eq('id', c.id);
+    });
+
+    sb.channel('despacho-' + PID).on('postgres_changes', { event: '*', schema: 'public', table: 'chamados', filter: `prestador_notificado_id=eq.${PID}` },
+      (p) => {
+        if (p.new && p.new.status === 'Notificando') mostrarDespacho(p.new);
+        else if (despachoAtual && p.new && p.new.id === despachoAtual.id && p.new.status !== 'Notificando') fecharDespacho();
+      }).subscribe();
+    (async () => {
+      const { data } = await sb.from('chamados').select('*').eq('prestador_notificado_id', PID).eq('status', 'Notificando').order('created_at', { ascending: false }).limit(1);
+      if (data && data[0]) mostrarDespacho(data[0]);
+    })();
 
     /* ---------- sons ---------- */
     const somIniciar = new Audio('/audio/iniciar.mp3'); somIniciar.preload = 'auto';
@@ -421,6 +546,8 @@
       const { error } = await sb.from('chamados').update(patch).eq('id', chamadoComp.id);
       if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
       pararTracking();
+      chamadoAtivoId = null;
+      sb.from('prestadores').update({ status_disponibilidade: 'Online' }).eq('id', PID).then(() => {}); // volta a receber chamados
       const finalizado = { ...chamadoComp, ...patch };
       pdfGerados.add(chamadoComp.id);
       fecharModal('modalComprovante'); carregarChamados();
