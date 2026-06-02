@@ -92,6 +92,35 @@
     <a href="contato.html" class="bn-item"><i class="fa-regular fa-circle-question"></i><span>Ajuda</span></a>
   </nav>
 
+  <!-- ===== CHAMAR GUINCHO (fluxo de despacho) ===== -->
+  <div class="chamar-overlay" id="chamarOverlay">
+    <div class="chamar-sheet">
+      <!-- etapa 1: destino -->
+      <div class="chamar-step" id="stepDestino">
+        <div class="chamar-head"><h2>Para onde levar o veículo?</h2><button class="chamar-close" id="chamarClose"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="chamar-rota">
+          <div class="cr-line"><span class="cr-dot cr-de"></span><div><small>Saída</small><strong id="chamarDe">Sua localização atual</strong></div></div>
+          <div class="cr-line"><span class="cr-dot cr-para"></span><div style="flex:1"><small>Destino</small>
+            <input id="chamarDestino" placeholder="Digite o endereço de destino" autocomplete="off"></div></div>
+        </div>
+        <div class="chamar-sugestoes" id="chamarSugestoes"></div>
+        <div class="chamar-estimativa" id="chamarEstimativa" style="display:none">
+          <i class="fa-solid fa-route"></i> Distância estimada: <strong id="chamarDist">—</strong>
+          <span class="ce-nota">O valor é combinado direto com o prestador.</span>
+        </div>
+        <button class="btn-chamar" id="btnConfirmarChamado" disabled><i class="fa-solid fa-truck-pickup"></i> Chamar guincho</button>
+      </div>
+      <!-- etapa 2: procurando -->
+      <div class="chamar-step" id="stepProcurando" style="display:none">
+        <div class="proc-anim"><i class="fa-solid fa-truck-pickup"></i></div>
+        <h2 id="procTitulo">Procurando o guincho mais próximo...</h2>
+        <p id="procSub">Estamos avisando o prestador mais perto de você.</p>
+        <div class="proc-prestador" id="procPrestador" style="display:none"></div>
+        <button class="btn-chamar btn-cancelar" id="btnCancelarChamado">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== MENU LATERAL (3 pontos) ===== -->
   <div class="drawer-bg" id="drawerBg"></div>
   <aside class="drawer" id="drawer" aria-hidden="true">

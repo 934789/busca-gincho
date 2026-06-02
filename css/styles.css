@@ -475,3 +475,44 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .legal-card { background:#f6f7f9; border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0; }
 .legal-contact { display:flex; align-items:center; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); font-size:14px; color:#222; }
 .legal-contact i { color:#000; background:var(--yellow); width:42px; height:42px; border-radius:12px; display:grid; place-items:center; font-size:17px; flex-shrink:0; }
+
+/* ============================================================
+   V4 — CHAMAR GUINCHO (fluxo de despacho)
+   ============================================================ */
+.chamar-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.5); display:none; align-items:flex-end; justify-content:center; }
+.chamar-overlay.open { display:flex; animation:fadeBg .2s ease; }
+.chamar-sheet { background:#fff; width:100%; max-width:480px; border-radius:26px 26px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); animation:sheetUp .3s cubic-bezier(.2,.9,.3,1.1); }
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.chamar-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.chamar-head h2 { font-size:20px; font-weight:800; color:var(--ink); }
+.chamar-close { width:38px; height:38px; border:none; background:#f1f2f5; border-radius:50%; font-size:17px; cursor:pointer; }
+.chamar-rota { background:#f6f7f9; border-radius:16px; padding:6px 14px; }
+.cr-line { display:flex; align-items:center; gap:13px; padding:11px 0; position:relative; }
+.cr-line:first-child::after { content:''; position:absolute; left:5px; top:30px; bottom:-8px; width:2px; background:#d6d9df; }
+.cr-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.cr-de { background:var(--yellow); border:2px solid #000; }
+.cr-para { background:#000; }
+.cr-line small { font-size:11px; color:var(--text-soft); display:block; }
+.cr-line strong { font-size:15px; color:var(--ink); }
+.cr-line input { width:100%; border:none; background:transparent; outline:none; font-family:inherit; font-size:15px; font-weight:600; color:var(--ink); padding:2px 0; }
+.chamar-sugestoes { margin-top:8px; }
+.chamar-sugestoes button { width:100%; text-align:left; background:#fff; border:none; border-bottom:1px solid var(--line); padding:13px 6px; font-family:inherit; font-size:14px; color:#222; cursor:pointer; display:flex; gap:11px; align-items:center; }
+.chamar-sugestoes button i { color:var(--text-soft); }
+.chamar-estimativa { margin-top:16px; background:#fffbe6; border:1px solid #ffe9a8; border-radius:14px; padding:13px 15px; font-size:14px; color:#222; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.chamar-estimativa i { color:var(--yellow-dark); }
+.chamar-estimativa strong { color:var(--ink); }
+.chamar-estimativa .ce-nota { width:100%; font-size:11.5px; color:var(--text-soft); margin-top:2px; }
+.btn-chamar { width:100%; margin-top:18px; background:var(--yellow); color:#000; border:none; border-radius:16px; padding:16px; font-family:inherit; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:filter .15s, transform .1s; }
+.btn-chamar:disabled { opacity:.45; cursor:not-allowed; }
+.btn-chamar:not(:disabled):active { transform:scale(.99); filter:brightness(.95); }
+.btn-cancelar { background:#f1f2f5; color:#444; margin-top:14px; }
+/* etapa procurando */
+#stepProcurando { text-align:center; padding:14px 0 6px; }
+.proc-anim { width:90px; height:90px; margin:6px auto 18px; border-radius:50%; background:var(--yellow); display:grid; place-items:center; font-size:38px; color:#000; animation:procPulse 1.4s ease-in-out infinite; }
+@keyframes procPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,221,0,.5)} 60%{box-shadow:0 0 0 22px rgba(255,221,0,0)} }
+#stepProcurando h2 { font-size:19px; color:var(--ink); }
+#stepProcurando p { font-size:13.5px; color:var(--text-soft); margin-top:6px; }
+.proc-prestador { margin-top:18px; background:#f6f7f9; border-radius:16px; padding:16px; display:flex; align-items:center; gap:13px; text-align:left; }
+.proc-prestador img { width:54px; height:54px; border-radius:50%; object-fit:cover; }
+.proc-prestador strong { font-size:16px; color:var(--ink); display:block; }
+.proc-prestador small { font-size:12.5px; color:#1f9d57; font-weight:600; }

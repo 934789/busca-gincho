@@ -186,7 +186,128 @@ document.getElementById('btnRecenter').addEventListener('click', () => {
 });
 document.getElementById('verTodos').addEventListener('click', (e) => { e.preventDefault(); document.querySelector('.section-head').scrollIntoView({ behavior: 'smooth' }); });
 document.getElementById('bnLista').addEventListener('click', (e) => { e.preventDefault(); document.querySelector('.section-head').scrollIntoView({ behavior: 'smooth' }); });
-document.getElementById('bnChamar').addEventListener('click', () => { feed.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+/* ============================================================
+   CHAMAR GUINCHO (fluxo de despacho) — sem valores, só distância
+   ============================================================ */
+const chamarOverlay = document.getElementById('chamarOverlay');
+let destinoSel = null, chamadoAtual = null, canalChamar = null, modoAcompanhar = false, tokenAcompanhar = null;
+
+function abrirChamar() {
+  if (!sb) return;
+  if (!userPos) { alert('Precisamos da sua localização. Ative o GPS e recarregue a página.'); return; }
+  destinoSel = null; chamadoAtual = null; modoAcompanhar = false;
+  document.getElementById('chamarDestino').value = '';
+  document.getElementById('chamarSugestoes').innerHTML = '';
+  document.getElementById('chamarEstimativa').style.display = 'none';
+  document.getElementById('btnConfirmarChamado').disabled = true;
+  document.getElementById('stepDestino').style.display = 'block';
+  document.getElementById('stepProcurando').style.display = 'none';
+  document.getElementById('chamarDe').textContent = locTitulo.textContent || 'Sua localização atual';
+  const bc = document.getElementById('btnCancelarChamado'); bc.textContent = 'Cancelar'; bc.classList.add('btn-cancelar');
+  chamarOverlay.classList.add('open');
+}
+function fecharChamar() { chamarOverlay.classList.remove('open'); if (canalChamar) { canalChamar.unsubscribe(); canalChamar = null; } }
+document.getElementById('bnChamar').addEventListener('click', abrirChamar);
+document.getElementById('chamarClose').addEventListener('click', fecharChamar);
+
+/* geocoding do destino (MapTiler) */
+let geoTimer;
+document.getElementById('chamarDestino').addEventListener('input', (e) => {
+  const q = e.target.value.trim();
+  destinoSel = null; document.getElementById('chamarEstimativa').style.display = 'none'; document.getElementById('btnConfirmarChamado').disabled = true;
+  clearTimeout(geoTimer);
+  if (q.length < 3) { document.getElementById('chamarSugestoes').innerHTML = ''; return; }
+  geoTimer = setTimeout(() => buscarDestino(q), 400);
+});
+async function buscarDestino(q) {
+  const prox = userPos ? `&proximity=${userPos.lng},${userPos.lat}` : '';
+  try {
+    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&country=br&language=pt&limit=5${prox}`);
+    const d = await r.json();
+    const box = document.getElementById('chamarSugestoes');
+    box.innerHTML = (d.features || []).map((f, i) => `<button data-i="${i}"><i class="fa-solid fa-location-dot"></i> ${f.place_name || f.text}</button>`).join('');
+    box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      const f = d.features[+b.dataset.i];
+      destinoSel = { lng: f.center[0], lat: f.center[1], nome: f.place_name || f.text };
+      document.getElementById('chamarDestino').value = destinoSel.nome;
+      box.innerHTML = '';
+      const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
+      document.getElementById('chamarDist').textContent = dist.toFixed(1).replace('.', ',') + ' km';
+      document.getElementById('chamarEstimativa').style.display = 'flex';
+      document.getElementById('btnConfirmarChamado').disabled = false;
+    }));
+  } catch (e) { console.error('geocoding:', e); }
+}
+
+/* confirmar -> cria chamado (dispara o despacho automático) */
+document.getElementById('btnConfirmarChamado').addEventListener('click', async () => {
+  if (!destinoSel || !userPos || !sb) return;
+  const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
+  const { data, error } = await sb.from('chamados').insert({
+    status: 'Pendente', servico_solicitado: 'Chamar Guincho',
+    local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
+    local_chegada_lat: destinoSel.lat, local_chegada_lng: destinoSel.lng,
+    distancia_estimada_km: +dist.toFixed(2), endereco_destino: destinoSel.nome,
+  }).select('id, link_token').single();
+  if (error || !data) { alert('Erro ao criar chamado: ' + (error ? error.message : '')); return; }
+  chamadoAtual = data;
+  localStorage.setItem('bg_chamado', JSON.stringify({ id: data.id, token: data.link_token, ts: Date.now() }));
+  document.getElementById('stepDestino').style.display = 'none';
+  document.getElementById('stepProcurando').style.display = 'block';
+  document.getElementById('procPrestador').style.display = 'none';
+  document.querySelector('.proc-anim').innerHTML = '<i class="fa-solid fa-truck-pickup"></i>';
+  document.querySelector('.proc-anim').style.animation = '';
+  escutarChamado(data.id, data.link_token);
+  setTimeout(() => checarSemPrestador(data.id), 3500);
+});
+
+async function checarSemPrestador(id) {
+  const { data } = await sb.from('chamados').select('status, prestador_notificado_id').eq('id', id).single();
+  if (data && data.status === 'Pendente' && !data.prestador_notificado_id) {
+    document.getElementById('procTitulo').textContent = 'Nenhum guincho online agora 😕';
+    document.getElementById('procSub').textContent = 'Tente de novo em instantes, ou chame um guincho pela lista.';
+    document.querySelector('.proc-anim').style.animation = 'none';
+  }
+}
+
+function escutarChamado(id, token) {
+  if (canalChamar) canalChamar.unsubscribe();
+  canalChamar = sb.channel('chamar-' + id).on('postgres_changes',
+    { event: 'UPDATE', schema: 'public', table: 'chamados', filter: `id=eq.${id}` },
+    async (p) => {
+      const st = p.new.status;
+      if (st === 'Notificando') {
+        document.getElementById('procTitulo').textContent = 'Guincho encontrado! Aguardando confirmação...';
+        document.getElementById('procSub').textContent = 'O prestador tem até 2 minutos para aceitar.';
+      } else if (st === 'Aceito' || st === 'A Caminho') {
+        const pid = p.new.prestador_notificado_id || p.new.prestador_id;
+        const { data: pr } = await sb.from('prestadores').select('nome, foto_url').eq('id', pid).single();
+        mostrarPrestadorAceito(pr, token);
+      } else if (st === 'Pendente') {
+        document.getElementById('procTitulo').textContent = 'Procurando outro guincho...';
+        document.getElementById('procSub').textContent = 'O anterior não respondeu, chamando o próximo mais próximo.';
+      }
+    }).subscribe();
+}
+
+function mostrarPrestadorAceito(pr, token) {
+  modoAcompanhar = true; tokenAcompanhar = token;
+  document.getElementById('procTitulo').textContent = 'Guincho a caminho! 🚚';
+  document.getElementById('procSub').textContent = 'Acompanhe a chegada em tempo real.';
+  document.querySelector('.proc-anim').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+  document.querySelector('.proc-anim').style.animation = 'none';
+  const box = document.getElementById('procPrestador');
+  box.style.display = 'flex';
+  box.innerHTML = `<img src="${(pr && pr.foto_url) || 'https://ui-avatars.com/api/?name=Guincho&background=0A0A0A&color=ffdd00'}">
+    <div style="flex:1"><strong>${pr ? pr.nome : 'Prestador'}</strong><small>Aceitou seu chamado</small></div>`;
+  const bc = document.getElementById('btnCancelarChamado'); bc.textContent = 'Acompanhar no mapa'; bc.classList.remove('btn-cancelar');
+}
+
+document.getElementById('btnCancelarChamado').addEventListener('click', () => {
+  if (modoAcompanhar && tokenAcompanhar) { location.href = '/rastreio.html?t=' + tokenAcompanhar; return; }
+  if (chamadoAtual && sb) sb.from('chamados').update({ status: 'Recusado' }).eq('id', chamadoAtual.id).then(() => {});
+  fecharChamar();
+});
 
 /* ---------- menu lateral ---------- */
 const drawer = document.getElementById('drawer'), drawerBg = document.getElementById('drawerBg');
