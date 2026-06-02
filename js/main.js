@@ -112,9 +112,9 @@ function bearing(a, b) {
 function initHomeMap(lat, lng, acc) {
   if (!mapa) {
     mapa = L.map('homeMap', { zoomControl: false, attributionControl: false }).setView([lat, lng], 16);
-    // CARTO Voyager — mapa gratuito, legal e limpo (sem chave/cartão), visual estilo Google
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-      subdomains: 'abcd', maxZoom: 20,
+    // MapTiler streets-v2 — estilo bem parecido com o Google Maps (gratuito)
+    L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
+      tileSize: 512, zoomOffset: -1, minZoom: 1, maxZoom: 20, crossOrigin: true,
     }).addTo(mapa);
   }
   desenharCena(lat, lng, acc);

@@ -12,9 +12,9 @@ const SUPABASE_CONFIG = {
 // Mensagem padrão do WhatsApp
 const WHATSAPP_MSG = 'Olá, estou no Busca Guincho e preciso de suporte próximo à minha localização atual.';
 
-// Chave da API oficial do Google Maps (cole aqui quando gerar — ver guia GOOGLE_MAPS.md).
-// Enquanto vazio, o app usa o mapa atual (Leaflet com tiles do Google).
-const GOOGLE_MAPS_KEY = '';
+// Chave do MapTiler (mapa estilo Google, gratuito). Restrinja por domínio no painel do MapTiler.
+const MAPTILER_KEY = 'yxBCmp6NSGE3ej2Ylqix';
+const MAPTILER_STYLE = 'streets-v2'; // estilo mais parecido com o Google Maps
 
 // Cria o client global `sb`
 let sb = null;
