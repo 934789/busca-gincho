@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Busca Guincho — Área do Prestador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-logo">
+      <img class="logo-icon-img" src="/img/logo3.png" alt="Busca Guincho"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+      <h1 style="display:none">Busca<span>Guincho</span></h1>
+      <p>Área do Prestador de Serviço</p>
+    </div>
+
+    <div class="auth-card">
+      <h2><i class="fa-solid fa-right-to-bracket"></i> Acessar minha conta</h2>
+      <form id="loginForm">
+        <div class="field"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com" required></div>
+        <div class="field"><label>Senha</label><input type="password" id="senha" placeholder="Senha fornecida pela administração" required></div>
+        <button type="submit" class="btn-primary">Entrar</button>
+        <p class="form-msg" id="msg"></p>
+      </form>
+      <p class="helper" style="margin-top:14px">Teste: <strong>marcos@buscagincho.com</strong> / <strong>troque123</strong></p>
+    </div>
+    <p class="auth-link"><a href="/">← Voltar ao site</a></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      msg.className = 'form-msg'; msg.textContent = 'Verificando...';
+      if (!sb) { msg.className = 'form-msg error'; msg.textContent = 'Supabase não configurado.'; return; }
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const senha = document.getElementById('senha').value;
+      // login: filtra por email+senha e retorna só id/nome (a senha não trafega de volta)
+      const { data, error } = await sb.from('prestadores')
+        .select('id, nome').eq('email', email).eq('senha_provisoria', senha).maybeSingle();
+      if (error || !data) { msg.className = 'form-msg error'; msg.textContent = 'E-mail ou senha inválidos.'; return; }
+      sessionStorage.setItem('prestador_id', data.id);
+      sessionStorage.setItem('prestador_nome', data.nome);
+      location.href = 'painel.html';
+    });
+  </script>
+</body>
+</html>

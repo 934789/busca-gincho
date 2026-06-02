@@ -20,7 +20,8 @@ const MAPTILER_STYLE = 'dataviz'; // clarinho/minimalista estilo Uber (alterne p
 // Deixe '' quando o painel do prestador está no MESMO domínio do site.
 // Quando o painel do prestador estiver num SUBDOMÍNIO separado, coloque aqui
 // a URL do site principal, ex.: 'https://buscaguincho.com.br'
-window.SITE_CLIENTE = '';
+// >>> TROQUE pela URL real do SEU site principal (sem barra no final): <<<
+window.SITE_CLIENTE = 'https://SEU-DOMINIO-PRINCIPAL.com.br';
 
 // Cria o client global `sb`
 let sb = null;

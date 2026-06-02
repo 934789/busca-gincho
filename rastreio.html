@@ -192,7 +192,7 @@
     }
     // car.png aponta pra ESQUERDA por padrão -> offset +90 p/ alinhar com a direção (bearing)
     const carIcon = (deg) => L.divIcon({ className:'car-divicon', html:`<img src="/img/car.png" style="width:48px;height:48px;display:block;transition:transform .4s ease;transform:rotate(${deg + 90}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))">`, iconSize:[48,48], iconAnchor:[24,24] });
-    const voceIcon = () => L.divIcon({ className:'voce-icon', html:`<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">Seu local</span>`, iconSize:[0,0], iconAnchor:[0,0] });
+    const voceIcon = (label='Seu local') => L.divIcon({ className:'voce-icon', html:`<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">${label}</span>`, iconSize:[0,0], iconAnchor:[0,0] });
     // balão de ETA que segue o caminhão (estilo 99)
     function bubbleIcon(min, km) {
       const t = min != null ? min + ' min' : 'a caminho';
@@ -200,7 +200,7 @@
       return L.divIcon({ className:'bubble-divicon', html:`<div class="track-bubble"><strong>${t}</strong>${d}</div>`, iconSize:[0,0], iconAnchor:[0,0] });
     }
 
-    let mapa, mGuincho, mVoce, mBubble, rota, prevGuincho = null, lastDeg = 0, etaAtual = null, kmAtual = null, cliente = null, chamado, prestador, canal, canalMsg, notaSel = 0;
+    let mapa, mGuincho, mVoce, mBubble, rota, prevGuincho = null, lastDeg = 0, etaAtual = null, kmAtual = null, cliente = null, destino = null, alvo = null, emDestino = false, chamado, prestador, canal, canalMsg, notaSel = 0;
 
     async function init() {
       if (!token) return mostrarAviso('Link inválido', 'Este link de rastreio não tem um código válido.', 'fa-triangle-exclamation');
@@ -221,6 +221,11 @@
         await new Promise((res) => navigator.geolocation.getCurrentPosition(
           (p)=>{ cliente={lat:p.coords.latitude,lng:p.coords.longitude}; res(); }, ()=>res(), {timeout:6000}));
       }
+      // destino final (pra onde o carro será levado) — 2ª etapa da corrida
+      destino = (chamado.local_chegada_lat) ? { lat:+chamado.local_chegada_lat, lng:+chamado.local_chegada_lng } : null;
+      // alvo atual da rota: na etapa 1 é o cliente; se já está 'Iniciado', já é o destino
+      alvo = (chamado.status === 'Iniciado' && destino) ? destino : cliente;
+      emDestino = (chamado.status === 'Iniciado' && !!destino);
 
       if (chamado.status === 'Finalizado') return desativarMapaEMostrarAvaliacao();
       iniciarMapa();
@@ -260,8 +265,8 @@
       if (rotaFg) mapa.removeLayer(rotaFg);
       rotaBg = L.polyline(coords, { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
       rotaFg = L.polyline(coords, { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round', lineJoin:'round' }).addTo(mapa);
-      const min = dur != null ? Math.max(1, Math.round(dur / 60)) : (cliente ? Math.max(1, Math.round(distKm(g, c) * 2.3)) : null);
-      const km = dist != null ? dist / 1000 : (cliente ? distKm(g, c) : null);
+      const min = dur != null ? Math.max(1, Math.round(dur / 60)) : (alvo ? Math.max(1, Math.round(distKm(g, c) * 2.3)) : null);
+      const km = dist != null ? dist / 1000 : (alvo ? distKm(g, c) : null);
       setETA(min, km);
       lastRota = Date.now();
     }
@@ -276,10 +281,10 @@
 
     function iniciarMapa() {
       const g = guinchoPos();
-      const c = cliente || g;
+      const c = alvo || g;
       mapa = L.map('mapa', { zoomControl:false, attributionControl:false }).setView([g.lat, g.lng], 15);
       L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { tileSize:512, zoomOffset:-1, minZoom:1, maxZoom:20, crossOrigin:true }).addTo(mapa);
-      if (cliente) mVoce = L.marker([c.lat, c.lng], { icon: voceIcon() }).addTo(mapa);
+      if (alvo) mVoce = L.marker([c.lat, c.lng], { icon: voceIcon(emDestino ? 'Destino' : 'Seu local') }).addTo(mapa);
       prevGuincho = g;
       lastDeg = bearing(g, c);
       mGuincho = L.marker([g.lat, g.lng], { icon: carIcon(lastDeg) }).addTo(mapa);
@@ -288,12 +293,12 @@
       enquadrar();
     }
     function enquadrar() {
-      const g = guinchoPos(), c = cliente || g;
+      const g = guinchoPos(), c = alvo || g;
       mapa.fitBounds(L.latLngBounds([[g.lat,g.lng],[c.lat,c.lng]]), { padding:[80,80], maxZoom:16 });
     }
 
     function atualizarGuincho(la, lo) {
-      const g = { lat:+la, lng:+lo }; const c = cliente || g;
+      const g = { lat:+la, lng:+lo }; const c = alvo || g;
       // só gira o carro quando ele REALMENTE se desloca (evita rodopio por ruído de GPS)
       const moved = prevGuincho ? distKm(prevGuincho, g) : 0;
       if (moved > 0.004) lastDeg = bearing(prevGuincho, g); // aponta pra frente, na direção da rua
@@ -306,6 +311,25 @@
       if (Date.now() - lastRota > 7000) desenharRota(g, c);
     }
 
+    // 2ª etapa: passa a traçar a rota do guincho até o DESTINO final (carro sendo levado)
+    function irParaDestino() {
+      if (emDestino) return;            // já está na etapa do destino
+      emDestino = true;
+      if (!destino) {                   // chamado sem destino cadastrado: só atualiza textos
+        document.getElementById('topTitulo').textContent = 'A caminho do destino';
+        document.getElementById('cardStatus').textContent = 'Levando ao destino';
+        return;
+      }
+      alvo = destino;
+      if (mVoce) mVoce.setLatLng([destino.lat, destino.lng]).setIcon(voceIcon('Destino'));
+      else mVoce = L.marker([destino.lat, destino.lng], { icon: voceIcon('Destino') }).addTo(mapa);
+      document.getElementById('topTitulo').textContent = 'A caminho do destino';
+      document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · seu veículo está sendo levado ao destino';
+      document.getElementById('cardStatus').textContent = 'Levando ao destino';
+      desenharRota(guinchoPos(), alvo);
+      enquadrar();
+    }
+
     function escutarRealtime() {
       canal = sb.channel('track-'+token).on('postgres_changes',
         { event:'UPDATE', schema:'public', table:'chamados', filter:`link_token=eq.${token}` },
@@ -316,8 +340,10 @@
             document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · ele está no seu local';
             document.getElementById('cardStatus').textContent = 'Chegou ao seu local';
             if (mBubble) mBubble.setIcon(L.divIcon({ className:'bubble-divicon', html:'<div class="track-bubble"><strong>Chegou! 🎉</strong></div>', iconSize:[0,0], iconAnchor:[0,0] }));
-          } else {
-            document.getElementById('topTitulo').textContent = status === 'Iniciado' ? 'A caminho do destino' : 'Guincho a caminho';
+          } else if (status === 'Iniciado') {
+            irParaDestino();
+          } else if (status === 'A Caminho' || status === 'Aceito') {
+            document.getElementById('topTitulo').textContent = 'Guincho a caminho';
           }
           if (status === 'Finalizado') { if (canal) canal.unsubscribe(); desativarMapaEMostrarAvaliacao(); return; }
           if (la) atualizarGuincho(la, lo);
