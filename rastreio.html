@@ -25,20 +25,29 @@
     .track-top h1 { font-size:16px; font-weight:700; line-height:1.1; }
     .track-top p { font-size:12px; color:#bdbdbd; margin-top:3px; }
     .aovivo { color:#5ce081; font-weight:700; }
-    /* ETA em destaque (negrito) */
-    .tt-eta { margin-left:auto; background:var(--yellow); color:#000; border-radius:15px; padding:7px 14px; text-align:center; line-height:1; flex-shrink:0; box-shadow:0 6px 16px rgba(255,221,0,.4); }
-    .tt-eta strong { font-size:26px; font-weight:800; display:block; letter-spacing:-.5px; }
-    .tt-eta small { font-size:11px; font-weight:700; text-transform:uppercase; }
 
-    /* card inferior do prestador */
+    /* balão de ETA ancorado ao caminhão (estilo 99/Uber) */
+    .bubble-divicon { background:transparent; border:none; }
+    .track-bubble { position:absolute; left:0; bottom:34px; transform:translateX(-50%); background:#fff; border-radius:16px; padding:7px 14px; box-shadow:0 6px 18px rgba(0,0,0,.28); white-space:nowrap; text-align:center; }
+    .track-bubble strong { display:block; font-size:15px; font-weight:800; color:#000; line-height:1.15; }
+    .track-bubble span { font-size:12px; color:#555; font-weight:600; }
+    .track-bubble::after { content:''; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); border:7px solid transparent; border-top-color:#fff; }
+
+    /* card inferior moderno (caminhão 3D + foto + Cancelar) */
     .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
-      background:#fff; border-radius:22px; padding:16px; display:flex; align-items:center; gap:13px; box-shadow:0 14px 40px rgba(0,0,0,.4); }
-    .track-card img { width:54px; height:54px; border-radius:50%; object-fit:cover; background:#e6e8ec; }
-    .track-card .tc-info { flex:1; } .track-card .tc-info strong { font-size:16px; color:var(--ink); } .track-card .tc-info small { display:block; font-size:12px; color:#6e7682; margin-top:2px; }
-    .track-card .chat-btn { background:var(--ink); color:#fff; height:52px; padding:0 20px; border-radius:16px; display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; cursor:pointer; border:none; font-family:inherit; position:relative; transition:transform .1s; }
-    .track-card .chat-btn:active { transform:scale(.96); }
-    .track-card .chat-btn i { font-size:19px; color:var(--yellow); }
-    .chat-badge { position:absolute; top:-6px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 7px; display:none; }
+      background:#fff; border-radius:24px; padding:14px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 14px 40px rgba(0,0,0,.4); min-height:92px; }
+    .tc-truck { position:relative; width:76px; height:62px; flex-shrink:0; }
+    .tc-truck-img { width:76px; height:62px; object-fit:contain; display:block; filter:drop-shadow(0 4px 6px rgba(0,0,0,.18)); }
+    .tc-foto { position:absolute; right:-2px; bottom:-3px; width:32px; height:32px; border-radius:50%; object-fit:cover; border:2.5px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); background:#e6e8ec; }
+    .tc-info { flex:1; min-width:0; }
+    .tc-info strong { font-size:18px; color:var(--ink); font-weight:800; display:block; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tc-info small { font-size:12.5px; color:#3a3f47; display:block; margin-top:3px; }
+    .tc-right { display:flex; flex-direction:column; gap:8px; align-items:flex-end; flex-shrink:0; }
+    .tc-chat { background:var(--ink); color:#fff; border:none; border-radius:12px; width:42px; height:34px; cursor:pointer; position:relative; }
+    .tc-chat i { color:var(--yellow); font-size:16px; }
+    .tc-cancelar { background:#fff; color:#000; border:1.5px solid #000; border-radius:14px; padding:9px 18px; font-family:inherit; font-weight:700; font-size:13px; cursor:pointer; transition:all .12s; }
+    .tc-cancelar:active { background:#000; color:#fff; }
+    .chat-badge { position:absolute; top:-6px; right:-5px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
 
     /* ícones do mapa */
     .car-divicon, .voce-icon { background:transparent; border:none; }
@@ -94,14 +103,19 @@
 
     <div class="track-top" id="trackTop">
       <div class="pulse"><i class="fa-solid fa-truck-pickup"></i></div>
-      <div class="tt-info"><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub"><span class="aovivo">● AO VIVO</span> · calculando rota...</p></div>
-      <div class="tt-eta"><strong id="etaMin">—</strong><small>min</small></div>
+      <div class="tt-info"><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub"><span class="aovivo">● AO VIVO</span> · monitorando em tempo real</p></div>
     </div>
 
     <div class="track-card" id="trackCard" style="display:none">
-      <img id="cardFoto" src="" alt="">
-      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">Seu guincho está chegando</small></div>
-      <button class="chat-btn" id="btnChat"><i class="fa-solid fa-comments"></i> Chat<span class="chat-badge" id="chatBadge">0</span></button>
+      <div class="tc-truck">
+        <img class="tc-truck-img" src="/img/truck.png" alt="">
+        <img class="tc-foto" id="cardFoto" src="" alt="">
+      </div>
+      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">A caminho</small></div>
+      <div class="tc-right">
+        <button class="tc-chat" id="btnChat"><i class="fa-solid fa-comments"></i><span class="chat-badge" id="chatBadge">0</span></button>
+        <button class="tc-cancelar" id="btnCancelarRota">Cancelar</button>
+      </div>
     </div>
 
     <div class="aviso" id="aviso">
@@ -172,8 +186,14 @@
     // car.png aponta pra ESQUERDA por padrão -> offset +90 p/ alinhar com a direção (bearing)
     const carIcon = (deg) => L.divIcon({ className:'car-divicon', html:`<img src="/img/car.png" style="width:48px;height:48px;display:block;transition:transform .4s ease;transform:rotate(${deg + 90}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))">`, iconSize:[48,48], iconAnchor:[24,24] });
     const voceIcon = () => L.divIcon({ className:'voce-icon', html:`<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">Seu local</span>`, iconSize:[0,0], iconAnchor:[0,0] });
+    // balão de ETA que segue o caminhão (estilo 99)
+    function bubbleIcon(min, km) {
+      const t = min != null ? min + ' min' : 'a caminho';
+      const d = km != null ? `<span>${km.toFixed(1).replace('.', ',')} km</span>` : '';
+      return L.divIcon({ className:'bubble-divicon', html:`<div class="track-bubble"><strong>${t}</strong>${d}</div>`, iconSize:[0,0], iconAnchor:[0,0] });
+    }
 
-    let mapa, mGuincho, mVoce, rota, prevGuincho = null, lastDeg = 0, cliente = null, chamado, prestador, canal, canalMsg, notaSel = 0;
+    let mapa, mGuincho, mVoce, mBubble, rota, prevGuincho = null, lastDeg = 0, etaAtual = null, kmAtual = null, cliente = null, chamado, prestador, canal, canalMsg, notaSel = 0;
 
     async function init() {
       if (!token) return mostrarAviso('Link inválido', 'Este link de rastreio não tem um código válido.', 'fa-triangle-exclamation');
@@ -238,8 +258,12 @@
       lastRota = Date.now();
     }
     function setETA(min, km) {
-      if (min != null) document.getElementById('etaMin').textContent = min;
-      document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span>' + (km != null ? ' · ' + km.toFixed(1).replace('.', ',') + ' km de você' : '');
+      etaAtual = min; kmAtual = km;
+      if (mBubble) mBubble.setIcon(bubbleIcon(min, km)); // atualiza o balão que segue o caminhão
+      const st = document.getElementById('cardStatus');
+      if (st && !document.getElementById('topTitulo').textContent.toLowerCase().includes('chegou')) {
+        st.textContent = (min != null ? min + ' min' : 'A caminho') + (km != null ? ' • ' + km.toFixed(1).replace('.', ',') + ' km' : '');
+      }
     }
 
     function iniciarMapa() {
@@ -251,7 +275,8 @@
       prevGuincho = g;
       lastDeg = bearing(g, c);
       mGuincho = L.marker([g.lat, g.lng], { icon: carIcon(lastDeg) }).addTo(mapa);
-      desenharRota(g, c);   // desenha a rota pelas ruas
+      mBubble = L.marker([g.lat, g.lng], { icon: bubbleIcon(etaAtual, kmAtual), interactive:false, zIndexOffset:1000 }).addTo(mapa);
+      desenharRota(g, c);   // desenha a rota pelas ruas + ETA no balão
       enquadrar();
     }
     function enquadrar() {
@@ -266,9 +291,10 @@
       if (moved > 0.004) lastDeg = bearing(prevGuincho, g); // aponta pra frente, na direção da rua
       mGuincho.setLatLng([g.lat, g.lng]);
       mGuincho.setIcon(carIcon(lastDeg));
+      if (mBubble) mBubble.setLatLng([g.lat, g.lng]); // o balão segue o caminhão
       prevGuincho = g;
       mapa.panTo([g.lat, g.lng], { animate:true, duration:1 });
-      // refaz a rota pelas ruas (no máximo a cada 7s) + atualiza ETA
+      // refaz a rota pelas ruas (no máximo a cada 7s) + atualiza ETA no balão
       if (Date.now() - lastRota > 7000) desenharRota(g, c);
     }
 
@@ -281,7 +307,7 @@
             document.getElementById('topTitulo').textContent = 'Seu Guincho chegou! 🎉';
             document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · ele está no seu local';
             document.getElementById('cardStatus').textContent = 'Chegou ao seu local';
-            const eta = document.getElementById('etaMin'); eta.textContent = '✓'; eta.parentElement.querySelector('small').textContent = 'aqui';
+            if (mBubble) mBubble.setIcon(L.divIcon({ className:'bubble-divicon', html:'<div class="track-bubble"><strong>Chegou! 🎉</strong></div>', iconSize:[0,0], iconAnchor:[0,0] }));
           } else {
             document.getElementById('topTitulo').textContent = status === 'Iniciado' ? 'A caminho do destino' : 'Guincho a caminho';
           }
@@ -365,6 +391,13 @@
       if (error) { btn.disabled=false; btn.textContent='Tentar novamente'; alert('Erro: '+error.message); return; }
       document.getElementById('avForm').style.display='none'; document.getElementById('avObrigado').style.display='block';
       setTimeout(()=>{ location.href='/'; }, 2600);
+    });
+
+    /* ---------- cancelar ---------- */
+    document.getElementById('btnCancelarRota').addEventListener('click', async () => {
+      if (!confirm('Deseja cancelar o chamado do guincho?')) return;
+      if (chamado && sb) { try { await sb.from('chamados').update({ status:'Recusado' }).eq('id', chamado.id); } catch (e) {} }
+      location.href = '/';
     });
 
     init();
