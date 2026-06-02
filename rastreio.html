@@ -21,17 +21,24 @@
     .track-top .pulse { width:42px; height:42px; border-radius:50%; background:var(--yellow); color:var(--ink);
       display:grid; place-items:center; font-size:19px; flex-shrink:0; animation:pulse 1.6s infinite; }
     @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,221,0,.5)} 70%{box-shadow:0 0 0 14px rgba(255,221,0,0)} 100%{box-shadow:0 0 0 0 rgba(255,221,0,0)} }
+    .tt-info { flex:1; min-width:0; }
     .track-top h1 { font-size:16px; font-weight:700; line-height:1.1; }
-    .track-top p { font-size:12px; color:#bdbdbd; margin-top:2px; }
-    .track-top .tag { margin-left:auto; background:rgba(40,167,69,.2); color:#5ce081; font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
+    .track-top p { font-size:12px; color:#bdbdbd; margin-top:3px; }
+    .aovivo { color:#5ce081; font-weight:700; }
+    /* ETA em destaque (negrito) */
+    .tt-eta { margin-left:auto; background:var(--yellow); color:#000; border-radius:15px; padding:7px 14px; text-align:center; line-height:1; flex-shrink:0; box-shadow:0 6px 16px rgba(255,221,0,.4); }
+    .tt-eta strong { font-size:26px; font-weight:800; display:block; letter-spacing:-.5px; }
+    .tt-eta small { font-size:11px; font-weight:700; text-transform:uppercase; }
 
     /* card inferior do prestador */
     .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
       background:#fff; border-radius:22px; padding:16px; display:flex; align-items:center; gap:13px; box-shadow:0 14px 40px rgba(0,0,0,.4); }
     .track-card img { width:54px; height:54px; border-radius:50%; object-fit:cover; background:#e6e8ec; }
     .track-card .tc-info { flex:1; } .track-card .tc-info strong { font-size:16px; color:var(--ink); } .track-card .tc-info small { display:block; font-size:12px; color:#6e7682; margin-top:2px; }
-    .track-card a.chat-btn { background:var(--yellow); color:var(--ink); height:50px; padding:0 18px; border-radius:15px; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:800; text-decoration:none; cursor:pointer; border:none; font-family:inherit; }
-    .chat-badge { background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px; margin-left:4px; display:none; }
+    .track-card .chat-btn { background:var(--ink); color:#fff; height:52px; padding:0 20px; border-radius:16px; display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; cursor:pointer; border:none; font-family:inherit; position:relative; transition:transform .1s; }
+    .track-card .chat-btn:active { transform:scale(.96); }
+    .track-card .chat-btn i { font-size:19px; color:var(--yellow); }
+    .chat-badge { position:absolute; top:-6px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 7px; display:none; }
 
     /* ícones do mapa */
     .car-divicon, .voce-icon { background:transparent; border:none; }
@@ -87,14 +94,14 @@
 
     <div class="track-top" id="trackTop">
       <div class="pulse"><i class="fa-solid fa-truck-pickup"></i></div>
-      <div><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub">Acompanhe a chegada em tempo real</p></div>
-      <span class="tag" id="topTag">AO VIVO</span>
+      <div class="tt-info"><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub"><span class="aovivo">● AO VIVO</span> · calculando rota...</p></div>
+      <div class="tt-eta"><strong id="etaMin">—</strong><small>min</small></div>
     </div>
 
     <div class="track-card" id="trackCard" style="display:none">
       <img id="cardFoto" src="" alt="">
-      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">A caminho</small></div>
-      <button class="chat-btn" id="btnChat"><i class="fa-solid fa-comment-dots"></i> Chat <span class="chat-badge" id="chatBadge">0</span></button>
+      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">Seu guincho está chegando</small></div>
+      <button class="chat-btn" id="btnChat"><i class="fa-solid fa-comments"></i> Chat<span class="chat-badge" id="chatBadge">0</span></button>
     </div>
 
     <div class="aviso" id="aviso">
@@ -208,18 +215,42 @@
       return { lat:-22.9068, lng:-43.1729 };
     }
 
+    // rota pelas RUAS (OSRM, grátis) — segue o traçado das vias
+    let rotaBg = null, rotaFg = null, lastRota = 0;
+    async function rotaRuas(a, b) {
+      try {
+        const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`);
+        const d = await r.json();
+        if (d.routes && d.routes[0]) return { coords: d.routes[0].geometry.coordinates.map(p => [p[1], p[0]]), dur: d.routes[0].duration, dist: d.routes[0].distance };
+      } catch (e) {}
+      return { coords: [[a.lat, a.lng], [b.lat, b.lng]], dur: null, dist: null }; // fallback reta
+    }
+    async function desenharRota(g, c) {
+      const { coords, dur, dist } = await rotaRuas(g, c);
+      if (rotaBg) mapa.removeLayer(rotaBg);
+      if (rotaFg) mapa.removeLayer(rotaFg);
+      rotaBg = L.polyline(coords, { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
+      rotaFg = L.polyline(coords, { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round', lineJoin:'round' }).addTo(mapa);
+      const min = dur != null ? Math.max(1, Math.round(dur / 60)) : (cliente ? Math.max(1, Math.round(distKm(g, c) * 2.3)) : null);
+      const km = dist != null ? dist / 1000 : (cliente ? distKm(g, c) : null);
+      setETA(min, km);
+      lastRota = Date.now();
+    }
+    function setETA(min, km) {
+      if (min != null) document.getElementById('etaMin').textContent = min;
+      document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span>' + (km != null ? ' · ' + km.toFixed(1).replace('.', ',') + ' km de você' : '');
+    }
+
     function iniciarMapa() {
       const g = guinchoPos();
       const c = cliente || g;
       mapa = L.map('mapa', { zoomControl:false, attributionControl:false }).setView([g.lat, g.lng], 15);
       L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { tileSize:512, zoomOffset:-1, minZoom:1, maxZoom:20, crossOrigin:true }).addTo(mapa);
-
       if (cliente) mVoce = L.marker([c.lat, c.lng], { icon: voceIcon() }).addTo(mapa);
-      rota = L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
-      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round' }).addTo(mapa).bringToFront();
       prevGuincho = g;
-      lastDeg = bearing(g, c); // aponta inicialmente em direção ao cliente
-      mGuincho = L.marker([g.lat,g.lng], { icon: carIcon(lastDeg) }).addTo(mapa);
+      lastDeg = bearing(g, c);
+      mGuincho = L.marker([g.lat, g.lng], { icon: carIcon(lastDeg) }).addTo(mapa);
+      desenharRota(g, c);   // desenha a rota pelas ruas
       enquadrar();
     }
     function enquadrar() {
@@ -231,17 +262,13 @@
       const g = { lat:+la, lng:+lo }; const c = cliente || g;
       // só gira o carro quando ele REALMENTE se desloca (evita rodopio por ruído de GPS)
       const moved = prevGuincho ? distKm(prevGuincho, g) : 0;
-      if (moved > 0.004) lastDeg = bearing(prevGuincho, g); // ~4m+ -> aponta pra frente, na direção da rua
-      mGuincho.setLatLng([g.lat,g.lng]);
+      if (moved > 0.004) lastDeg = bearing(prevGuincho, g); // aponta pra frente, na direção da rua
+      mGuincho.setLatLng([g.lat, g.lng]);
       mGuincho.setIcon(carIcon(lastDeg));
-      // redesenha as 2 linhas da rota
-      mapa.eachLayer((l)=>{ if (l instanceof L.Polyline && !(l instanceof L.Polygon)) mapa.removeLayer(l); });
-      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
-      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round' }).addTo(mapa);
       prevGuincho = g;
-      mapa.panTo([g.lat,g.lng], { animate:true, duration:1 });
-      const d = (cliente) ? distKm(g, c) : null;
-      if (d != null) { document.getElementById('topSub').textContent = d.toFixed(1).replace('.',',') + ' km de você'; document.getElementById('cardStatus').textContent = '~' + Math.max(1, Math.round(d*2.3)) + ' min'; }
+      mapa.panTo([g.lat, g.lng], { animate:true, duration:1 });
+      // refaz a rota pelas ruas (no máximo a cada 7s) + atualiza ETA
+      if (Date.now() - lastRota > 7000) desenharRota(g, c);
     }
 
     function escutarRealtime() {

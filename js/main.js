@@ -124,32 +124,18 @@ function desenharCena(lat, lng, acc) {
   if (cenaLayer) mapa.removeLayer(cenaLayer);
   cenaLayer = L.layerGroup().addTo(mapa);
 
-  const voce = { lat, lng };
-  // círculo de precisão (estilo Google)
+  // círculo de precisão + seu ponto pulsante
   if (acc) L.circle([lat, lng], { radius: Math.min(acc, 500), color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: .12 }).addTo(cenaLayer);
-  L.marker([voce.lat, voce.lng], { icon: meuLocalIcon() }).addTo(cenaLayer);
+  L.marker([lat, lng], { icon: meuLocalIcon() }).addTo(cenaLayer);
 
-  // guincho "a caminho" (demo) + rota preta até você
-  const guincho = { lat: lat + 0.012, lng: lng - 0.015 };
-  const meio = { lat: (voce.lat + guincho.lat)/2 + 0.0018, lng: (voce.lng + guincho.lng)/2 - 0.001 };
-  const pts = [[guincho.lat, guincho.lng], [meio.lat, meio.lng], [voce.lat, voce.lng]];
-  L.polyline(pts, { color: '#fff', weight: 8, opacity: .9, lineCap: 'round', lineJoin: 'round' }).addTo(cenaLayer);
-  L.polyline(pts, { color: '#000', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(cenaLayer);
-  L.marker([guincho.lat, guincho.lng], { icon: carIcon(bearing(guincho, voce), 46) }).addTo(cenaLayer);
-
-  // carrinhos "fake" ao redor pra encher o mapa
+  // guinchos disponíveis ao redor (decorativo) — SEM rota (a rota só aparece no acompanhar)
   for (let i = 0; i < 6; i++) {
-    const fl = lat + (Math.random()-.5)*0.025, fg = lng + (Math.random()-.5)*0.025;
+    const fl = lat + (Math.random()-.5)*0.022, fg = lng + (Math.random()-.5)*0.022;
     L.marker([fl, fg], { icon: carIcon(Math.random()*360, 30), interactive: false }).addTo(cenaLayer);
   }
 
-  mapa.fitBounds(L.latLngBounds([[voce.lat, voce.lng], [guincho.lat, guincho.lng]]), { padding: [70, 70], maxZoom: 16 });
-
-  const dist = distanciaKm(voce.lat, voce.lng, guincho.lat, guincho.lng);
-  const etaMin = Math.max(2, Math.round(dist * 2.3));
-  document.getElementById('etaCard').style.display = 'flex';
-  document.getElementById('etaTempo').textContent = etaMin + ' min';
-  document.getElementById('etaDist').textContent = dist.toFixed(1).replace('.', ',') + ' km';
+  mapa.setView([lat, lng], 15);
+  document.getElementById('etaCard').style.display = 'none';
 }
 
 /* ---------- geolocalização ---------- */

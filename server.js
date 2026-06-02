@@ -238,7 +238,7 @@ const server = http.createServer(async (req, res) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; " +
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; " +
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.maptiler.com; " +
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.maptiler.com https://router.project-osrm.org; " +
     "frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
 
   const u = new URL(req.url, `http://${req.headers.host}`);
