@@ -10,79 +10,75 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    :root { --ink:#0D0D0D; --yellow:#FFCC00; --green:#28A745; }
+    :root { --ink:#0D0D0D; --yellow:#ffdd00; --green:#28A745; }
     html, body { height:100%; font-family:'Poppins',sans-serif; background:var(--ink); }
     #app { max-width:480px; margin:0 auto; height:100vh; position:relative; overflow:hidden; background:var(--ink); }
-
-    /* mapa */
     #mapa { position:absolute; inset:0; z-index:1; }
 
-    /* barra superior de status */
-    .track-top {
-      position:absolute; top:0; left:0; right:0; z-index:1000;
-      background:linear-gradient(180deg, rgba(13,13,13,.96), rgba(13,13,13,.75) 80%, transparent);
-      color:#fff; padding:16px 18px 26px; display:flex; align-items:center; gap:13px;
-    }
+    .track-top { position:absolute; top:0; left:0; right:0; z-index:1000;
+      background:linear-gradient(180deg, rgba(13,13,13,.96), rgba(13,13,13,.7) 80%, transparent);
+      color:#fff; padding:16px 18px 26px; display:flex; align-items:center; gap:13px; }
     .track-top .pulse { width:42px; height:42px; border-radius:50%; background:var(--yellow); color:var(--ink);
       display:grid; place-items:center; font-size:19px; flex-shrink:0; animation:pulse 1.6s infinite; }
-    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,204,0,.5);} 70%{box-shadow:0 0 0 14px rgba(255,204,0,0);} 100%{box-shadow:0 0 0 0 rgba(255,204,0,0);} }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,221,0,.5)} 70%{box-shadow:0 0 0 14px rgba(255,221,0,0)} 100%{box-shadow:0 0 0 0 rgba(255,221,0,0)} }
     .track-top h1 { font-size:16px; font-weight:700; line-height:1.1; }
     .track-top p { font-size:12px; color:#bdbdbd; margin-top:2px; }
     .track-top .tag { margin-left:auto; background:rgba(40,167,69,.2); color:#5ce081; font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
 
     /* card inferior do prestador */
-    .track-card {
-      position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
-      background:#fff; border-radius:22px; padding:16px; display:flex; align-items:center; gap:13px;
-      box-shadow:0 14px 40px rgba(0,0,0,.4);
-    }
+    .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
+      background:#fff; border-radius:22px; padding:16px; display:flex; align-items:center; gap:13px; box-shadow:0 14px 40px rgba(0,0,0,.4); }
     .track-card img { width:54px; height:54px; border-radius:50%; object-fit:cover; background:#e6e8ec; }
-    .track-card .tc-info { flex:1; }
-    .track-card .tc-info strong { font-size:16px; color:var(--ink); }
-    .track-card .tc-info small { display:block; font-size:12px; color:#6e7682; margin-top:2px; }
-    .track-card a.zap { background:var(--yellow); color:var(--ink); width:50px; height:50px; border-radius:15px;
-      display:grid; place-items:center; font-size:22px; text-decoration:none; }
+    .track-card .tc-info { flex:1; } .track-card .tc-info strong { font-size:16px; color:var(--ink); } .track-card .tc-info small { display:block; font-size:12px; color:#6e7682; margin-top:2px; }
+    .track-card a.chat-btn { background:var(--yellow); color:var(--ink); height:50px; padding:0 18px; border-radius:15px; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:800; text-decoration:none; cursor:pointer; border:none; font-family:inherit; }
+    .chat-badge { background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px; margin-left:4px; display:none; }
 
-    /* overlay de aviso */
-    .aviso { position:absolute; inset:0; z-index:2000; background:var(--ink); color:#fff; display:none;
-      flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; }
+    /* ícones do mapa */
+    .car-divicon, .voce-icon { background:transparent; border:none; }
+    .voce-dot { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); border:3px solid #000; box-shadow:0 1px 5px rgba(0,0,0,.4); z-index:3; }
+    .voce-pulse { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); z-index:1; animation:vocePulse 1.8s ease-out infinite; }
+    @keyframes vocePulse { 0%{transform:scale(1);opacity:.65} 70%{transform:scale(3.6);opacity:0} 100%{opacity:0} }
+    .voce-label { position:absolute; left:16px; top:-12px; white-space:nowrap; background:#000; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:9px; box-shadow:0 3px 9px rgba(0,0,0,.35); z-index:4; }
+    .voce-label::before { content:''; position:absolute; left:-5px; top:50%; transform:translateY(-50%); border:5px solid transparent; border-right-color:#000; }
+
+    /* aviso */
+    .aviso { position:absolute; inset:0; z-index:2000; background:var(--ink); color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; }
     .aviso.show { display:flex; }
     .aviso i { font-size:48px; color:var(--yellow); margin-bottom:16px; }
-    .aviso h2 { font-size:20px; margin-bottom:8px; }
-    .aviso p { color:#bdbdbd; font-size:14px; }
+    .aviso h2 { font-size:20px; margin-bottom:8px; } .aviso p { color:#bdbdbd; font-size:14px; }
 
-    /* modal de avaliação */
-    .modal-avaliacao { position:absolute; inset:0; z-index:3000; background:rgba(13,13,13,.92); display:none;
-      align-items:center; justify-content:center; padding:22px; animation:fade .3s ease; }
+    /* avaliação */
+    .modal-avaliacao { position:absolute; inset:0; z-index:3000; background:rgba(13,13,13,.92); display:none; align-items:center; justify-content:center; padding:22px; }
     .modal-avaliacao.show { display:flex; }
-    @keyframes fade { from{opacity:0;} to{opacity:1;} }
     .av-card { background:#fff; border-radius:24px; padding:28px 22px; width:100%; max-width:400px; text-align:center; animation:up .35s ease; }
-    @keyframes up { from{transform:translateY(20px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+    @keyframes up { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
     .av-card .check { width:64px; height:64px; border-radius:50%; background:#eafaf0; color:var(--green); display:grid; place-items:center; font-size:30px; margin:0 auto 14px; }
-    .av-card h2 { font-size:19px; color:var(--ink); line-height:1.25; }
-    .av-card .sub { font-size:13px; color:#6e7682; margin-top:6px; }
+    .av-card h2 { font-size:19px; color:var(--ink); line-height:1.25; } .av-card .sub { font-size:13px; color:#6e7682; margin-top:6px; }
     .stars { display:flex; justify-content:center; gap:10px; margin:22px 0; }
-    .stars i { font-size:38px; color:#e2e4e8; cursor:pointer; transition:transform .1s, color .15s; }
-    .stars i:active { transform:scale(.85); }
+    .stars i { font-size:38px; color:#e2e4e8; cursor:pointer; transition:transform .1s,color .15s; }
     .stars i.active { color:var(--yellow); }
-    .av-card textarea { width:100%; border:1.5px solid #ececf0; border-radius:14px; padding:13px; font-family:inherit;
-      font-size:14px; resize:none; outline:none; }
-    .av-card textarea:focus { border-color:var(--yellow); }
-    .btn-enviar { width:100%; background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px;
-      font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; transition:opacity .15s; }
-    .btn-enviar:disabled { opacity:.45; cursor:not-allowed; }
+    .av-card textarea { width:100%; border:1.5px solid #ececf0; border-radius:14px; padding:13px; font-family:inherit; font-size:14px; resize:none; outline:none; }
+    .btn-enviar { width:100%; background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px; font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; }
+    .btn-enviar:disabled { opacity:.45; }
     .av-obrigado { display:none; }
 
-    /* marcador do caminhão com pulso amarelo */
-    .truck-divicon { background:transparent; border:none; }
-    .map-truck { width:56px; height:56px; display:block; position:relative; z-index:2; }
-    .map-pulse { position:absolute; left:50%; top:50%; width:56px; height:56px; transform:translate(-50%,-50%);
-      border-radius:50%; background:rgba(255,204,0,.55); z-index:1; animation:mapPulse 1.6s ease-out infinite; }
-    @keyframes mapPulse {
-      0%   { transform:translate(-50%,-50%) scale(.6); opacity:.8; }
-      70%  { transform:translate(-50%,-50%) scale(2.3); opacity:0; }
-      100% { opacity:0; }
-    }
+    /* CHAT */
+    .chat-overlay { position:absolute; inset:0; z-index:2500; background:rgba(0,0,0,.4); display:none; align-items:flex-end; }
+    .chat-overlay.open { display:flex; }
+    .chat-sheet { background:#f4f5f7; width:100%; height:80%; border-radius:24px 24px 0 0; display:flex; flex-direction:column; animation:up .3s ease; }
+    .chat-head { background:#fff; border-radius:24px 24px 0 0; padding:16px 18px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+    .chat-head img { width:42px; height:42px; border-radius:50%; object-fit:cover; background:#e6e8ec; }
+    .chat-head strong { font-size:15px; color:var(--ink); display:block; } .chat-head small { font-size:11.5px; color:var(--green); }
+    .chat-head .x { margin-left:auto; width:36px; height:36px; border:none; background:#f1f2f5; border-radius:50%; font-size:16px; cursor:pointer; }
+    .chat-msgs { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px; }
+    .msg { max-width:78%; padding:10px 13px; border-radius:16px; font-size:14px; line-height:1.35; word-break:break-word; }
+    .msg.cliente { align-self:flex-end; background:var(--yellow); color:#000; border-bottom-right-radius:5px; }
+    .msg.prestador { align-self:flex-start; background:#fff; color:#1a1a1a; border-bottom-left-radius:5px; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+    .msg small { display:block; font-size:9.5px; opacity:.55; margin-top:3px; text-align:right; }
+    .chat-vazio { text-align:center; color:#9aa1ac; font-size:13px; margin:auto; }
+    .chat-input { background:#fff; padding:12px; display:flex; gap:10px; align-items:center; }
+    .chat-input input { flex:1; border:1.5px solid #ececf0; border-radius:999px; padding:12px 16px; font-family:inherit; font-size:14px; outline:none; }
+    .chat-input button { width:46px; height:46px; border-radius:50%; border:none; background:var(--yellow); color:#000; font-size:17px; cursor:pointer; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -91,46 +87,52 @@
 
     <div class="track-top" id="trackTop">
       <div class="pulse"><i class="fa-solid fa-truck-pickup"></i></div>
-      <div>
-        <h1 id="topTitulo">Seu guincho está a caminho</h1>
-        <p id="topSub">Acompanhe a chegada em tempo real</p>
-      </div>
+      <div><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub">Acompanhe a chegada em tempo real</p></div>
       <span class="tag" id="topTag">AO VIVO</span>
     </div>
 
     <div class="track-card" id="trackCard" style="display:none">
       <img id="cardFoto" src="" alt="">
-      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardBairro"></small></div>
-      <a class="zap" id="cardZap" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
+      <div class="tc-info"><strong id="cardNome">—</strong><small id="cardStatus">A caminho</small></div>
+      <button class="chat-btn" id="btnChat"><i class="fa-solid fa-comment-dots"></i> Chat <span class="chat-badge" id="chatBadge">0</span></button>
     </div>
 
-    <!-- aviso (erro / não configurado) -->
     <div class="aviso" id="aviso">
       <i class="fa-solid fa-circle-info"></i>
-      <h2 id="avisoTit">Carregando...</h2>
-      <p id="avisoMsg"></p>
+      <h2 id="avisoTit">Carregando...</h2><p id="avisoMsg"></p>
     </div>
 
-    <!-- modal de avaliação -->
+    <!-- CHAT -->
+    <div class="chat-overlay" id="chatOverlay">
+      <div class="chat-sheet">
+        <div class="chat-head">
+          <img id="chatFoto" src="" alt="">
+          <div><strong id="chatNome">Prestador</strong><small>online</small></div>
+          <button class="x" id="chatClose"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-msgs" id="chatMsgs"><div class="chat-vazio">Converse com o motorista em tempo real.</div></div>
+        <div class="chat-input">
+          <input id="chatInput" placeholder="Escreva uma mensagem..." autocomplete="off">
+          <button id="chatSend"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- avaliação -->
     <div class="modal-avaliacao" id="modalAval">
       <div class="av-card" id="avForm">
         <div class="check"><i class="fa-solid fa-flag-checkered"></i></div>
         <h2 id="avPergunta">Como foi o atendimento?</h2>
         <p class="sub">Sua avaliação ajuda outros motoristas.</p>
         <div class="stars" id="stars">
-          <i class="fa-solid fa-star" data-v="1"></i>
-          <i class="fa-solid fa-star" data-v="2"></i>
-          <i class="fa-solid fa-star" data-v="3"></i>
-          <i class="fa-solid fa-star" data-v="4"></i>
-          <i class="fa-solid fa-star" data-v="5"></i>
+          <i class="fa-solid fa-star" data-v="1"></i><i class="fa-solid fa-star" data-v="2"></i><i class="fa-solid fa-star" data-v="3"></i><i class="fa-solid fa-star" data-v="4"></i><i class="fa-solid fa-star" data-v="5"></i>
         </div>
         <textarea id="avComentario" rows="3" placeholder="Deixe um comentário (opcional)"></textarea>
         <button class="btn-enviar" id="btnEnviar" disabled>Enviar Avaliação</button>
       </div>
       <div class="av-card av-obrigado" id="avObrigado">
         <div class="check"><i class="fa-solid fa-heart"></i></div>
-        <h2>Obrigado pela sua avaliação!</h2>
-        <p class="sub">Redirecionando para o início...</p>
+        <h2>Obrigado pela sua avaliação!</h2><p class="sub">Redirecionando...</p>
       </div>
     </div>
   </div>
@@ -147,106 +149,167 @@
       document.getElementById('avisoMsg').textContent = msg;
       elAviso.classList.add('show');
     }
+    function distKm(a, b) {
+      const R=6371, r=(d)=>d*Math.PI/180;
+      const dLat=r(b.lat-a.lat), dLon=r(b.lng-a.lng);
+      const x=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLon/2)**2;
+      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+    function bearing(a, b) {
+      const toR=(d)=>d*Math.PI/180, toD=(r)=>r*180/Math.PI;
+      const dLon=toR(b.lng-a.lng);
+      const y=Math.sin(dLon)*Math.cos(toR(b.lat));
+      const x=Math.cos(toR(a.lat))*Math.sin(toR(b.lat))-Math.sin(toR(a.lat))*Math.cos(toR(b.lat))*Math.cos(dLon);
+      return (toD(Math.atan2(y,x))+360)%360;
+    }
+    const carIcon = (deg) => L.divIcon({ className:'car-divicon', html:`<img src="/img/car.png" style="width:46px;height:46px;display:block;transform:rotate(${deg}deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))">`, iconSize:[46,46], iconAnchor:[23,23] });
+    const voceIcon = () => L.divIcon({ className:'voce-icon', html:`<span class="voce-pulse"></span><span class="voce-dot"></span><span class="voce-label">Seu local</span>`, iconSize:[0,0], iconAnchor:[0,0] });
 
-    let mapa, marcador, chamado, prestador, canal, notaSelecionada = 0;
-
-    const ICONE_GUINCHO = L.divIcon({
-      className: 'truck-divicon',
-      html: '<span class="map-pulse"></span><img class="map-truck" src="/img/truck-marker.svg" alt="guincho">',
-      iconSize: [56, 56], iconAnchor: [28, 28], popupAnchor: [0, -28],
-    });
+    let mapa, mGuincho, mVoce, rota, prevGuincho = null, lastDeg = 0, cliente = null, chamado, prestador, canal, canalMsg, notaSel = 0;
 
     async function init() {
       if (!token) return mostrarAviso('Link inválido', 'Este link de rastreio não tem um código válido.', 'fa-triangle-exclamation');
-      if (!window.sb) return mostrarAviso('Supabase não configurado', 'Cole a URL e a chave em js/supabase-config.js para ativar o rastreio.', 'fa-gear');
+      if (!window.sb) return mostrarAviso('Conexão indisponível', 'Recarregue a página.', 'fa-gear');
 
-      // busca o chamado pelo token
       const { data, error } = await sb.from('chamados').select('*').eq('link_token', token).single();
-      if (error || !data) return mostrarAviso('Chamado não encontrado', 'Verifique o link enviado pelo motorista.', 'fa-triangle-exclamation');
+      if (error || !data) return mostrarAviso('Chamado não encontrado', 'Verifique o link recebido.', 'fa-triangle-exclamation');
       chamado = data;
 
-      // dados do prestador (nome/foto para o card e a avaliação)
-      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,whatsapp').eq('id', chamado.prestador_id).single();
-      prestador = pr || { nome: 'Prestador' };
+      const pid = chamado.prestador_id || chamado.prestador_notificado_id;
+      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro').eq('id', pid).single();
+      prestador = pr || { nome:'Prestador' };
       preencherCard();
 
-      // se já finalizou, vai direto pra avaliação
-      if (chamado.status === 'Finalizado') return desativarMapaEMostrarAvaliacao();
+      // local do cliente: partida do chamado, ou geolocalização, ou posição do guincho
+      cliente = (chamado.local_partida_lat) ? { lat:+chamado.local_partida_lat, lng:+chamado.local_partida_lng } : null;
+      if (!cliente && navigator.geolocation) {
+        await new Promise((res) => navigator.geolocation.getCurrentPosition(
+          (p)=>{ cliente={lat:p.coords.latitude,lng:p.coords.longitude}; res(); }, ()=>res(), {timeout:6000}));
+      }
 
+      if (chamado.status === 'Finalizado') return desativarMapaEMostrarAvaliacao();
       iniciarMapa();
       escutarRealtime();
+      iniciarChat(pid);
     }
 
     function preencherCard() {
       document.getElementById('cardNome').textContent = prestador.nome;
-      document.getElementById('cardBairro').textContent = prestador.bairro || '';
-      document.getElementById('cardFoto').src = prestador.foto_url ||
-        ('https://ui-avatars.com/api/?name=' + encodeURIComponent(prestador.nome) + '&background=0D0D0D&color=FFCC00');
-      if (prestador.whatsapp)
-        document.getElementById('cardZap').href = 'https://wa.me/' + String(prestador.whatsapp).replace(/\D/g,'');
+      document.getElementById('chatNome').textContent = prestador.nome;
+      const foto = prestador.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(prestador.nome)+'&background=0D0D0D&color=ffdd00');
+      document.getElementById('cardFoto').src = foto;
+      document.getElementById('chatFoto').src = foto;
       document.getElementById('trackCard').style.display = 'flex';
     }
 
+    function guinchoPos() {
+      if (chamado.latitude_atual_guincho) return { lat:+chamado.latitude_atual_guincho, lng:+chamado.longitude_atual_guincho };
+      if (cliente) return { lat:cliente.lat+0.012, lng:cliente.lng-0.015 };
+      return { lat:-22.9068, lng:-43.1729 };
+    }
+
     function iniciarMapa() {
-      const lat = chamado.latitude_atual_guincho || -22.9068;
-      const lng = chamado.longitude_atual_guincho || -43.1729;
-      mapa = L.map('mapa', { zoomControl: false }).setView([lat, lng], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap', maxZoom: 19,
-      }).addTo(mapa);
-      if (chamado.latitude_atual_guincho) marcador = L.marker([lat, lng], { icon: ICONE_GUINCHO }).addTo(mapa);
+      const g = guinchoPos();
+      const c = cliente || g;
+      mapa = L.map('mapa', { zoomControl:false, attributionControl:false }).setView([g.lat, g.lng], 15);
+      L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { tileSize:512, zoomOffset:-1, minZoom:1, maxZoom:20, crossOrigin:true }).addTo(mapa);
+
+      if (cliente) mVoce = L.marker([c.lat, c.lng], { icon: voceIcon() }).addTo(mapa);
+      rota = L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
+      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round' }).addTo(mapa).bringToFront();
+      prevGuincho = g;
+      lastDeg = bearing(g, c); // aponta inicialmente em direção ao cliente
+      mGuincho = L.marker([g.lat,g.lng], { icon: carIcon(lastDeg) }).addTo(mapa);
+      enquadrar();
+    }
+    function enquadrar() {
+      const g = guinchoPos(), c = cliente || g;
+      mapa.fitBounds(L.latLngBounds([[g.lat,g.lng],[c.lat,c.lng]]), { padding:[80,80], maxZoom:16 });
+    }
+
+    function atualizarGuincho(la, lo) {
+      const g = { lat:+la, lng:+lo }; const c = cliente || g;
+      // só gira o carro quando ele REALMENTE se desloca (evita rodopio por ruído de GPS)
+      const moved = prevGuincho ? distKm(prevGuincho, g) : 0;
+      if (moved > 0.004) lastDeg = bearing(prevGuincho, g); // ~4m+ -> aponta pra frente, na direção da rua
+      mGuincho.setLatLng([g.lat,g.lng]);
+      mGuincho.setIcon(carIcon(lastDeg));
+      // redesenha as 2 linhas da rota
+      mapa.eachLayer((l)=>{ if (l instanceof L.Polyline && !(l instanceof L.Polygon)) mapa.removeLayer(l); });
+      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#000', weight:7, opacity:.9, lineCap:'round', lineJoin:'round' }).addTo(mapa);
+      L.polyline([[g.lat,g.lng],[c.lat,c.lng]], { color:'#ffdd00', weight:3.5, opacity:1, lineCap:'round' }).addTo(mapa);
+      prevGuincho = g;
+      mapa.panTo([g.lat,g.lng], { animate:true, duration:1 });
+      const d = (cliente) ? distKm(g, c) : null;
+      if (d != null) { document.getElementById('topSub').textContent = d.toFixed(1).replace('.',',') + ' km de você'; document.getElementById('cardStatus').textContent = '~' + Math.max(1, Math.round(d*2.3)) + ' min'; }
     }
 
     function escutarRealtime() {
-      canal = sb.channel('tracking-' + token)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chamados', filter: `link_token=eq.${token}` },
-          (payload) => {
-            const { latitude_atual_guincho, longitude_atual_guincho, status } = payload.new;
-            if (status === 'A Caminho' && latitude_atual_guincho) {
-              const c = [latitude_atual_guincho, longitude_atual_guincho];
-              if (!marcador) marcador = L.marker(c, { icon: ICONE_GUINCHO }).addTo(mapa);
-              else marcador.setLatLng(c);
-              mapa.panTo(c, { animate: true, duration: 1 });
-            } else if (status === 'Finalizado') {
-              if (canal) canal.unsubscribe();
-              desativarMapaEMostrarAvaliacao();
-            }
-          })
-        .subscribe();
+      canal = sb.channel('track-'+token).on('postgres_changes',
+        { event:'UPDATE', schema:'public', table:'chamados', filter:`link_token=eq.${token}` },
+        (p) => {
+          const { latitude_atual_guincho:la, longitude_atual_guincho:lo, status } = p.new;
+          document.getElementById('topTitulo').textContent = status === 'Chegou' ? 'Guincho chegou!' : status === 'Iniciado' ? 'A caminho do destino' : 'Guincho a caminho';
+          if (status === 'Finalizado') { if (canal) canal.unsubscribe(); desativarMapaEMostrarAvaliacao(); return; }
+          if (la) atualizarGuincho(la, lo);
+        }).subscribe();
     }
+
+    /* ---------- CHAT em tempo real ---------- */
+    const chatOverlay = document.getElementById('chatOverlay');
+    let naoLidas = 0;
+    function iniciarChat(pid) {
+      carregarMensagens();
+      canalMsg = sb.channel('chat-'+chamado.id).on('postgres_changes',
+        { event:'INSERT', schema:'public', table:'mensagens', filter:`chamado_id=eq.${chamado.id}` },
+        (p) => { addMsg(p.new); if (!chatOverlay.classList.contains('open') && p.new.autor==='prestador') { naoLidas++; const b=document.getElementById('chatBadge'); b.textContent=naoLidas; b.style.display='inline-block'; } }
+      ).subscribe();
+    }
+    async function carregarMensagens() {
+      const { data } = await sb.from('mensagens').select('*').eq('chamado_id', chamado.id).order('created_at', { ascending:true });
+      const box = document.getElementById('chatMsgs');
+      if (data && data.length) { box.innerHTML = ''; data.forEach(addMsg); }
+    }
+    function addMsg(m) {
+      const box = document.getElementById('chatMsgs');
+      const vazio = box.querySelector('.chat-vazio'); if (vazio) vazio.remove();
+      const div = document.createElement('div');
+      div.className = 'msg ' + (m.autor === 'cliente' ? 'cliente' : 'prestador');
+      const hora = new Date(m.created_at).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      div.innerHTML = `${m.texto.replace(/</g,'&lt;')}<small>${hora}</small>`;
+      box.appendChild(div); box.scrollTop = box.scrollHeight;
+    }
+    document.getElementById('btnChat').addEventListener('click', () => {
+      chatOverlay.classList.add('open'); naoLidas=0; document.getElementById('chatBadge').style.display='none';
+      document.getElementById('chatMsgs').scrollTop = document.getElementById('chatMsgs').scrollHeight;
+    });
+    document.getElementById('chatClose').addEventListener('click', () => chatOverlay.classList.remove('open'));
+    async function enviarMsg() {
+      const inp = document.getElementById('chatInput'); const txt = inp.value.trim(); if (!txt) return;
+      inp.value = '';
+      await sb.from('mensagens').insert({ chamado_id: chamado.id, autor: 'cliente', texto: txt });
+    }
+    document.getElementById('chatSend').addEventListener('click', enviarMsg);
+    document.getElementById('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') enviarMsg(); });
 
     /* ---------- AVALIAÇÃO ---------- */
     function desativarMapaEMostrarAvaliacao() {
-      document.getElementById('mapa').style.display = 'none';
-      document.getElementById('trackTop').style.display = 'none';
-      document.getElementById('trackCard').style.display = 'none';
+      document.getElementById('mapa').style.display='none';
+      document.getElementById('trackTop').style.display='none';
+      document.getElementById('trackCard').style.display='none';
+      chatOverlay.classList.remove('open');
       document.getElementById('avPergunta').textContent = `Como foi o atendimento de ${prestador.nome}?`;
       document.getElementById('modalAval').classList.add('show');
     }
-
-    // estrelas: hover + click
     const stars = [...document.querySelectorAll('#stars i')];
-    function pintar(n) { stars.forEach((s, i) => s.classList.toggle('active', i < n)); }
-    stars.forEach((s) => {
-      s.addEventListener('mouseover', () => pintar(+s.dataset.v));
-      s.addEventListener('mouseout', () => pintar(notaSelecionada));
-      s.addEventListener('click', () => { notaSelecionada = +s.dataset.v; pintar(notaSelecionada); document.getElementById('btnEnviar').disabled = false; });
-    });
-
+    function pintar(n){ stars.forEach((s,i)=>s.classList.toggle('active', i<n)); }
+    stars.forEach((s)=>{ s.addEventListener('mouseover',()=>pintar(+s.dataset.v)); s.addEventListener('mouseout',()=>pintar(notaSel)); s.addEventListener('click',()=>{ notaSel=+s.dataset.v; pintar(notaSel); document.getElementById('btnEnviar').disabled=false; }); });
     document.getElementById('btnEnviar').addEventListener('click', async () => {
-      if (!notaSelecionada) return;
-      const btn = document.getElementById('btnEnviar');
-      btn.disabled = true; btn.textContent = 'Enviando...';
-      const { error } = await sb.from('avaliacoes').insert({
-        prestador_id: chamado.prestador_id,
-        chamado_id: chamado.id,
-        nota: notaSelecionada,
-        comentario: document.getElementById('avComentario').value.trim() || null,
-      });
-      if (error) { btn.disabled = false; btn.textContent = 'Tentar novamente'; alert('Erro ao enviar: ' + error.message); return; }
-      document.getElementById('avForm').style.display = 'none';
-      document.getElementById('avObrigado').style.display = 'block';
-      setTimeout(() => { location.href = '/'; }, 2600);
+      if (!notaSel) return; const btn=document.getElementById('btnEnviar'); btn.disabled=true; btn.textContent='Enviando...';
+      const { error } = await sb.from('avaliacoes').insert({ prestador_id: chamado.prestador_id||chamado.prestador_notificado_id, chamado_id: chamado.id, nota: notaSel, comentario: document.getElementById('avComentario').value.trim()||null });
+      if (error) { btn.disabled=false; btn.textContent='Tentar novamente'; alert('Erro: '+error.message); return; }
+      document.getElementById('avForm').style.display='none'; document.getElementById('avObrigado').style.display='block';
+      setTimeout(()=>{ location.href='/'; }, 2600);
     });
 
     init();
