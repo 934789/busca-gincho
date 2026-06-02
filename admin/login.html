@@ -26,7 +26,6 @@
         <button type="submit" class="btn-primary">Entrar</button>
         <p class="form-msg" id="msg"></p>
       </form>
-      <p class="helper" style="margin-top:14px">Demo: <strong>admin</strong> / <strong>admin</strong></p>
     </div>
     <p class="auth-link"><a href="/">← Voltar ao site</a></p>
   </div>
@@ -34,7 +33,7 @@
   <script>
     // ⚠️ Gate de protótipo (client-side). A proteção real dos dados é via RLS do Supabase.
     // Em produção, trocar por Supabase Auth.
-    const ADMIN_USER = 'admin', ADMIN_PASS = 'admin';
+    const ADMIN_USER = 'admin', ADMIN_PASS = 'bg##1';
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const msg = document.getElementById('msg');
