@@ -27,6 +27,51 @@ const MAPTILER_STYLE = 'dataviz'; // clarinho/minimalista estilo Uber (alterne p
 // a URL do site principal, ex.: 'https://buscaguincho.com.br'
 window.SITE_CLIENTE = '';
 
+/* ===================== PRECIFICAÇÃO + SPLIT =====================
+   Tabelas baseadas em pesquisa de mercado (assistência 24h / reboque RJ).
+   Franquia de 10 km inclusos na taxa de saída; KM excedente cobrado à parte.
+   Plataforma: 15% de comissão + R$ 5,00 fixo por corrida. */
+const PRECO_CATEGORIAS = {
+  guincho_leve:   { label: 'Guincho Leve',     icon: 'fa-truck-pickup', taxaSaida: 150.00, kmExcedente: 7.00,  fixo: false },
+  guincho_pesado: { label: 'Guincho Pesado',   icon: 'fa-truck-moving', taxaSaida: 250.00, kmExcedente: 12.00, fixo: false },
+  troca_pneu:     { label: 'Troca de Pneu',    icon: 'fa-life-ring',    taxaSaida: 80.00,  kmExcedente: 0,     fixo: true  },
+  carga_bateria:  { label: 'Carga de Bateria', icon: 'fa-car-battery',  taxaSaida: 140.00, kmExcedente: 0,     fixo: true  },
+};
+const FRANQUIA_KM = 10;
+const PLATAFORMA_COMISSAO = 0.15;   // 15%
+const PLATAFORMA_TAXA_FIXA = 5.00;  // R$ por corrida
+
+function calcularValoresChamado(distanciaTotalKm, categoria, condicoes = {}) {
+  const cat = PRECO_CATEGORIAS[categoria] || PRECO_CATEGORIAS.guincho_leve;
+  // A) preço base por categoria
+  let precoBase = cat.taxaSaida;
+  if (!cat.fixo && distanciaTotalKm > FRANQUIA_KM) {
+    precoBase += (distanciaTotalKm - FRANQUIA_KM) * cat.kmExcedente;
+  }
+  // B) precificação dinâmica (multiplicador)
+  let multiplicador = 1.0;
+  if (condicoes.ehHorarioNoturno) multiplicador += 0.2;  // 22h–06h
+  if (condicoes.ehChuvaForte)     multiplicador += 0.3;  // alerta de chuva forte
+  if (condicoes.ehZonaAlagamento) multiplicador += 0.5;  // zona crítica de alagamento
+  // C) valor do cliente
+  const valorCliente = parseFloat((precoBase * multiplicador).toFixed(2));
+  // D) split plataforma x prestador (15% + R$5 fixo)
+  const comissaoPlataforma = parseFloat(((valorCliente * PLATAFORMA_COMISSAO) + PLATAFORMA_TAXA_FIXA).toFixed(2));
+  const ganhoPrestador = parseFloat((valorCliente - comissaoPlataforma).toFixed(2));
+  return {
+    valor_cliente: valorCliente,
+    comissao_plataforma: comissaoPlataforma,
+    ganho_prestador: ganhoPrestador,
+    fator_multiplicador: parseFloat(multiplicador.toFixed(2)),
+  };
+}
+// condições automáticas (horário). Clima/alagamento ficam como hooks (false por padrão).
+function condicoesAtuais() {
+  const h = new Date().getHours();
+  return { ehHorarioNoturno: (h >= 22 || h < 6), ehChuvaForte: false, ehZonaAlagamento: false };
+}
+const fmtBRL = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+
 // Cria o client global `sb`
 let sb = null;
 (function () {

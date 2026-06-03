@@ -217,6 +217,7 @@ document.getElementById('bnLista').addEventListener('click', (e) => { e.preventD
    ============================================================ */
 const chamarOverlay = document.getElementById('chamarOverlay');
 let destinoSel = null, chamadoAtual = null, canalChamar = null, jaRedirecionou = false;
+let categoriaSel = 'guincho_leve', precoCalc = null;
 const somAceite = new Audio('/audio/iniciar.mp3'); somAceite.preload = 'auto';
 let audioPrimed = false;
 function primeAudio() { if (audioPrimed) return; audioPrimed = true; somAceite.play().then(() => { somAceite.pause(); somAceite.currentTime = 0; }).catch(() => {}); }
@@ -225,7 +226,9 @@ function abrirChamar() {
   if (!sb) return;
   if (!userPos) { alert('Precisamos da sua localização. Ative o GPS e recarregue a página.'); return; }
   primeAudio();
-  destinoSel = null; chamadoAtual = null;
+  destinoSel = null; chamadoAtual = null; categoriaSel = 'guincho_leve'; precoCalc = null;
+  document.querySelectorAll('#chamarCat .cat-chip').forEach((x, i) => x.classList.toggle('active', i === 0));
+  document.getElementById('grpDestino').style.display = '';
   document.getElementById('chamarDestino').value = '';
   document.getElementById('chamarSugestoes').innerHTML = '';
   document.getElementById('chamarEstimativa').style.display = 'none';
@@ -239,6 +242,30 @@ function abrirChamar() {
 function fecharChamar() { chamarOverlay.classList.remove('open'); if (canalChamar) { canalChamar.unsubscribe(); canalChamar = null; } }
 document.getElementById('bnChamar').addEventListener('click', abrirChamar);
 document.getElementById('chamarClose').addEventListener('click', fecharChamar);
+
+/* categoria de serviço + cálculo de preço (cliente) */
+const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;
+function atualizarPreco() {
+  const dist = destinoSel ? distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng) : 0;
+  precoCalc = calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
+  if (catFixa() || destinoSel) {
+    document.getElementById('chamarValor').textContent = fmtBRL(precoCalc.valor_cliente);
+    document.getElementById('chamarDist').textContent = catFixa() ? 'Atendimento no seu local' : dist.toFixed(1).replace('.', ',') + ' km';
+    document.getElementById('chamarMult').textContent = precoCalc.fator_multiplicador > 1 ? `· tarifa dinâmica x${String(precoCalc.fator_multiplicador).replace('.', ',')}` : '';
+    document.getElementById('chamarEstimativa').style.display = 'block';
+    document.getElementById('btnConfirmarChamado').disabled = false;
+  } else {
+    document.getElementById('chamarEstimativa').style.display = 'none';
+    document.getElementById('btnConfirmarChamado').disabled = true;
+  }
+}
+document.querySelectorAll('#chamarCat .cat-chip').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('#chamarCat .cat-chip').forEach((x) => x.classList.remove('active'));
+  b.classList.add('active'); categoriaSel = b.dataset.cat;
+  document.getElementById('grpDestino').style.display = catFixa() ? 'none' : '';
+  document.getElementById('chamarSugestoes').innerHTML = '';
+  atualizarPreco();
+}));
 
 /* geocoding do destino (MapTiler) */
 let geoTimer;
@@ -261,17 +288,15 @@ async function buscarDestino(q) {
       destinoSel = { lng: f.center[0], lat: f.center[1], nome: f.place_name || f.text };
       document.getElementById('chamarDestino').value = destinoSel.nome;
       box.innerHTML = '';
-      const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
-      document.getElementById('chamarDist').textContent = dist.toFixed(1).replace('.', ',') + ' km';
-      document.getElementById('chamarEstimativa').style.display = 'flex';
-      document.getElementById('btnConfirmarChamado').disabled = false;
+      atualizarPreco();
     }));
   } catch (e) { console.error('geocoding:', e); }
 }
 
 /* confirmar -> cria chamado (dispara o despacho automático) */
 document.getElementById('btnConfirmarChamado').addEventListener('click', async () => {
-  if (!destinoSel || !userPos || !sb) return;
+  if (!userPos || !sb) return;
+  if (!catFixa() && !destinoSel) return;     // guincho exige destino; serviço fixo é no local
   // nome + celular do cliente (aparecem no acompanhamento e pro prestador)
   const nomeCli = document.getElementById('chamarNome').value.trim();
   const telCli  = document.getElementById('chamarTel').value.trim();
@@ -279,14 +304,20 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   if (nomeCli.length < 3) { erro.textContent = 'Informe seu nome completo.'; erro.style.display = 'block'; document.getElementById('chamarNome').focus(); return; }
   if (telCli.replace(/\D/g, '').length < 10) { erro.textContent = 'Informe um celular válido com DDD.'; erro.style.display = 'block'; document.getElementById('chamarTel').focus(); return; }
   erro.style.display = 'none';
-  const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
+  // serviço fixo (pneu/bateria): atendimento no local -> destino = origem
+  const destino = destinoSel || { lat: userPos.lat, lng: userPos.lng, nome: 'Atendimento no local do cliente' };
+  const dist = distanciaKm(userPos.lat, userPos.lng, destino.lat, destino.lng);
+  const v = precoCalc || calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
+  const cat = PRECO_CATEGORIAS[categoriaSel];
   const codigo = String(Math.floor(1000 + Math.random() * 9000)); // PIN de retirada (cliente mostra ao guincho)
   const { data, error } = await sb.from('chamados').insert({
-    status: 'Pendente', servico_solicitado: 'Chamar Guincho',
+    status: 'Pendente', servico_solicitado: cat.label, categoria_servico: categoriaSel,
     nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
-    local_chegada_lat: destinoSel.lat, local_chegada_lng: destinoSel.lng,
-    distancia_estimada_km: +dist.toFixed(2), endereco_destino: destinoSel.nome,
+    local_chegada_lat: destino.lat, local_chegada_lng: destino.lng,
+    distancia_estimada_km: +dist.toFixed(2), endereco_destino: destino.nome,
+    valor_cliente: v.valor_cliente, comissao_plataforma: v.comissao_plataforma,
+    ganho_prestador: v.ganho_prestador, fator_multiplicador: v.fator_multiplicador,
   }).select('id, link_token').single();
   if (error || !data) { alert('Erro ao criar chamado: ' + (error ? error.message : '')); return; }
   chamadoAtual = data;

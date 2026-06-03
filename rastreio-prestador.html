@@ -43,6 +43,8 @@
     .pc-info strong { font-size:18px; color:var(--ink); font-weight:800; display:block; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .pc-dest { font-size:13px; color:#5b6675; margin-top:3px; display:flex; align-items:center; gap:6px; }
     .pc-dest i { color:#e23c3c; }
+    .pc-ganho { font-size:13px; color:#1f9d57; font-weight:700; margin-top:4px; display:flex; align-items:center; gap:6px; }
+    .pc-ganho strong { font-size:15px; }
     .pc-chat { width:50px; height:50px; border-radius:50%; background:var(--yellow); border:none; box-shadow:0 6px 16px rgba(255,221,0,.45); cursor:pointer; position:relative; display:grid; place-items:center; flex-shrink:0; }
     .pc-chat:active { transform:scale(.93); }
     .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
@@ -126,6 +128,7 @@
         <div class="pc-info">
           <strong id="cliNome">Cliente</strong>
           <div class="pc-dest"><i class="fa-solid fa-flag-checkered"></i> <span id="cliDestino">—</span></div>
+          <div class="pc-ganho" id="pcGanho" style="display:none"><i class="fa-solid fa-sack-dollar"></i> Você ganha <strong id="pcGanhoVal">—</strong></div>
         </div>
         <button class="pc-chat" id="btnChat" aria-label="Conversar">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#0D0D0D" d="M12 3C6.9 3 3 6.6 3 11c0 2.2 1 4.2 2.6 5.6L5 21l4.6-1.6c.8.2 1.6.3 2.4.3 5.1 0 9-3.6 9-8s-3.9-8-9-8z"/><circle cx="8.5" cy="11" r="1.2" fill="#fff"/><circle cx="12" cy="11" r="1.2" fill="#fff"/><circle cx="15.5" cy="11" r="1.2" fill="#fff"/></svg>
@@ -213,7 +216,7 @@
       if (!window.sb) return mostrarAviso('Conexão indisponível', 'Recarregue a página.', 'fa-gear');
 
       // não traz codigo_confirmacao (o prestador não pode ler o PIN do cliente)
-      const cols = 'id,link_token,status,prestador_id,prestador_notificado_id,nome_cliente,endereco_destino,local_partida_lat,local_partida_lng,local_chegada_lat,local_chegada_lng,latitude_atual_guincho,longitude_atual_guincho,prestadores_recusaram,foto_antes_url,foto_depois_url';
+      const cols = 'id,link_token,status,prestador_id,prestador_notificado_id,nome_cliente,endereco_destino,local_partida_lat,local_partida_lng,local_chegada_lat,local_chegada_lng,latitude_atual_guincho,longitude_atual_guincho,prestadores_recusaram,foto_antes_url,foto_depois_url,ganho_prestador,servico_solicitado';
       const { data, error } = await sb.from('chamados').select(cols).eq('link_token', token).single();
       if (error || !data) return mostrarAviso('Atendimento não encontrado', 'Verifique o link.', 'fa-triangle-exclamation');
       chamado = data;
@@ -230,6 +233,7 @@
       document.getElementById('cliNome').textContent = chamado.nome_cliente || 'Cliente';
       document.getElementById('chatNome').textContent = chamado.nome_cliente || 'Cliente';
       document.getElementById('cliDestino').textContent = chamado.endereco_destino || 'Destino informado';
+      if (chamado.ganho_prestador != null) { document.getElementById('pcGanhoVal').textContent = 'R$ ' + Number(chamado.ganho_prestador).toFixed(2).replace('.', ','); document.getElementById('pcGanho').style.display = 'flex'; }
       document.getElementById('pcCard').style.display = 'flex';
 
       // posição inicial do guincho: GPS, senão última posição salva, senão perto do cliente

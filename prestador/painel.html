@@ -160,6 +160,9 @@
     .di-row > i { color:var(--ink); font-size:17px; width:20px; text-align:center; }
     .di-row small { font-size:11px; color:var(--text-soft); display:block; }
     .di-row strong { font-size:14px; color:var(--ink); }
+    .desp-ganho { display:flex; align-items:center; justify-content:space-between; background:#e7f7ee; border:1px solid #bfe9cf; border-radius:13px; padding:12px 16px; margin:12px 0; }
+    .desp-ganho span { font-size:13px; font-weight:600; color:#1f7a47; }
+    .desp-ganho strong { font-size:22px; font-weight:800; color:#1f9d57; }
     .desp-acts { display:flex; gap:10px; }
     .desp-btn { flex:1; border:none; border-radius:14px; padding:15px; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
     .desp-recusar { background:#0A0A0A; color:#fff; }
@@ -331,6 +334,7 @@
         <div class="di-row"><i class="fa-solid fa-flag-checkered"></i><div><small>Levar até</small><strong id="despDestino">—</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-route"></i><div><small>Distância da corrida</small><strong id="despDist">—</strong></div></div>
       </div>
+      <div class="desp-ganho"><span>Seu ganho líquido</span><strong id="despGanho">—</strong></div>
       <div class="desp-acts">
         <button class="desp-btn desp-recusar" id="btnRecusarDesp"><i class="fa-solid fa-xmark"></i> Recusar</button>
         <button class="desp-btn desp-aceitar" id="btnAceitarDesp"><i class="fa-solid fa-check"></i> Aceitar</button>
@@ -439,6 +443,7 @@
       document.getElementById('despCliente').textContent = c.nome_cliente || 'Cliente';
       document.getElementById('despDestino').textContent = c.endereco_destino || 'Destino informado pelo cliente';
       document.getElementById('despDist').textContent = (c.distancia_estimada_km != null ? Number(c.distancia_estimada_km).toFixed(1).replace('.', ',') + ' km' : '—');
+      document.getElementById('despGanho').textContent = c.ganho_prestador != null ? ('R$ ' + Number(c.ganho_prestador).toFixed(2).replace('.', ',')) : '—';
       abrirModal('modalDespacho');
       try { somDespacho.currentTime = 0; somDespacho.play().catch(() => {}); } catch (e) {}
       iniciarCountdown(c.tempo_notificacao_enviada);
@@ -695,7 +700,7 @@
       chamadoComp = c;
       k_nome.value=c.nome_cliente||''; k_cpf.value=c.cpf_cliente||''; k_placa.value=c.placa_veiculo||''; k_cor.value=c.cor_veiculo||'';
       k_modelo.value=c.modelo_veiculo||''; k_origem.value=c.endereco_origem||''; k_destino.value=c.endereco_destino||'';
-      k_km.value=c.km_rodados||''; k_valor.value=c.valor_servico!=null?String(c.valor_servico).replace('.',','):''; k_desc.value=c.descricao_servico||c.servico_solicitado||'';
+      k_km.value=c.km_rodados||''; const vbase=c.valor_servico!=null?c.valor_servico:c.valor_cliente; k_valor.value=vbase!=null?String(vbase).replace('.',','):''; k_desc.value=c.descricao_servico||c.servico_solicitado||'';
       abrirModal('modalComprovante');
     }
     document.getElementById('compForm').addEventListener('submit', async (e) => {

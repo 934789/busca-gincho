@@ -62,6 +62,8 @@
     .tc-pl { font-size:12.5px; font-weight:800; letter-spacing:1px; color:var(--ink); background:#f1f2f5; border:1px solid #e2e4e8; border-radius:6px; padding:2px 8px; }
     .tc-chat { width:50px; height:50px; border-radius:50%; background:var(--yellow); border:none; box-shadow:0 6px 16px rgba(255,221,0,.45); cursor:pointer; position:relative; display:grid; place-items:center; flex-shrink:0; transition:transform .1s; }
     .tc-chat:active { transform:scale(.93); }
+    .tc-valor { display:flex; align-items:center; justify-content:space-between; background:#f7f8fa; border-radius:13px; padding:11px 15px; }
+    .tc-valor span { font-size:12.5px; color:#5b6675; font-weight:600; } .tc-valor strong { font-size:19px; font-weight:800; color:var(--ink); }
     .tc-cancelar { width:100%; border:none; background:#f1f2f5; color:#3c3f46; font-family:inherit; font-weight:800; font-size:15px; padding:14px; border-radius:14px; cursor:pointer; transition:background .12s, color .12s; }
     .tc-cancelar:active { background:#e23c3c; color:#fff; }
     .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
@@ -149,6 +151,7 @@
           <span class="chat-badge" id="chatBadge">0</span>
         </button>
       </div>
+      <div class="tc-valor" id="cardValor" style="display:none"><span>Valor do serviço</span><strong id="cardValorNum">R$ —</strong></div>
       <button class="tc-cancelar" id="btnCancelarRota">Cancelar</button>
     </div>
 
@@ -269,6 +272,7 @@
       const foto = prestador.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(prestador.nome)+'&background=0D0D0D&color=ffdd00');
       document.getElementById('cardFoto').src = foto;
       document.getElementById('chatFoto').src = foto;
+      if (chamado.valor_cliente != null) { document.getElementById('cardValorNum').textContent = 'R$ ' + Number(chamado.valor_cliente).toFixed(2).replace('.', ','); document.getElementById('cardValor').style.display = 'flex'; }
       // veículo + placa do guincho (se preenchidos pelo prestador)
       if (prestador.placa || prestador.veiculo) {
         document.getElementById('cardVeic').textContent = prestador.veiculo || 'Guincho';

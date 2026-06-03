@@ -110,16 +110,23 @@
     <div class="chamar-sheet">
       <!-- etapa 1: destino -->
       <div class="chamar-step" id="stepDestino">
-        <div class="chamar-head"><h2>Para onde levar o veículo?</h2><button class="chamar-close" id="chamarClose"><i class="fa-solid fa-xmark"></i></button></div>
-        <div class="chamar-rota">
+        <div class="chamar-head"><h2>Qual serviço você precisa?</h2><button class="chamar-close" id="chamarClose"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="chamar-cat" id="chamarCat">
+          <button type="button" class="cat-chip active" data-cat="guincho_leve"><i class="fa-solid fa-truck-pickup"></i><span>Guincho leve</span></button>
+          <button type="button" class="cat-chip" data-cat="guincho_pesado"><i class="fa-solid fa-truck-moving"></i><span>Guincho pesado</span></button>
+          <button type="button" class="cat-chip" data-cat="troca_pneu"><i class="fa-solid fa-life-ring"></i><span>Troca de pneu</span></button>
+          <button type="button" class="cat-chip" data-cat="carga_bateria"><i class="fa-solid fa-car-battery"></i><span>Carga de bateria</span></button>
+        </div>
+        <div class="chamar-rota" id="grpDestino">
           <div class="cr-line"><span class="cr-dot cr-de"></span><div><small>Saída</small><strong id="chamarDe">Sua localização atual</strong></div></div>
           <div class="cr-line"><span class="cr-dot cr-para"></span><div style="flex:1"><small>Destino</small>
             <input id="chamarDestino" placeholder="Digite o endereço de destino" autocomplete="off"></div></div>
         </div>
         <div class="chamar-sugestoes" id="chamarSugestoes"></div>
         <div class="chamar-estimativa" id="chamarEstimativa" style="display:none">
-          <i class="fa-solid fa-route"></i> Distância estimada: <strong id="chamarDist">—</strong>
-          <span class="ce-nota">O valor é combinado direto com o prestador.</span>
+          <div class="ce-preco"><span>Valor estimado</span><strong id="chamarValor">R$ —</strong></div>
+          <div class="ce-info"><i class="fa-solid fa-route"></i> <span id="chamarDist">—</span> <span id="chamarMult"></span></div>
+          <span class="ce-nota">Pagamento pela plataforma. O valor já inclui a taxa de serviço.</span>
         </div>
         <div class="chamar-cliente">
           <label><i class="fa-solid fa-user"></i><input id="chamarNome" placeholder="Seu nome completo" autocomplete="name"></label>
