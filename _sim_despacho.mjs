@@ -20,9 +20,10 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     latitude_atual: P.latitude, longitude_atual: P.longitude }) });
 
   // 2) cria um chamado PENDENTE pertinho dele -> o trigger 'despachar_chamado' notifica
+  const PIN = '4321';
   const ch = await api('chamados', { method: 'POST', body: JSON.stringify({
     status: 'Pendente', servico_solicitado: 'Chamar Guincho',
-    nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554',
+    nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554', codigo_confirmacao: PIN,
     local_partida_lat: P.latitude + 0.002, local_partida_lng: P.longitude + 0.002,
     local_chegada_lat: -22.9240, local_chegada_lng: -43.2330,
     distancia_estimada_km: 3.1, endereco_destino: 'Oficina Central, Tijuca - RJ' }) });
@@ -34,8 +35,10 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     await sleep(1500);
     const c = await api('chamados?id=eq.' + id + '&select=status,prestador_notificado_id');
     if (c[0].status === 'Notificando') {
-      console.log('\n✅ DESPACHADO! status=Notificando, prestador_notificado_id=' + c[0].prestador_notificado_id);
-      console.log('   >>> Abra o PAINEL do prestador (logado) que o modal Aceitar/Recusar aparece com a contagem de 2 min.');
+      console.log('\n✅ DESPACHADO! status=Notificando');
+      console.log('   >>> Abra o PAINEL do prestador (logado): aparece o modal Aceitar/Recusar (2 min).');
+      console.log('   >>> No "Cheguei ao cliente", digite o PIN do cliente: ' + PIN);
+      console.log('   >>> Link do cliente (mostra o PIN ' + PIN + '): http://localhost:5500/rastreio.html?t=' + ch[0].link_token);
       return;
     }
     process.stdout.write('.');
