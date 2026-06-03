@@ -61,8 +61,11 @@
         <p class="helper" style="margin:-4px 0 10px;font-weight:600;color:var(--ink)"><i class="fa-solid fa-file-invoice"></i> Dados para o comprovante (recibo PDF)</p>
         <div class="grid-2">
           <div class="field"><label>CNPJ ou CPF</label><input type="text" id="c_doc" placeholder="00.000.000/0001-00"></div>
-          <div class="field"><label>Razão social (opcional)</label><input type="text" id="c_razao" placeholder="Guincho Silva ME"></div>
+          <div class="field"><label>Emite Nota Fiscal? (selo CNPJ/MEI)</label>
+            <select id="c_nf"><option value="nao">Não</option><option value="sim">Sim — tem CNPJ/MEI</option></select>
+          </div>
         </div>
+        <div class="field"><label>Razão social (opcional)</label><input type="text" id="c_razao" placeholder="Guincho Silva ME"></div>
         <div class="field"><label>Endereço da base</label><input type="text" id="c_endbase" placeholder="Rua X, 100 - Bairro - RJ"></div>
         <div class="field"><label>Bairro / base</label><input type="text" id="c_bairro" placeholder="Barra da Tijuca, RJ"></div>
         <div class="field"><label>Foto do prestador</label>
@@ -105,8 +108,11 @@
         </div>
         <div class="grid-2">
           <div class="field"><label>CNPJ ou CPF</label><input type="text" id="e_doc"></div>
-          <div class="field"><label>Razão social</label><input type="text" id="e_razao"></div>
+          <div class="field"><label>Emite NF? (CNPJ/MEI)</label>
+            <select id="e_nf"><option value="nao">Não</option><option value="sim">Sim</option></select>
+          </div>
         </div>
+        <div class="field"><label>Razão social</label><input type="text" id="e_razao"></div>
         <div class="field"><label>Endereço da base</label><input type="text" id="e_endbase"></div>
         <div class="field"><label>Bairro</label><input type="text" id="e_bairro"></div>
         <div class="field"><label>Trocar foto (upload — em branco mantém a atual)</label>
@@ -197,6 +203,7 @@
         whatsapp:c_whats.value.replace(/\D/g,''), telefone:c_tel.value.replace(/\D/g,''),
         bairro:c_bairro.value.trim(), foto_url:fotoUrl || '', banner_url:bannerUrl || '',
         documento:c_doc.value.trim(), razao_social:c_razao.value.trim(), endereco_base:c_endbase.value.trim(),
+        emite_nf: c_nf.value === 'sim',
         atendimento_regioes:c_regioes.value.trim(),
         latitude:-22.9068, longitude:-43.1729, ativo:true, online:true, ...lerServicos(cadServ),  // base padrão: Rio (ajustável no editar)
       };
@@ -259,7 +266,7 @@
     /* ---------- editar ---------- */
     function abrirEditar(p) {
       e_id.value=p.id; e_nome.value=p.nome; e_whats.value=p.whatsapp; e_tel.value=p.telefone||'';
-      e_bairro.value=p.bairro||''; e_doc.value=p.documento||''; e_razao.value=p.razao_social||''; e_endbase.value=p.endereco_base||'';
+      e_bairro.value=p.bairro||''; e_doc.value=p.documento||''; e_razao.value=p.razao_social||''; e_endbase.value=p.endereco_base||''; e_nf.value = p.emite_nf ? 'sim' : 'nao';
       e_foto_file.value=''; document.getElementById('e_foto_status').textContent = p.foto_url ? 'Foto atual definida. Envie outra para trocar.' : 'Sem foto.';
       e_banner_file.value=''; document.getElementById('e_banner_status').textContent = p.banner_url ? 'Banner atual definido. Envie outro para trocar.' : 'Sem banner.';
       e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_email.value=p.email||''; e_senha.value='';
@@ -270,7 +277,7 @@
       e.preventDefault();
       const msg = document.getElementById('msgEdit');
       const patch = { nome:e_nome.value.trim(), whatsapp:e_whats.value.replace(/\D/g,''), telefone:e_tel.value.replace(/\D/g,''),
-        bairro:e_bairro.value.trim(), documento:e_doc.value.trim(), razao_social:e_razao.value.trim(), endereco_base:e_endbase.value.trim(),
+        bairro:e_bairro.value.trim(), documento:e_doc.value.trim(), razao_social:e_razao.value.trim(), endereco_base:e_endbase.value.trim(), emite_nf: e_nf.value === 'sim',
         atendimento_regioes:e_regioes.value.trim(),
         latitude:parseFloat(e_lat.value), longitude:parseFloat(e_lng.value), ...lerServicos(editServ) };
       const ef = e_foto_file.files[0];

@@ -528,6 +528,8 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .chamar-cliente label i { color:#9aa1ac; font-size:15px; width:16px; text-align:center; }
 .chamar-cliente input { flex:1; border:none; outline:none; background:transparent; padding:14px 0; font-family:inherit; font-size:14.5px; color:var(--text); }
 .chamar-erro { margin-top:10px; color:#e23c3c; font-size:13px; font-weight:600; text-align:center; }
+.chamar-nf { margin-top:12px; background:#f4f6f9; border:1px solid #e6e9ee; border-radius:11px; padding:10px 12px; font-size:12px; color:#5b6675; line-height:1.4; display:flex; gap:8px; align-items:flex-start; }
+.chamar-nf i { color:var(--yellow-dark, #caa200); margin-top:1px; } .chamar-nf strong { color:var(--ink); }
 .btn-chamar { width:100%; margin-top:18px; background:var(--yellow); color:#000; border:none; border-radius:16px; padding:16px; font-family:inherit; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:filter .15s, transform .1s; }
 .btn-chamar:disabled { opacity:.45; cursor:not-allowed; }
 .btn-chamar:not(:disabled):active { transform:scale(.99); filter:brightness(.95); }

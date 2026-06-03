@@ -113,13 +113,13 @@
     .lo-left { display:flex; align-items:center; gap:12px; }
     .lo-dot { width:12px; height:12px; border-radius:50%; background:#1f9d57; box-shadow:0 0 0 4px rgba(31,157,87,.18); flex-shrink:0; }
     .lo-left strong { font-size:15px; color:var(--ink); display:block; } .lo-left small { font-size:12.5px; color:var(--text-soft); }
-    .lobby-map { position:relative; height:280px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow); }
+    .lobby-map { position:relative; height:280px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow); isolation:isolate; z-index:0; }
     #ppMapa { position:absolute; inset:0; }
     .lm-center { position:absolute; top:12px; right:12px; z-index:500; background:#fff; border:none; border-radius:999px; padding:9px 14px; font-family:inherit; font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.18); display:flex; align-items:center; gap:7px; }
     .pp-voce { width:20px; height:20px; border-radius:50%; background:#2b7de9; border:3px solid #fff; box-shadow:0 0 0 6px rgba(43,125,233,.25); }
-    .lobby-aviso { background:var(--ink); color:#fff; border-radius:20px; padding:16px 18px; display:flex; align-items:center; gap:12px; overflow:hidden; }
-    .la-txt { flex:1; } .la-txt strong { font-size:16px; display:block; } .la-txt p { font-size:12.5px; color:#c7c9cf; margin-top:4px; line-height:1.35; }
-    .lobby-aviso img { width:120px; height:auto; flex-shrink:0; margin:-6px -8px -6px 0; }
+    .lobby-aviso { background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:20px; padding:16px 0 16px 18px; display:flex; align-items:center; gap:8px; overflow:hidden; box-shadow:var(--shadow); }
+    .la-txt { flex:1; } .la-txt strong { font-size:16px; display:block; } .la-txt p { font-size:12.5px; color:var(--text-soft); margin-top:4px; line-height:1.35; }
+    .lobby-aviso img { width:135px; height:auto; flex-shrink:0; }
     .lobby-tip { background:#fff8d6; border:1px solid #ffe9a8; border-radius:14px; padding:12px 14px; display:flex; gap:11px; align-items:center; }
     .lobby-tip .lt-ico { width:34px; height:34px; border-radius:9px; background:var(--yellow); color:#000; display:grid; place-items:center; flex-shrink:0; }
     .lobby-tip p { font-size:12.5px; color:#7a5a00; line-height:1.35; } .lobby-tip strong { color:var(--ink); }
@@ -187,7 +187,7 @@
 
       <div class="lobby-aviso">
         <div class="la-txt"><strong>Fique atento!</strong><p>Novos chamados podem aparecer a qualquer momento na sua região.</p></div>
-        <img src="/img/guincho-card.png" alt="" onerror="this.style.display='none'">
+        <img src="/img/truckbg.png" alt="" onerror="this.style.display='none'">
       </div>
 
       <div class="lobby-tip"><span class="lt-ico"><i class="fa-solid fa-shield-halved"></i></span>
@@ -247,6 +247,9 @@
         </div>
         <p class="helper" style="font-weight:600;color:var(--ink)"><i class="fa-solid fa-file-invoice"></i> Dados fiscais (saem no comprovante PDF)</p>
         <div class="field"><label>CNPJ ou CPF</label><input type="text" id="documento"></div>
+        <div class="field"><label>Emite Nota Fiscal? (mostra o selo CNPJ/MEI no seu perfil)</label>
+          <select id="emite_nf"><option value="nao">Não</option><option value="sim">Sim — tenho CNPJ/MEI</option></select>
+        </div>
         <div class="field"><label>Razão social (opcional)</label><input type="text" id="razao_social"></div>
         <div class="field"><label>Endereço da base</label><input type="text" id="endereco_base"></div>
         <h2 style="margin-top:8px"><i class="fa-solid fa-list-check"></i> Serviços que ofereço</h2>
@@ -365,7 +368,7 @@
       if (!p) return; perfilAtual = p;
       nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||''; bairro.value=p.bairro||'';
       regioes.value=p.atendimento_regioes||''; documento.value=p.documento||''; razao_social.value=p.razao_social||''; endereco_base.value=p.endereco_base||'';
-      placa.value=p.placa||''; veiculo.value=p.veiculo||'';
+      placa.value=p.placa||''; veiculo.value=p.veiculo||''; document.getElementById('emite_nf').value = p.emite_nf ? 'sim' : 'nao';
       SERVICOS.forEach((s) => { const cb=grid.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
       // status online + transmissão
       const on = p.online !== false;
@@ -380,6 +383,7 @@
       const patch = { nome:nome.value.trim(), whatsapp:whatsapp.value.replace(/\D/g,''), telefone:telefone.value.replace(/\D/g,''),
         bairro:bairro.value.trim(), atendimento_regioes:regioes.value.trim(),
         placa:placa.value.trim().toUpperCase(), veiculo:veiculo.value.trim(),
+        emite_nf: document.getElementById('emite_nf').value === 'sim',
         documento:documento.value.trim(), razao_social:razao_social.value.trim(), endereco_base:endereco_base.value.trim() };
       SERVICOS.forEach((s) => { patch[s.key] = grid.querySelector(`[data-key="${s.key}"]`).checked; });
       const { error } = await sb.from('prestadores').update(patch).eq('id', PID);
@@ -710,7 +714,10 @@
       el.innerHTML = `
         <div style="font-family:Poppins,Arial,sans-serif;color:#111;padding:34px;background:#fff">
           <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:4px solid #FFCC00;padding-bottom:16px;margin-bottom:18px">
-            <img src="/img/logo_comprovante.png" style="height:56px" onerror="this.onerror=null;this.src='/img/logo3.png'">
+            <div style="display:flex;align-items:center;gap:9px">
+              <svg width="42" height="42" viewBox="0 0 24 24"><path fill="#111" d="M1.6 12.6h6.9l1.8-3a1 1 0 0 1 .85-.5H14a1 1 0 0 1 .8.4L16.7 12H21a1 1 0 0 1 1 1v2.2a.8.8 0 0 1-.8.8h-1a2.4 2.4 0 0 1-4.8 0H9.4a2.4 2.4 0 0 1-4.8 0H2.4a.8.8 0 0 1-.8-.8V12.6z"/><circle cx="7" cy="16" r="1.35" fill="#fff"/><circle cx="17.8" cy="16" r="1.35" fill="#fff"/></svg>
+              <span style="font-size:23px;font-weight:800;letter-spacing:.5px"><span style="color:#111">BUSCA</span><span style="color:#C99700">GUINCHO</span></span>
+            </div>
             <div style="text-align:right">
               <div style="font-size:20px;font-weight:800">COMPROVANTE DE ATENDIMENTO</div>
               <div style="font-size:12px;color:#666">Busca Guincho · ${dt}</div>
@@ -720,12 +727,15 @@
           <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:14px">
             ${linha('Nome / Razão social', p.razao_social || p.nome)}
             ${linha('CNPJ / CPF', p.documento)}
+            ${linha('Emite Nota Fiscal', p.emite_nf ? 'Sim — CNPJ/MEI' : 'Não')}
+            ${linha('Guincho', [p.veiculo, p.placa].filter(Boolean).join(' · '))}
             ${linha('Endereço da base', p.endereco_base)}
             ${linha('Contato', p.telefone || p.whatsapp)}
           </table>
           <h3 style="font-size:14px;margin:0 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">CLIENTE E VEÍCULO</h3>
           <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:14px">
             ${linha('Cliente', c.nome_cliente)}
+            ${linha('Telefone', c.telefone_cliente)}
             ${linha('CPF', c.cpf_cliente)}
             ${linha('Veículo', [c.modelo_veiculo, c.cor_veiculo].filter(Boolean).join(' '))}
             ${linha('Placa', c.placa_veiculo)}
@@ -741,6 +751,7 @@
             ${linha('Descrição', c.descricao_servico || c.servico_solicitado)}
             ${linha('Forma de pagamento', c.forma_pagamento)}
             ${linha('Data / Hora', dt)}
+            ${linha('Protocolo', (c.id||'').slice(0,8).toUpperCase())}
           </table>
           <div style="background:#111;color:#FFCC00;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:14px;color:#fff">VALOR TOTAL</span>
