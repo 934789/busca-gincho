@@ -121,7 +121,10 @@
           <div class="field"><label>Latitude</label><input type="text" id="e_lat"></div>
           <div class="field"><label>Longitude</label><input type="text" id="e_lng"></div>
         </div>
-        <div class="field"><label>Nova senha (em branco = manter)</label><input type="text" id="e_senha" placeholder="•••••••"></div>
+        <div class="grid-2">
+          <div class="field"><label>E-mail (login)</label><input type="email" id="e_email" placeholder="email@exemplo.com"></div>
+          <div class="field"><label>Nova senha (em branco = manter)</label><input type="text" id="e_senha" placeholder="•••••••"></div>
+        </div>
         <div class="check-grid" id="editServicos"></div>
         <button type="submit" class="btn-primary" style="margin-top:16px">Salvar</button>
         <p class="form-msg" id="msgEdit"></p>
@@ -258,7 +261,7 @@
       e_bairro.value=p.bairro||''; e_doc.value=p.documento||''; e_razao.value=p.razao_social||''; e_endbase.value=p.endereco_base||'';
       e_foto_file.value=''; document.getElementById('e_foto_status').textContent = p.foto_url ? 'Foto atual definida. Envie outra para trocar.' : 'Sem foto.';
       e_banner_file.value=''; document.getElementById('e_banner_status').textContent = p.banner_url ? 'Banner atual definido. Envie outro para trocar.' : 'Sem banner.';
-      e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_senha.value='';
+      e_regioes.value=p.atendimento_regioes||''; e_lat.value=p.latitude; e_lng.value=p.longitude; e_email.value=p.email||''; e_senha.value='';
       SERVICOS.forEach((s) => { const cb=editServ.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
       abrirModal('modalEditar');
     }
@@ -273,6 +276,7 @@
       if (ef) { const url = await uploadFoto(ef, document.getElementById('e_foto_status')); if (url === null) { msg.className='form-msg error'; msg.textContent='Falha no upload da foto.'; return; } patch.foto_url = url; }
       const eb = e_banner_file.files[0];
       if (eb) { const url = await uploadFoto(eb, document.getElementById('e_banner_status')); if (url === null) { msg.className='form-msg error'; msg.textContent='Falha no upload do banner.'; return; } patch.banner_url = url; }
+      if (e_email.value.trim()) patch.email = e_email.value.trim().toLowerCase();
       if (e_senha.value.trim()) patch.senha_provisoria = e_senha.value.trim();
       const { error } = await sb.from('prestadores').update(patch).eq('id', e_id.value);
       msg.className = 'form-msg ' + (error ? 'error' : 'ok');
