@@ -24,8 +24,11 @@
     .track-top h1 { font-size:20px; font-weight:800; color:var(--ink); line-height:1.12; padding-right:78px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .track-top p { font-size:13px; color:#7a828d; margin-top:4px; font-weight:600; }
     .tt-progress { display:flex; gap:6px; margin-top:14px; }
-    .tt-progress span { flex:1; height:6px; border-radius:999px; background:#e9eaee; transition:background .35s; }
+    .tt-progress span { position:relative; flex:1; height:6px; border-radius:999px; background:#e9eaee; overflow:hidden; transition:background .35s; }
     .tt-progress span.on { background:var(--yellow); }
+    /* segmento atual: animação de "enchendo" em loop (estilo Uber) */
+    .tt-progress span.loading::after { content:''; position:absolute; inset:0; background:var(--yellow); border-radius:999px; transform-origin:left; animation:barLoad 1.15s ease-in-out infinite; }
+    @keyframes barLoad { 0%{transform:scaleX(0)} 100%{transform:scaleX(1)} }
 
     /* balão de ETA ancorado ao caminhão (estilo 99/Uber) */
     .bubble-divicon { background:transparent; border:none; }
@@ -294,7 +297,12 @@
     }
     /* ---------- topo: título + chegada + barra de progresso ---------- */
     const primeiroNome = () => { const n = (chamado && chamado.nome_cliente || '').trim().split(/\s+/)[0]; return n || 'você'; };
-    function setProgresso(n) { document.querySelectorAll('#topProg span').forEach((s, i) => s.classList.toggle('on', i < n)); }
+    function setProgresso(n) {
+      document.querySelectorAll('#topProg span').forEach((s, i) => {
+        s.classList.toggle('on', i < n - 1 || n >= 4);   // etapas concluídas (sólido)
+        s.classList.toggle('loading', i === n - 1 && n < 4); // etapa atual (enchendo em loop)
+      });
+    }
     function horaChegada(min) { const d = new Date(Date.now() + min * 60000); return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
     function setTopo(status) {
       const t = document.getElementById('topTitulo'), s = document.getElementById('topSub');

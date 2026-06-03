@@ -39,7 +39,7 @@ function montarCard(p, i) {
   node.querySelector('.m-rating').textContent = Number(p.avaliacao || 5).toFixed(1).replace('.', ',');
   const km = 3 + i, eta = 8 + i * 2;
   node.querySelector('.m-dist').textContent = km + ' km';
-  node.querySelector('.eta strong').textContent = '~' + eta + ' min';
+  const etaEl = node.querySelector('.eta strong'); if (etaEl) etaEl.textContent = '~' + eta + ' min'; // ETA desabilitada
   node.querySelector('.m-bairro').textContent = p.bairro || ((p.atendimento_regioes || '').split(',')[0].trim() + ', RJ');
   // contato direto (WhatsApp/Ligar) desabilitado — guardado caso os botões estejam comentados
   const btnCall = node.querySelector('.btn-call');
