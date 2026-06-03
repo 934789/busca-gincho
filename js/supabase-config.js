@@ -31,11 +31,13 @@ window.SITE_CLIENTE = '';
    Tabelas baseadas em pesquisa de mercado (assistência 24h / reboque RJ).
    Franquia de 10 km inclusos na taxa de saída; KM excedente cobrado à parte.
    Plataforma: 15% de comissão + R$ 5,00 fixo por corrida. */
+// A "Taxa de Saída" já inclui o DESLOCAMENTO do guincho (saída + franquia de 10 km).
+// Serviços no local (pneu/bateria) também têm o deslocamento embutido no valor fixo.
 const PRECO_CATEGORIAS = {
-  guincho_leve:   { label: 'Guincho Leve',     icon: 'fa-truck-pickup', taxaSaida: 150.00, kmExcedente: 7.00,  fixo: false },
-  guincho_pesado: { label: 'Guincho Pesado',   icon: 'fa-truck-moving', taxaSaida: 250.00, kmExcedente: 12.00, fixo: false },
-  troca_pneu:     { label: 'Troca de Pneu',    icon: 'fa-life-ring',    taxaSaida: 80.00,  kmExcedente: 0,     fixo: true  },
-  carga_bateria:  { label: 'Carga de Bateria', icon: 'fa-car-battery',  taxaSaida: 140.00, kmExcedente: 0,     fixo: true  },
+  guincho_leve:   { label: 'Guincho Leve',     icon: 'fa-truck-pickup', taxaSaida: 180.00, kmExcedente: 8.00,  fixo: false },
+  guincho_pesado: { label: 'Guincho Pesado',   icon: 'fa-truck-moving', taxaSaida: 300.00, kmExcedente: 13.00, fixo: false },
+  troca_pneu:     { label: 'Troca de Pneu',    icon: 'fa-life-ring',    taxaSaida: 150.00, kmExcedente: 0,     fixo: true  },
+  carga_bateria:  { label: 'Carga de Bateria', icon: 'fa-car-battery',  taxaSaida: 190.00, kmExcedente: 0,     fixo: true  },
 };
 const FRANQUIA_KM = 10;
 const PLATAFORMA_COMISSAO = 0.15;   // 15%
