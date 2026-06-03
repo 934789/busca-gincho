@@ -280,9 +280,10 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   if (telCli.replace(/\D/g, '').length < 10) { erro.textContent = 'Informe um celular válido com DDD.'; erro.style.display = 'block'; document.getElementById('chamarTel').focus(); return; }
   erro.style.display = 'none';
   const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
+  const codigo = String(Math.floor(1000 + Math.random() * 9000)); // PIN de retirada (cliente mostra ao guincho)
   const { data, error } = await sb.from('chamados').insert({
     status: 'Pendente', servico_solicitado: 'Chamar Guincho',
-    nome_cliente: nomeCli, telefone_cliente: telCli,
+    nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
     local_chegada_lat: destinoSel.lat, local_chegada_lng: destinoSel.lng,
     distancia_estimada_km: +dist.toFixed(2), endereco_destino: destinoSel.nome,

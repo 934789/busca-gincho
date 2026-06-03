@@ -26,6 +26,8 @@
     .tt-progress { display:flex; gap:6px; margin-top:14px; }
     .tt-progress span { position:relative; flex:1; height:6px; border-radius:999px; background:#e9eaee; overflow:hidden; transition:background .35s; }
     .tt-progress span.on { background:var(--yellow); }
+    .tt-codigo { margin-top:12px; background:#fff8d6; border:1px dashed #e9c200; border-radius:11px; padding:8px 12px; font-size:13px; color:#6b5200; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+    .tt-codigo i { color:#caa200; } .tt-codigo strong { font-size:18px; letter-spacing:3px; color:var(--ink); font-weight:800; } .tt-codigo span { font-size:11px; color:#9a8200; }
     /* segmento atual: animação de "enchendo" em loop (estilo Uber) */
     .tt-progress span.loading::after { content:''; position:absolute; inset:0; background:var(--yellow); border-radius:999px; transform-origin:left; animation:barLoad 1.15s ease-in-out infinite; }
     @keyframes barLoad { 0%{transform:scaleX(0)} 100%{transform:scaleX(1)} }
@@ -118,6 +120,7 @@
         <h1 id="topTitulo">Indo até você</h1>
         <p id="topSub">Calculando chegada...</p>
         <div class="tt-progress" id="topProg"><span></span><span></span><span></span><span></span></div>
+        <div class="tt-codigo" id="topCodigo" style="display:none"><i class="fa-solid fa-key"></i> Código de retirada: <strong id="topCodigoNum">----</strong> <span>informe ao guincho</span></div>
       </div>
     </div>
 
@@ -217,7 +220,7 @@
       return L.divIcon({ className:'bubble-divicon', html:`<div class="track-bubble"><strong>${t}</strong>${d}</div>`, iconSize:[0,0], iconAnchor:[0,0] });
     }
 
-    let mapa, mGuincho, mVoce, mBubble, rota, prevGuincho = null, lastDeg = 0, etaAtual = null, kmAtual = null, cliente = null, destino = null, alvo = null, emDestino = false, chamado, prestador, canal, canalMsg, notaSel = 0;
+    let mapa, mGuincho, mVoce, mBubble, rota, prevGuincho = null, lastDeg = 0, etaAtual = null, kmAtual = null, cliente = null, destino = null, alvo = null, emDestino = false, chamado, prestador, canal, canalMsg, notaSel = 0, pidAtual = null;
 
     async function init() {
       if (!token) return mostrarAviso('Link inválido', 'Este link de rastreio não tem um código válido.', 'fa-triangle-exclamation');
@@ -228,6 +231,7 @@
       chamado = data;
 
       const pid = chamado.prestador_id || chamado.prestador_notificado_id;
+      pidAtual = pid;
       const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,avaliacao,placa,veiculo').eq('id', pid).single();
       prestador = pr || { nome:'Prestador' };
       preencherCard();
@@ -310,6 +314,15 @@
       else if (status === 'Iniciado') { t.textContent = 'A caminho do destino'; setProgresso(3); }
       else if (status === 'Finalizado') { t.textContent = 'Serviço concluído'; setProgresso(4); }
       else { t.textContent = 'Indo até ' + primeiroNome(); setProgresso(1); }   // A Caminho / Aceito / Notificando
+      // código de retirada: visível só na 1ª etapa (some quando o guincho confirma)
+      const cod = document.getElementById('topCodigo');
+      if (cod) {
+        const antes = (status !== 'Chegou' && status !== 'Iniciado' && status !== 'Finalizado');
+        if (antes && chamado && chamado.codigo_confirmacao) {
+          document.getElementById('topCodigoNum').textContent = chamado.codigo_confirmacao;
+          cod.style.display = 'flex';
+        } else cod.style.display = 'none';
+      }
     }
     function setETA(min, km) {
       etaAtual = min; kmAtual = km;
@@ -377,8 +390,23 @@
     function escutarRealtime() {
       canal = sb.channel('track-'+token).on('postgres_changes',
         { event:'UPDATE', schema:'public', table:'chamados', filter:`link_token=eq.${token}` },
-        (p) => {
+        async (p) => {
           const { latitude_atual_guincho:la, longitude_atual_guincho:lo, status } = p.new;
+          const novoPid = p.new.prestador_id || p.new.prestador_notificado_id;
+          // prestador cancelou -> sistema buscando o próximo
+          if (status === 'Pendente' || status === 'Notificando') {
+            document.getElementById('topTitulo').textContent = 'Procurando outro guincho...';
+            document.getElementById('topSub').textContent = 'O prestador anterior cancelou. Já estamos chamando o mais próximo.';
+            setProgresso(1);
+            const cod = document.getElementById('topCodigo'); if (cod) cod.style.display = 'none';
+            return;
+          }
+          // novo prestador assumiu -> recarrega os dados dele
+          if ((status === 'A Caminho' || status === 'Aceito') && novoPid && novoPid !== pidAtual) {
+            pidAtual = novoPid; chamado.prestador_id = novoPid;
+            const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,avaliacao,placa,veiculo').eq('id', novoPid).single();
+            if (pr) { prestador = pr; preencherCard(); }
+          }
           if (status === 'Chegou') {
             setTopo('Chegou');
             document.getElementById('cardStatus').textContent = 'Chegou ao seu local';

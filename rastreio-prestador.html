@@ -18,7 +18,8 @@
 
     .track-top { position:absolute; top:0; left:0; right:0; z-index:1000; padding:14px 14px 0; }
     .tt-card { position:relative; background:#fff; border-radius:20px; padding:16px 18px; box-shadow:0 12px 34px rgba(0,0,0,.20); }
-    .tt-help { position:absolute; top:14px; right:14px; border:none; background:#25D366; color:#fff; font-weight:700; font-size:12.5px; padding:8px 13px; border-radius:999px; display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .tt-help { position:absolute; top:13px; right:14px; border:none; background:#fff; color:#0D0D0D; width:42px; height:42px; border-radius:50%; display:grid; place-items:center; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.16); font-size:18px; }
+    .tt-help:active { transform:scale(.93); }
     .track-top h1 { font-size:20px; font-weight:800; color:var(--ink); line-height:1.12; padding-right:90px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .track-top p { font-size:13px; color:#7a828d; margin-top:4px; font-weight:600; }
     .tt-progress { display:flex; gap:6px; margin-top:14px; }
@@ -47,6 +48,14 @@
     .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
     .pc-acao { width:100%; border:none; border-radius:15px; padding:16px; font-family:inherit; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:filter .12s, transform .1s; }
     .pc-acao:active { transform:scale(.99); filter:brightness(.96); }
+    .pc-acao:disabled { background:#e6e7ea !important; color:#9aa1ac !important; cursor:not-allowed; box-shadow:none; }
+    .pc-acao:disabled i { color:#9aa1ac !important; }
+    .pc-hint { font-size:12px; color:#8a8f98; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .pc-hint i { color:#e6a700; }
+    .pc-nf { font-size:11.5px; color:#7a5a00; background:#fff8d6; border:1px solid #ffe9a8; border-radius:10px; padding:8px 11px; display:flex; gap:7px; align-items:center; }
+    .pc-nf i { color:#caa200; }
+    .pc-cancelar { width:100%; border:1.5px solid var(--line); background:#fff; color:#e23c3c; font-family:inherit; font-weight:700; font-size:14px; padding:12px; border-radius:13px; cursor:pointer; }
+    .pc-cancelar:active { background:#fff0f0; }
     .acao-chegou { background:#1f9d57; color:#fff; }
     .acao-iniciar { background:var(--yellow); color:#000; }
     .acao-finalizar { background:var(--ink); color:#fff; }
@@ -68,6 +77,20 @@
     /* CHAT */
     .chat-overlay { position:absolute; inset:0; z-index:2500; background:rgba(0,0,0,.4); display:none; align-items:flex-end; }
     .chat-overlay.open { display:flex; }
+    /* modais (PIN / foto) */
+    .ov-modal { position:absolute; inset:0; z-index:4000; background:rgba(13,13,13,.55); display:none; align-items:center; justify-content:center; padding:22px; }
+    .ov-modal.open { display:flex; }
+    .ov-card { position:relative; background:#fff; border-radius:22px; padding:26px 22px; width:100%; max-width:360px; text-align:center; }
+    .ov-x { position:absolute; top:12px; right:12px; width:32px; height:32px; border:none; background:#f1f2f5; border-radius:50%; font-size:15px; cursor:pointer; }
+    .ov-ico { width:58px; height:58px; border-radius:50%; display:grid; place-items:center; font-size:24px; margin:0 auto 14px; }
+    .ov-card h3 { font-size:18px; font-weight:800; color:var(--ink); }
+    .ov-card p { font-size:13px; color:#6e7682; margin-top:7px; line-height:1.4; }
+    .ov-pin { width:170px; margin:16px auto 4px; display:block; text-align:center; letter-spacing:12px; font-size:30px; font-weight:800; font-family:inherit; color:var(--ink); border:2px solid var(--line); border-radius:14px; padding:12px 0 12px 12px; outline:none; }
+    .ov-pin:focus { border-color:var(--yellow); }
+    .ov-status { min-height:16px; font-size:12.5px; font-weight:600; color:#e23c3c; }
+    .ov-btn { width:100%; margin-top:12px; border:none; border-radius:14px; padding:15px; background:var(--ink); color:#fff; font-family:inherit; font-weight:800; font-size:15px; cursor:pointer; }
+    .ov-cam { display:flex; align-items:center; justify-content:center; gap:9px; margin-top:16px; background:var(--yellow); color:#000; border-radius:14px; padding:15px; font-weight:800; font-size:15px; cursor:pointer; }
+    .ov-ignorar { width:100%; margin-top:10px; border:1.5px solid var(--line); background:#fff; color:#5b6675; border-radius:13px; padding:13px; font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; }
     .chat-sheet { background:#f4f5f7; width:100%; height:80%; border-radius:24px 24px 0 0; display:flex; flex-direction:column; }
     .chat-head { background:#fff; border-radius:24px 24px 0 0; padding:16px 18px; display:flex; align-items:center; gap:12px; }
     .chat-head .av { width:42px; height:42px; border-radius:50%; background:var(--ink); color:var(--yellow); display:grid; place-items:center; }
@@ -90,7 +113,7 @@
 
     <div class="track-top">
       <div class="tt-card">
-        <button class="tt-help" id="btnAjuda"><i class="fa-brands fa-whatsapp"></i> Suporte</button>
+        <button class="tt-help" id="btnAjuda" aria-label="Suporte"><i class="fa-solid fa-headset"></i></button>
         <h1 id="topTitulo">Carregando...</h1>
         <p id="topSub">Preparando o trajeto...</p>
         <div class="tt-progress" id="topProg"><span></span><span></span><span></span><span></span></div>
@@ -109,7 +132,9 @@
           <span class="chat-badge" id="chatBadge">0</span>
         </button>
       </div>
+      <div class="pc-nf" id="pcNf"><i class="fa-solid fa-file-invoice-dollar"></i> Cliente solicitou <strong>comprovante com fotos</strong> (reembolso do seguro).</div>
       <button class="pc-acao" id="btnAcao">—</button>
+      <button class="pc-cancelar" id="btnCancelarViagem"><i class="fa-solid fa-xmark"></i> Cancelar viagem</button>
     </div>
 
     <div class="aviso" id="aviso">
@@ -130,6 +155,32 @@
           <input id="chatInput" placeholder="Escreva uma mensagem..." autocomplete="off">
           <button id="chatSend"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL PIN (código do cliente) -->
+    <div class="ov-modal" id="pinModal">
+      <div class="ov-card">
+        <button class="ov-x" id="pinClose"><i class="fa-solid fa-xmark"></i></button>
+        <div class="ov-ico" style="background:#fff8d6;color:#caa200"><i class="fa-solid fa-key"></i></div>
+        <h3>Código do cliente</h3>
+        <p>Peça ao cliente o <strong>código de 4 dígitos</strong> que aparece na tela dele e digite abaixo para confirmar a retirada.</p>
+        <input id="pinInput" class="ov-pin" inputmode="numeric" maxlength="4" placeholder="0000">
+        <p class="ov-status" id="pinStatus"></p>
+        <button class="ov-btn" id="pinConfirmar">Confirmar retirada</button>
+      </div>
+    </div>
+
+    <!-- MODAL FOTO (câmera antes/depois) -->
+    <div class="ov-modal" id="fotoModal">
+      <div class="ov-card">
+        <div class="ov-ico" style="background:#eef5ff;color:#2b7de9"><i class="fa-solid fa-camera"></i></div>
+        <h3 id="fotoTit">Foto do veículo</h3>
+        <p>Registre a foto para o comprovante (reembolso do seguro do cliente).</p>
+        <label class="ov-cam"><i class="fa-solid fa-camera"></i> Tirar / escolher foto
+          <input type="file" accept="image/*" capture="environment" id="fotoInput" hidden></label>
+        <p class="ov-status" id="fotoStatus"></p>
+        <button class="ov-ignorar" id="fotoIgnorar">Ignorar e anexar depois</button>
       </div>
     </div>
   </div>
@@ -161,7 +212,9 @@
       if (!PID) { location.href = 'prestador/login.html'; return; }
       if (!window.sb) return mostrarAviso('Conexão indisponível', 'Recarregue a página.', 'fa-gear');
 
-      const { data, error } = await sb.from('chamados').select('*').eq('link_token', token).single();
+      // não traz codigo_confirmacao (o prestador não pode ler o PIN do cliente)
+      const cols = 'id,link_token,status,prestador_id,prestador_notificado_id,nome_cliente,endereco_destino,local_partida_lat,local_partida_lng,local_chegada_lat,local_chegada_lng,latitude_atual_guincho,longitude_atual_guincho,prestadores_recusaram,foto_antes_url,foto_depois_url';
+      const { data, error } = await sb.from('chamados').select(cols).eq('link_token', token).single();
       if (error || !data) return mostrarAviso('Atendimento não encontrado', 'Verifique o link.', 'fa-triangle-exclamation');
       chamado = data;
       if (chamado.prestador_id && chamado.prestador_id !== PID)
@@ -266,17 +319,75 @@
     }
     document.getElementById('btnAcao').addEventListener('click', async () => {
       const next = document.getElementById('btnAcao').dataset.next;
-      const b = document.getElementById('btnAcao'); b.disabled = true;
-      if (next === 'Finalizar') {
-        // vai pro painel já abrindo o comprovante (lá tem "preencher agora" ou "finalizar e preencher depois")
-        if (watchId) navigator.geolocation.clearWatch(watchId);
-        location.href = 'prestador/painel.html?fin=' + chamado.id;
+      if (next === 'Chegou') { abrirPin(); return; }   // pede o código de 4 dígitos do cliente
+      if (next === 'Iniciado') {
+        pedirFoto('antes', async () => {           // foto ANTES (ou ignorar) -> inicia trajeto
+          await sb.from('chamados').update({ status:'Iniciado' }).eq('id', chamado.id);
+          chamado.status = 'Iniciado'; irParaDestino(); setTopo('Iniciado'); setAcao('Iniciado');
+        });
         return;
       }
-      await sb.from('chamados').update({ status: next }).eq('id', chamado.id);
-      chamado.status = next;
-      if (next === 'Iniciado') irParaDestino();
-      setTopo(next); setAcao(next); b.disabled = false;
+      if (next === 'Finalizar') {
+        pedirFoto('depois', () => {                // foto DEPOIS (ou ignorar) -> comprovante no painel
+          if (watchId) navigator.geolocation.clearWatch(watchId);
+          location.href = 'prestador/painel.html?fin=' + chamado.id;
+        });
+        return;
+      }
+    });
+
+    /* CÓDIGO DO CLIENTE (PIN) na retirada — confirma presença sem depender de GPS */
+    function abrirPin() {
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinStatus').textContent = '';
+      document.getElementById('pinModal').classList.add('open');
+      setTimeout(() => document.getElementById('pinInput').focus(), 120);
+    }
+    function fecharPin() { document.getElementById('pinModal').classList.remove('open'); }
+    document.getElementById('pinClose').addEventListener('click', fecharPin);
+    document.getElementById('pinConfirmar').addEventListener('click', async () => {
+      const codigo = document.getElementById('pinInput').value.trim();
+      const st = document.getElementById('pinStatus');
+      if (!/^\d{4}$/.test(codigo)) { st.textContent = 'Digite os 4 dígitos do código do cliente.'; return; }
+      st.textContent = 'Verificando...';
+      const { data, error } = await sb.rpc('confirmar_retirada', { p_chamado: chamado.id, p_codigo: codigo });
+      if (error) { st.textContent = 'Erro: ' + error.message; return; }
+      if (!data) { st.textContent = 'Código incorreto — confirme com o cliente.'; return; }
+      chamado.status = 'Chegou'; fecharPin(); setTopo('Chegou'); setAcao('Chegou');
+    });
+
+    /* FOTO de evidência (câmera) com opção de "ignorar e anexar depois" */
+    let fotoTipo = null, fotoOnDone = null;
+    function pedirFoto(tipo, onDone) {
+      fotoTipo = tipo; fotoOnDone = onDone;
+      document.getElementById('fotoTit').textContent = tipo === 'antes' ? 'Foto do veículo (ANTES)' : 'Foto da entrega (DEPOIS)';
+      document.getElementById('fotoStatus').textContent = '';
+      document.getElementById('fotoModal').classList.add('open');
+    }
+    function fecharFoto() { document.getElementById('fotoModal').classList.remove('open'); document.getElementById('fotoInput').value = ''; }
+    document.getElementById('fotoInput').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      const stt = document.getElementById('fotoStatus'); stt.textContent = 'Enviando foto...';
+      const path = `${chamado.id}/${fotoTipo}_${Date.now()}.jpg`;
+      const { error } = await sb.storage.from('evidencias-chamados').upload(path, f, { upsert:true, cacheControl:'3600' });
+      if (error) { stt.textContent = 'Erro: ' + error.message; return; }
+      const { data } = sb.storage.from('evidencias-chamados').getPublicUrl(path);
+      const col = fotoTipo === 'antes' ? 'foto_antes_url' : 'foto_depois_url';
+      await sb.from('chamados').update({ [col]: data.publicUrl }).eq('id', chamado.id);
+      chamado[col] = data.publicUrl;
+      const done = fotoOnDone; fecharFoto(); if (done) done();
+    });
+    document.getElementById('fotoIgnorar').addEventListener('click', () => { const done = fotoOnDone; fecharFoto(); if (done) done(); });
+
+    /* CANCELAR viagem (prestador) -> volta o chamado pra fila, busca o próximo, avisa o cliente */
+    document.getElementById('btnCancelarViagem').addEventListener('click', async () => {
+      if (!confirm('Cancelar esta viagem? O cliente será avisado e o sistema buscará o próximo guincho mais próximo.')) return;
+      const recusaram = Array.isArray(chamado.prestadores_recusaram) ? chamado.prestadores_recusaram.slice() : [];
+      if (!recusaram.includes(PID)) recusaram.push(PID);
+      await sb.from('chamados').update({ status:'Pendente', prestador_id:null, prestador_notificado_id:null, prestadores_recusaram: recusaram, latitude_atual_guincho:null, longitude_atual_guincho:null }).eq('id', chamado.id);
+      await sb.from('prestadores').update({ status_disponibilidade:'Online' }).eq('id', PID);
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+      location.href = 'prestador/painel.html';
     });
 
     function irParaDestino() {

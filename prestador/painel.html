@@ -40,6 +40,12 @@
     .cc-dest strong { color:var(--ink); }
     .cc-pdf { background:#1f9d57; color:#fff; }
     .cc-pdf-done { background:#e6e7ea; color:#8a8f98; }
+    /* comprovante: preencher (branco/preto discreto) + gerar (ícone amarelo discreto) */
+    .cc-preencher { background:#fff; color:var(--ink); border:1.5px solid var(--line); }
+    .cc-fin-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+    .cc-fin-row .cc-btn { margin-top:0; }
+    .cc-icone-pdf { width:46px; height:46px; flex-shrink:0; border-radius:12px; background:#fff8d6; border:1px solid #ffe9a8; color:#caa200; font-size:18px; cursor:pointer; display:grid; place-items:center; transition:filter .12s; }
+    .cc-icone-pdf:active { filter:brightness(.95); }
     .cc-link { background:#f4f5f7; border:1px dashed #cfd3da; border-radius:11px; padding:10px 12px; font-size:12px; color:var(--text); display:flex; gap:8px; align-items:center; margin-bottom:6px; word-break:break-all; }
     .cc-link button { margin-left:auto; background:var(--ink); color:var(--yellow); border:none; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
     .live-dot { width:9px; height:9px; border-radius:50%; background:#1f9d57; display:inline-block; animation:blink 1.2s infinite; }
@@ -116,7 +122,9 @@
     .lobby-map { position:relative; height:280px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow); isolation:isolate; z-index:0; }
     #ppMapa { position:absolute; inset:0; }
     .lm-center { position:absolute; top:12px; right:12px; z-index:500; background:#fff; border:none; border-radius:999px; padding:9px 14px; font-family:inherit; font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.18); display:flex; align-items:center; gap:7px; }
-    .pp-voce { width:20px; height:20px; border-radius:50%; background:#2b7de9; border:3px solid #fff; box-shadow:0 0 0 6px rgba(43,125,233,.25); }
+    .pp-dot { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); border:3px solid #000; box-shadow:0 1px 5px rgba(0,0,0,.4); z-index:3; }
+    .pp-pulse { position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--yellow); z-index:1; animation:ppPulse 1.8s ease-out infinite; }
+    @keyframes ppPulse { 0%{transform:scale(1);opacity:.65} 70%{transform:scale(3.6);opacity:0} 100%{opacity:0} }
     .lobby-aviso { background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:20px; padding:16px 0 16px 18px; display:flex; align-items:center; gap:8px; overflow:hidden; box-shadow:var(--shadow); }
     .la-txt { flex:1; } .la-txt strong { font-size:16px; display:block; } .la-txt p { font-size:12.5px; color:var(--text-soft); margin-top:4px; line-height:1.35; }
     .lobby-aviso img { width:135px; height:auto; flex-shrink:0; }
@@ -612,7 +620,13 @@
         } else if (c.status === 'Finalizado') {
           const temComp = c.valor_servico != null;
           const jaGerou = pdfGerados.has(c.id);
-          acao = `<button class="cc-btn ${jaGerou?'cc-pdf-done':'cc-pdf'}" data-act="pdf"><i class="fa-solid fa-file-pdf"></i> ${temComp ? (jaGerou?'Comprovante gerado ✓':'Gerar Comprovante PDF') : 'Preencher comprovante'}</button>`;
+          if (!temComp) {
+            acao = `<button class="cc-btn cc-preencher" data-act="pdf"><i class="fa-regular fa-pen-to-square"></i> Preencher comprovante</button>`;
+          } else if (jaGerou) {
+            acao = `<button class="cc-btn cc-pdf-done" data-act="pdf"><i class="fa-solid fa-circle-check"></i> Comprovante gerado</button>`;
+          } else {
+            acao = `<div class="cc-fin-row"><span class="helper" style="flex:1;margin:0">Atendimento finalizado.</span><button class="cc-icone-pdf" data-act="pdf" title="Gerar comprovante PDF"><i class="fa-solid fa-receipt"></i></button></div>`;
+          }
         } else {
           const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : c.status === 'Cancelado' ? 'Cancelado pelo cliente.' : 'Chamado recusado.';
           acao = `<p class="helper" style="margin:6px 0 0">${txt}</p>`;
@@ -629,7 +643,7 @@
           else if (a==='iniciar-destino') { b.disabled=true; sb.from('chamados').update({status:'Iniciado'}).eq('id',c.id).then(()=>carregarChamados()); }
           else if (a==='finalizar') abrirComprovante(c);
           else if (a==='pdf' && c.valor_servico==null) abrirComprovante(c);
-          else if (a==='pdf') { gerarPDF(c); pdfGerados.add(c.id); b.classList.remove('cc-pdf'); b.classList.add('cc-pdf-done'); b.innerHTML='<i class="fa-solid fa-file-pdf"></i> Comprovante gerado ✓'; }
+          else if (a==='pdf') { gerarPDF(c); pdfGerados.add(c.id); carregarChamados(); }
           else if (a==='copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
         }));
         box.appendChild(div);
@@ -838,7 +852,7 @@
 
     /* ---------- mapa do lobby (localização do prestador) ---------- */
     let ppMapa = null, ppVoce = null;
-    const voceIco = () => L.divIcon({ className:'', html:'<div class="pp-voce"></div>', iconSize:[20,20], iconAnchor:[10,10] });
+    const voceIco = () => L.divIcon({ className:'', html:'<span class="pp-pulse"></span><span class="pp-dot"></span>', iconSize:[0,0], iconAnchor:[0,0] });
     function iniciarMapaLobby() {
       ppMapa = L.map('ppMapa', { zoomControl:false, attributionControl:false }).setView([-22.9068,-43.1729], 13);
       L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { tileSize:512, zoomOffset:-1, crossOrigin:true }).addTo(ppMapa);
