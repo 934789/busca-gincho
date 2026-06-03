@@ -8,6 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
     .chamado-card { border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:11px; }
@@ -28,7 +29,7 @@
     .cc-expira strong { font-variant-numeric:tabular-nums; }
     .cc-btn { width:100%; border:none; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
     .cc-iniciar { background:var(--yellow); color:var(--ink); }
-    .cc-chegou { background:#6b3fd1; color:#fff; }
+    .cc-chegou { background:#1f9d57; color:#fff; }
     .cc-recusar { background:#f1f1f4; color:#e23c3c; }
     .cc-finalizar { background:var(--ink); color:#fff; }
     .cc-etapa { display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:#1d6fe0; background:#eef5ff; border-radius:9px; padding:8px 11px; margin-bottom:8px; }
@@ -96,6 +97,44 @@
     .tabpane { display:none; }
     .tabpane.active { display:block; }
 
+    /* ===== LOBBY do prestador ===== */
+    .dash { padding-bottom:84px; }
+    .pp-header { background:var(--yellow); color:#000; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px; border-radius:0 0 22px 22px; position:sticky; top:0; z-index:20; }
+    .pp-logo { display:inline-flex; align-items:center; gap:9px; line-height:1; }
+    .pp-truck { color:#000; font-size:26px; }
+    .pp-name { font-size:21px; font-weight:800; letter-spacing:.5px; }
+    .pp-name b { color:#000; } .pp-name i { color:#fff; font-style:normal; }
+    .pp-status { display:inline-flex; align-items:center; gap:7px; background:#fff; border-radius:999px; padding:6px 13px; font-size:13px; }
+    .pp-status .pp-sdot { width:9px; height:9px; border-radius:50%; background:#1f9d57; }
+    .pp-status.sb-off { color:#e23c3c; } .pp-status.sb-off .pp-sdot { background:#e23c3c; }
+    .lobby { padding:16px; }
+    .lobby > * { margin-bottom:14px; }
+    .lobby-online { background:#fff; border-radius:18px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:var(--shadow); }
+    .lo-left { display:flex; align-items:center; gap:12px; }
+    .lo-dot { width:12px; height:12px; border-radius:50%; background:#1f9d57; box-shadow:0 0 0 4px rgba(31,157,87,.18); flex-shrink:0; }
+    .lo-left strong { font-size:15px; color:var(--ink); display:block; } .lo-left small { font-size:12.5px; color:var(--text-soft); }
+    .lobby-map { position:relative; height:280px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow); }
+    #ppMapa { position:absolute; inset:0; }
+    .lm-center { position:absolute; top:12px; right:12px; z-index:500; background:#fff; border:none; border-radius:999px; padding:9px 14px; font-family:inherit; font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.18); display:flex; align-items:center; gap:7px; }
+    .pp-voce { width:20px; height:20px; border-radius:50%; background:#2b7de9; border:3px solid #fff; box-shadow:0 0 0 6px rgba(43,125,233,.25); }
+    .lobby-aviso { background:var(--ink); color:#fff; border-radius:20px; padding:16px 18px; display:flex; align-items:center; gap:12px; overflow:hidden; }
+    .la-txt { flex:1; } .la-txt strong { font-size:16px; display:block; } .la-txt p { font-size:12.5px; color:#c7c9cf; margin-top:4px; line-height:1.35; }
+    .lobby-aviso img { width:120px; height:auto; flex-shrink:0; margin:-6px -8px -6px 0; }
+    .lobby-tip { background:#fff8d6; border:1px solid #ffe9a8; border-radius:14px; padding:12px 14px; display:flex; gap:11px; align-items:center; }
+    .lobby-tip .lt-ico { width:34px; height:34px; border-radius:9px; background:var(--yellow); color:#000; display:grid; place-items:center; flex-shrink:0; }
+    .lobby-tip p { font-size:12.5px; color:#7a5a00; line-height:1.35; } .lobby-tip strong { color:var(--ink); }
+    .lobby-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .ls-card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:13px 6px; text-align:center; }
+    .ls-card i { font-size:16px; color:var(--text-soft); } .ls-card strong { display:block; font-size:17px; color:var(--ink); margin-top:6px; font-variant-numeric:tabular-nums; } .ls-card small { font-size:11px; color:var(--text-soft); }
+    .lobby-ganhos { width:100%; background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; align-items:center; justify-content:space-between; font-family:inherit; font-weight:700; font-size:14.5px; color:var(--ink); cursor:pointer; box-shadow:var(--shadow); }
+    .lobby-ganhos span { display:flex; align-items:center; gap:10px; } .lobby-ganhos i.fa-trophy { color:#caa200; }
+    .lobby-ganhos > i { color:#c0c4cc; }
+    /* nav inferior */
+    .bnav { position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto; background:#fff; border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); z-index:40; box-shadow:0 -6px 20px rgba(0,0,0,.06); }
+    .bnav-item { flex:1; border:none; background:transparent; display:flex; flex-direction:column; align-items:center; gap:3px; font-family:inherit; font-size:11px; font-weight:700; color:#9aa1ac; cursor:pointer; padding:6px 0; }
+    .bnav-item i { font-size:19px; }
+    .bnav-item.active { color:var(--ink); } .bnav-item.active i { color:#caa200; }
+
     /* modal de despacho (novo chamado) */
     .desp-modal { text-align:center; }
     .desp-timer-wrap { width:96px; height:96px; margin:4px auto 14px; border-radius:50%; background:var(--yellow); display:flex; flex-direction:column; align-items:center; justify-content:center; animation:procPulse 1.3s infinite; }
@@ -128,32 +167,43 @@
 </head>
 <body>
   <div class="dash">
-    <header class="dash-header">
-      <span class="bg-logo"><span class="bgl-truck"><i class="fa-solid fa-truck-pickup"></i></span><span class="bgl-name"><b>BUSCA</b><i>GUINCHO</i></span></span>
-      <h1>Meu Painel</h1>
-      <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+    <header class="pp-header">
+      <span class="pp-logo"><span class="pp-truck"><i class="fa-solid fa-truck-pickup"></i></span><span class="pp-name"><b>BUSCA</b><i>GUINCHO</i></span></span>
+      <span class="status-badge sb-on pp-status" id="statusBadge"><span class="pp-sdot"></span> Online</span>
     </header>
 
-    <!-- STATUS (online) -->
-    <section class="dash-section" style="margin-bottom:0">
-      <div class="online-bar">
-        <div class="ob-txt">
-          <strong>Status de plantão <span class="status-badge sb-on" id="statusBadge">ONLINE</span></strong>
-          <small id="statusHint">Você recebe chamados e aparece na busca.</small>
-        </div>
+    <!-- INÍCIO (lobby do prestador) -->
+    <section class="tabpane lobby active" data-pane="inicio">
+      <div class="lobby-online">
+        <div class="lo-left"><span class="lo-dot" id="loDot"></span>
+          <div><strong id="loTit">Você está online</strong><small id="statusHint">Aguardando chamados próximos</small></div></div>
         <label class="switch"><input type="checkbox" id="onlineToggle" checked><span class="slider"></span></label>
       </div>
+
+      <div class="lobby-map">
+        <div id="ppMapa"></div>
+        <button class="lm-center" id="btnCentralizar"><i class="fa-solid fa-location-crosshairs"></i> Centralizar</button>
+      </div>
+
+      <div class="lobby-aviso">
+        <div class="la-txt"><strong>Fique atento!</strong><p>Novos chamados podem aparecer a qualquer momento na sua região.</p></div>
+        <img src="/img/guincho-card.png" alt="" onerror="this.style.display='none'">
+      </div>
+
+      <div class="lobby-tip"><span class="lt-ico"><i class="fa-solid fa-shield-halved"></i></span>
+        <p><strong>Dica de ouro</strong><br>Mantenha-se online para receber mais chamados e aumentar seus ganhos.</p></div>
+
+      <div class="lobby-stats">
+        <div class="ls-card"><i class="fa-regular fa-clock"></i><strong id="tempoOnline">00:00:00</strong><small>Tempo online</small></div>
+        <div class="ls-card"><i class="fa-solid fa-truck-pickup"></i><strong id="lobbyChamados">0</strong><small>Chamados</small></div>
+        <div class="ls-card"><i class="fa-solid fa-star" style="color:var(--yellow)"></i><strong id="lobbyAval">5,0</strong><small>Avaliação</small></div>
+      </div>
+
+      <button class="lobby-ganhos" data-goto="financeiro"><span><i class="fa-solid fa-trophy"></i> Ver meus ganhos</span><i class="fa-solid fa-chevron-right"></i></button>
     </section>
 
-    <!-- ABAS -->
-    <div class="tabs">
-      <button class="tab active" data-pane="corridas"><i class="fa-solid fa-truck-pickup"></i> Corridas</button>
-      <button class="tab" data-pane="financeiro"><i class="fa-solid fa-sack-dollar"></i> Financeiro</button>
-      <button class="tab" data-pane="perfil"><i class="fa-solid fa-id-card"></i> Perfil</button>
-    </div>
-
     <!-- CORRIDAS (chamados) -->
-    <section class="dash-section tabpane active" data-pane="corridas">
+    <section class="dash-section tabpane" data-pane="corridas">
       <div class="sec-head">
         <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-truck-pickup"></i></span>
         <div class="sh-txt"><strong>Corridas <span class="live-dot" title="Ao vivo"></span></strong><small>Seus chamados — aceite, acompanhe e finalize</small></div>
@@ -204,7 +254,16 @@
         <button type="submit" class="btn-primary" style="margin-top:18px">Salvar alterações</button>
         <p class="form-msg" id="msgPerfil"></p>
       </form>
+      <button id="btnSair" style="width:100%;margin-top:14px;background:#fff;border:1.5px solid var(--line);color:#e23c3c;border-radius:13px;padding:13px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer"><i class="fa-solid fa-right-from-bracket"></i> Sair da conta</button>
     </section>
+
+    <!-- NAV INFERIOR -->
+    <nav class="bnav">
+      <button class="bnav-item active" data-pane="inicio"><i class="fa-solid fa-house"></i><span>Início</span></button>
+      <button class="bnav-item" data-pane="corridas"><i class="fa-solid fa-truck-pickup"></i><span>Corridas</span></button>
+      <button class="bnav-item" data-pane="financeiro"><i class="fa-solid fa-sack-dollar"></i><span>Financeiro</span></button>
+      <button class="bnav-item" data-pane="perfil"><i class="fa-solid fa-user"></i><span>Perfil</span></button>
+    </nav>
   </div>
 
   <!-- POPUP de novo chamado -->
@@ -278,6 +337,7 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
@@ -312,6 +372,7 @@
       onlineToggle.checked = on; atualizarBadgeOnline(on);
       if (on) iniciarTransmissao();
       f_aval.textContent = Number(p.avaliacao||5).toFixed(1).replace('.', ',');
+      const la = document.getElementById('lobbyAval'); if (la) la.textContent = Number(p.avaliacao||5).toFixed(1).replace('.', ',');
     }
     document.getElementById('perfilForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -339,14 +400,17 @@
     function pararTransmissao() { if (watchOnline !== null) { navigator.geolocation.clearWatch(watchOnline); watchOnline = null; } }
 
     function atualizarBadgeOnline(on) {
-      const b = document.getElementById('statusBadge'); const h = document.getElementById('statusHint');
-      b.textContent = on ? 'ONLINE' : 'OFFLINE'; b.className = 'status-badge ' + (on ? 'sb-on' : 'sb-off');
-      h.textContent = on ? 'Você recebe chamados e aparece na busca.' : 'Você está offline (não recebe chamados).';
+      const b = document.getElementById('statusBadge');
+      b.className = 'status-badge pp-status ' + (on ? 'sb-on' : 'sb-off');
+      b.innerHTML = '<span class="pp-sdot"></span> ' + (on ? 'Online' : 'Offline');
+      const tit = document.getElementById('loTit'); if (tit) tit.textContent = on ? 'Você está online' : 'Você está offline';
+      const h = document.getElementById('statusHint'); if (h) h.textContent = on ? 'Aguardando chamados próximos' : 'Você não recebe chamados agora';
+      const d = document.getElementById('loDot'); if (d) d.style.background = on ? '#1f9d57' : '#e23c3c';
     }
     onlineToggle.addEventListener('change', async () => {
       const on = onlineToggle.checked; atualizarBadgeOnline(on);
       await sb.from('prestadores').update({ online: on, status_disponibilidade: on ? 'Online' : 'Offline' }).eq('id', PID);
-      if (on) iniciarTransmissao(); else pararTransmissao();
+      if (on) { iniciarTransmissao(); retomarTempo(); } else { pararTransmissao(); pausarTempo(); }
     });
 
     /* ---------- DESPACHO: modal de novo chamado (Uber-like) ---------- */
@@ -479,6 +543,7 @@
       if (error) { box.innerHTML = '<p class="helper">Erro: '+error.message+'</p>'; return; }
       const lista = chs || [];
       const fin = lista.filter(c => c.status === 'Finalizado');
+      const lc = document.getElementById('lobbyChamados'); if (lc) lc.textContent = fin.length;
 
       // faturamento
       const now = new Date();
@@ -750,15 +815,42 @@
     window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
     document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));
 
-    /* ---------- abas ---------- */
-    document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
-      t.classList.add('active');
-      const pane = t.dataset.pane;
+    /* ---------- navegação inferior (Início/Corridas/Financeiro/Perfil) ---------- */
+    function irPara(pane) {
+      document.querySelectorAll('.bnav-item').forEach((x) => x.classList.toggle('active', x.dataset.pane === pane));
       document.querySelectorAll('.tabpane').forEach((p) => p.classList.toggle('active', p.dataset.pane === pane));
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }));
+      if (pane === 'inicio' && ppMapa) setTimeout(() => ppMapa.invalidateSize(), 200);
+    }
+    document.querySelectorAll('.bnav-item').forEach((t) => t.addEventListener('click', () => irPara(t.dataset.pane)));
+    document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => irPara(b.dataset.goto)));
 
+    /* ---------- mapa do lobby (localização do prestador) ---------- */
+    let ppMapa = null, ppVoce = null;
+    const voceIco = () => L.divIcon({ className:'', html:'<div class="pp-voce"></div>', iconSize:[20,20], iconAnchor:[10,10] });
+    function iniciarMapaLobby() {
+      ppMapa = L.map('ppMapa', { zoomControl:false, attributionControl:false }).setView([-22.9068,-43.1729], 13);
+      L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, { tileSize:512, zoomOffset:-1, crossOrigin:true }).addTo(ppMapa);
+      centralizar(15);
+    }
+    function centralizar(zoom) {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition((p) => {
+        const ll = [p.coords.latitude, p.coords.longitude];
+        ppMapa.setView(ll, zoom || ppMapa.getZoom());
+        if (ppVoce) ppVoce.setLatLng(ll); else ppVoce = L.marker(ll, { icon: voceIco() }).addTo(ppMapa);
+      }, ()=>{}, { enableHighAccuracy:true, timeout:8000 });
+    }
+    document.getElementById('btnCentralizar').addEventListener('click', () => centralizar(16));
+
+    /* ---------- tempo online (cronômetro de sessão) ---------- */
+    let tBase = Date.now(), tAcc = 0, tRodando = true;
+    function fmtDur(ms){ const s=Math.floor(ms/1000); const h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor(s%3600/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0'); return `${h}:${m}:${ss}`; }
+    setInterval(() => { const el=document.getElementById('tempoOnline'); if(el) el.textContent = fmtDur(tAcc + (tRodando ? Date.now()-tBase : 0)); }, 1000);
+    function pausarTempo(){ if(tRodando){ tAcc += Date.now()-tBase; tRodando=false; } }
+    function retomarTempo(){ if(!tRodando){ tBase=Date.now(); tRodando=true; } }
+
+    if (typeof L !== 'undefined') iniciarMapaLobby();
     carregarPerfil();
     carregarChamados();
   </script>
