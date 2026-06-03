@@ -33,11 +33,12 @@ window.SITE_CLIENTE = '';
    Plataforma: 15% de comissão + R$ 5,00 fixo por corrida. */
 // A "Taxa de Saída" já inclui o DESLOCAMENTO do guincho (saída + franquia de 10 km).
 // Serviços no local (pneu/bateria) também têm o deslocamento embutido no valor fixo.
+// 100% focado em reboque/guincho (frota de caminhão-reboque).
 const PRECO_CATEGORIAS = {
-  guincho_leve:   { label: 'Guincho Leve',     icon: 'fa-truck-pickup', taxaSaida: 180.00, kmExcedente: 8.00,  fixo: false },
-  guincho_pesado: { label: 'Guincho Pesado',   icon: 'fa-truck-moving', taxaSaida: 300.00, kmExcedente: 13.00, fixo: false },
-  troca_pneu:     { label: 'Troca de Pneu',    icon: 'fa-life-ring',    taxaSaida: 150.00, kmExcedente: 0,     fixo: true  },
-  carga_bateria:  { label: 'Carga de Bateria', icon: 'fa-car-battery',  taxaSaida: 190.00, kmExcedente: 0,     fixo: true  },
+  guincho_leve:     { label: 'Guincho Leve',                       icon: 'fa-truck-pickup',   taxaSaida: 180.00, kmExcedente: 8.00,  fixo: false },
+  guincho_pesado:   { label: 'Guincho Pesado',                     icon: 'fa-truck-moving',   taxaSaida: 300.00, kmExcedente: 13.00, fixo: false },
+  reboque_pneu_roda:{ label: 'Pane de Pneu/Roda (com reboque)',    icon: 'fa-truck-ramp-box', taxaSaida: 170.00, kmExcedente: 8.00,  fixo: false }, // pneu/roda sem estepe -> guincha até a borracharia/destino
+  carga_bateria:    { label: 'Carga de Bateria/Pane Elétrica',     icon: 'fa-car-battery',    taxaSaida: 190.00, kmExcedente: 0,     fixo: true  },
 };
 const FRANQUIA_KM = 10;
 const PLATAFORMA_COMISSAO = 0.15;   // 15%
