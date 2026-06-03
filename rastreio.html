@@ -442,7 +442,12 @@
       marcarLidas();
     }
     document.getElementById('btnChat').addEventListener('click', abrirChat);
-    document.getElementById('btnAjuda').addEventListener('click', abrirChat);
+    // Ajuda -> WhatsApp do suporte BuscaGuincho
+    document.getElementById('btnAjuda').addEventListener('click', () => {
+      const num = (window.SUPORTE_WHATSAPP || '').replace(/\D/g, '');
+      const msg = (typeof SUPORTE_MSG !== 'undefined') ? SUPORTE_MSG : 'Preciso de ajuda.';
+      window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+    });
     document.getElementById('chatClose').addEventListener('click', () => chatOverlay.classList.remove('open'));
     async function enviarMsg() {
       const inp = document.getElementById('chatInput'); const txt = inp.value.trim(); if (!txt) return;

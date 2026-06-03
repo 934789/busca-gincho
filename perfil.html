@@ -106,7 +106,7 @@
         // avaliações (não bloqueia o render se falhar)
         try {
           const box2 = document.getElementById('avaliacoesBox');
-          const { data: avs } = await sb.from('avaliacoes').select('nota, comentario, created_at').eq('prestador_id', id).order('created_at', { ascending:false }).limit(30);
+          const { data: avs } = await sb.from('avaliacoes').select('nota, comentario, created_at').eq('prestador_id', id).order('created_at', { ascending:false }).limit(3);
           if (avs && avs.length) {
             box2.innerHTML = `<h3>Avaliações (${avs.length})</h3>` + avs.map((a) => {
               const estrelas = '★★★★★'.slice(0, a.nota) + '☆☆☆☆☆'.slice(0, 5 - a.nota);

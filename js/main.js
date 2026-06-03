@@ -67,7 +67,8 @@ async function render() {
   const gen = ++renderGen;
   loading.style.display = 'block';
   if (!sb) { loading.style.display = 'none'; limpar(); return; }
-  const { data, error } = await sb.from('prestadores').select('*').eq('ativo', true);
+  // rotação circular (round-robin 20min): quem está há mais tempo sem o topo aparece primeiro
+  const { data, error } = await sb.from('prestadores').select('*').eq('ativo', true).order('ultimo_topo_em', { ascending: true });
   if (gen !== renderGen) return;
   loading.style.display = 'none';
   limpar();

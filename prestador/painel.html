@@ -238,6 +238,7 @@
           <div class="field"><label>Descrição</label><input type="text" id="k_desc" placeholder="Reboque por pane mecânica"></div>
         </div>
         <button type="submit" class="btn-primary" style="margin-top:6px"><i class="fa-solid fa-flag-checkered"></i> Finalizar e salvar</button>
+        <button type="button" id="btnFinalizarDepois" style="width:100%;margin-top:9px;background:#0A0A0A;color:#fff;border:none;border-radius:13px;padding:14px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-regular fa-clock"></i> Finalizar e preencher depois</button>
         <p class="form-msg" id="msgComp"></p>
       </form>
     </div>
@@ -384,8 +385,9 @@
         if (lat != null) { patch.latitude_atual_guincho = lat; patch.longitude_atual_guincho = lng; }
         await sb.from('chamados').update(patch).eq('id', c.id);
         await sb.from('prestadores').update({ status_disponibilidade: 'Ocupado' }).eq('id', PID);
-        iniciarTransmissao();
-        despachoAtual = null; fecharModal('modalDespacho'); carregarChamados();
+        despachoAtual = null; fecharModal('modalDespacho');
+        // abre a tela de acompanhamento do prestador (mapa + trajeto + botões do serviço)
+        location.href = '/rastreio-prestador.html?t=' + c.link_token;
       };
       if (navigator.geolocation) navigator.geolocation.getCurrentPosition((p) => aplicar(p.coords.latitude, p.coords.longitude), () => aplicar(null, null), { enableHighAccuracy: true, timeout: 8000 });
       else aplicar(null, null);
@@ -516,6 +518,7 @@
           const link = `${window.SITE_CLIENTE||location.origin}/rastreio.html?t=${c.link_token}`;
           const chatBtn = `<button class="cc-btn" style="background:#fff;border:1.5px solid var(--line);color:var(--ink)" data-act="chat"><i class="fa-solid fa-comment-dots"></i> Chat com o cliente <span class="chat-badge" data-badge="${c.id}" style="display:none"></span></button>`;
           acao = `<div class="cc-etapa"><span class="cc-etn">1</span> Indo buscar o cliente</div>
+                  <button class="cc-btn" style="background:var(--yellow);color:#000" onclick="location.href='/rastreio-prestador.html?t=${c.link_token}'"><i class="fa-solid fa-map-location-dot"></i> Abrir navegação no mapa</button>
                   <div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
                   ${chatBtn}
                   <button class="cc-btn cc-chegou" data-act="chegou"><i class="fa-solid fa-location-dot"></i> Cheguei ao cliente</button>`;
@@ -524,6 +527,7 @@
           const dest = c.endereco_destino ? `<div class="cc-dest"><i class="fa-solid fa-flag-checkered"></i> Destino: <strong>${c.endereco_destino}</strong></div>` : '';
           acao = `<div class="cc-etapa cc-etapa-ok"><i class="fa-solid fa-check"></i> No local do cliente — pronto pra levar</div>
                   ${dest}
+                  <button class="cc-btn" style="background:var(--yellow);color:#000" onclick="location.href='/rastreio-prestador.html?t=${c.link_token}'"><i class="fa-solid fa-map-location-dot"></i> Abrir navegação no mapa</button>
                   ${chatBtn}
                   <button class="cc-btn cc-iniciar" data-act="iniciar-destino"><i class="fa-solid fa-truck-arrow-right"></i> Iniciar trajeto ao destino</button>`;
         } else if (c.status === 'Iniciado') {
@@ -532,6 +536,7 @@
           const dest = c.endereco_destino ? `<div class="cc-dest"><i class="fa-solid fa-flag-checkered"></i> Levando para: <strong>${c.endereco_destino}</strong></div>` : '';
           acao = `<div class="cc-etapa cc-etapa-go"><i class="fa-solid fa-truck-fast"></i> A caminho do destino</div>
                   ${dest}
+                  <button class="cc-btn" style="background:var(--yellow);color:#000" onclick="location.href='/rastreio-prestador.html?t=${c.link_token}'"><i class="fa-solid fa-map-location-dot"></i> Abrir navegação no mapa</button>
                   <div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
                   ${chatBtn}
                   <button class="cc-btn cc-finalizar" data-act="finalizar"><i class="fa-solid fa-flag-checkered"></i> Finalizar Atendimento</button>`;
@@ -611,6 +616,25 @@
       // gera o PDF na hora
       setTimeout(() => gerarPDF(finalizado), 300);
     });
+    // finalizar SEM preencher o comprovante agora (preenche depois pela lista)
+    document.getElementById('btnFinalizarDepois').addEventListener('click', async () => {
+      if (!chamadoComp) return;
+      if (!confirm('Finalizar agora sem o comprovante? Você poderá preencher depois em "Corridas".')) return;
+      const msg = document.getElementById('msgComp'); msg.className='form-msg'; msg.textContent='Finalizando...';
+      const { error } = await sb.from('chamados').update({ status:'Finalizado' }).eq('id', chamadoComp.id);
+      if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
+      pararTracking(); chamadoAtivoId = null;
+      sb.from('prestadores').update({ status_disponibilidade:'Online' }).eq('id', PID).then(()=>{});
+      fecharModal('modalComprovante'); carregarChamados();
+    });
+    // veio da tela de atendimento do prestador (?fin=ID) -> abre o comprovante
+    (async () => {
+      const finId = new URLSearchParams(location.search).get('fin');
+      if (!finId) return;
+      const { data } = await sb.from('chamados').select('*').eq('id', finId).maybeSingle();
+      if (data) abrirComprovante(data);
+      history.replaceState(null, '', 'painel.html');
+    })();
 
     /* ---------- PDF do comprovante ---------- */
     async function gerarPDF(c) {

@@ -12,6 +12,11 @@ const SUPABASE_CONFIG = {
 // Mensagem padrão do WhatsApp
 const WHATSAPP_MSG = 'Olá, estou no Busca Guincho e preciso de suporte próximo à minha localização atual.';
 
+// WhatsApp do SUPORTE BuscaGuincho (botão "Ajuda" na tela de acompanhamento).
+// >>> TROQUE pelo número real do suporte (formato 55 + DDD + número, só dígitos) <<<
+window.SUPORTE_WHATSAPP = '5521964338046';
+const SUPORTE_MSG = 'Olá, suporte BuscaGuincho! Preciso de ajuda com meu atendimento.';
+
 // Chave do MapTiler (mapa estilo Google, gratuito). Restrinja por domínio no painel do MapTiler.
 const MAPTILER_KEY = 'yxBCmp6NSGE3ej2Ylqix';
 const MAPTILER_STYLE = 'dataviz'; // clarinho/minimalista estilo Uber (alterne p/ 'positron' se quiser)
