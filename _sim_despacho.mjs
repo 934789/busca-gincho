@@ -21,14 +21,22 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   // 2) cria um chamado PENDENTE pertinho dele -> o trigger 'despachar_chamado' notifica
   const PIN = '4321';
+  // precificação (Guincho Leve, 15 km -> tem km excedente)
+  const dist = 15, taxaSaida = 180, kmExc = 8, franquia = 10;
+  const h = new Date().getHours(); const mult = (h >= 22 || h < 6) ? 1.2 : 1.0;
+  const base = taxaSaida + Math.max(0, dist - franquia) * kmExc;
+  const valorCliente = +(base * mult).toFixed(2);
+  const comissao = +((valorCliente * 0.15) + 5).toFixed(2);
+  const ganho = +(valorCliente - comissao).toFixed(2);
   const ch = await api('chamados', { method: 'POST', body: JSON.stringify({
-    status: 'Pendente', servico_solicitado: 'Chamar Guincho',
+    status: 'Pendente', servico_solicitado: 'Guincho Leve', categoria_servico: 'guincho_leve',
     nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554', codigo_confirmacao: PIN,
     local_partida_lat: P.latitude + 0.002, local_partida_lng: P.longitude + 0.002,
     local_chegada_lat: -22.9240, local_chegada_lng: -43.2330,
-    distancia_estimada_km: 3.1, endereco_destino: 'Oficina Central, Tijuca - RJ' }) });
+    distancia_estimada_km: dist, endereco_destino: 'Oficina Central, Tijuca - RJ',
+    valor_cliente: valorCliente, comissao_plataforma: comissao, ganho_prestador: ganho, fator_multiplicador: mult }) });
   const id = ch[0].id;
-  console.log('Chamado criado (Pendente). Aguardando o despacho...');
+  console.log(`Chamado criado (Pendente). Valor cliente R$${valorCliente} | comissão R$${comissao} | ganho R$${ganho}${mult>1?' (noturno x'+mult+')':''}`);
 
   // 3) confere se virou "Notificando" pro prestador
   for (let i = 0; i < 6; i++) {

@@ -221,7 +221,16 @@ document.getElementById('bnLista').addEventListener('click', (e) => { e.preventD
    ============================================================ */
 const chamarOverlay = document.getElementById('chamarOverlay');
 let destinoSel = null, chamadoAtual = null, canalChamar = null, jaRedirecionou = false;
-let categoriaSel = 'guincho_leve', precoCalc = null;
+let categoriaSel = 'guincho_leve', precoCalc = null, distRota = 0, precoReq = 0;
+// distância REAL pelas ruas (OSRM); fallback: linha reta × 1,3 (fator rodoviário)
+async function rotaDistKm(a, b) {
+  try {
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`);
+    const d = await r.json();
+    if (d.routes && d.routes[0]) return d.routes[0].distance / 1000;
+  } catch (e) {}
+  return distanciaKm(a.lat, a.lng, b.lat, b.lng) * 1.3;
+}
 const somAceite = new Audio('/audio/iniciar.mp3'); somAceite.preload = 'auto';
 let audioPrimed = false;
 function primeAudio() { if (audioPrimed) return; audioPrimed = true; somAceite.play().then(() => { somAceite.pause(); somAceite.currentTime = 0; }).catch(() => {}); }
@@ -249,19 +258,35 @@ document.getElementById('chamarClose').addEventListener('click', fecharChamar);
 
 /* categoria de serviço + cálculo de preço (cliente) */
 const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;
-function atualizarPreco() {
-  const dist = destinoSel ? distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng) : 0;
-  precoCalc = calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
-  if (catFixa() || destinoSel) {
-    document.getElementById('chamarValor').textContent = fmtBRL(precoCalc.valor_cliente);
-    document.getElementById('chamarDist').textContent = catFixa() ? 'Atendimento no seu local' : dist.toFixed(1).replace('.', ',') + ' km';
-    document.getElementById('chamarMult').textContent = precoCalc.fator_multiplicador > 1 ? `· tarifa dinâmica x${String(precoCalc.fator_multiplicador).replace('.', ',')}` : '';
-    document.getElementById('chamarEstimativa').style.display = 'block';
-    document.getElementById('btnConfirmarChamado').disabled = false;
-  } else {
-    document.getElementById('chamarEstimativa').style.display = 'none';
-    document.getElementById('btnConfirmarChamado').disabled = true;
+const km1 = (n) => n.toFixed(1).replace('.', ',');
+async function atualizarPreco() {
+  const est = document.getElementById('chamarEstimativa');
+  const btn = document.getElementById('btnConfirmarChamado');
+  if (!catFixa() && !destinoSel) { est.style.display = 'none'; btn.disabled = true; return; }
+  const myReq = ++precoReq;
+  const cat = PRECO_CATEGORIAS[categoriaSel];
+  // distância real pelas ruas (só pra categorias que cobram km)
+  if (catFixa()) { distRota = 0; }
+  else {
+    document.getElementById('chamarValor').textContent = 'calculando...';
+    est.style.display = 'block'; btn.disabled = true;
+    const d = await rotaDistKm(userPos, destinoSel);
+    if (myReq !== precoReq) return;            // chegou outra atualização mais nova
+    distRota = d;
   }
+  precoCalc = calcularValoresChamado(distRota, categoriaSel, condicoesAtuais());
+  document.getElementById('chamarValor').textContent = fmtBRL(precoCalc.valor_cliente);
+  let info;
+  if (catFixa()) info = 'Atendimento no seu local — valor fixo';
+  else {
+    const exc = Math.max(0, distRota - 10);
+    info = `${km1(distRota)} km · ` + (exc > 0
+      ? `saída ${fmtBRL(cat.taxaSaida)} + ${km1(exc)} km × ${fmtBRL(cat.kmExcedente)}`
+      : `dentro da franquia de 10 km`);
+  }
+  document.getElementById('chamarDist').textContent = info;
+  document.getElementById('chamarMult').textContent = precoCalc.fator_multiplicador > 1 ? `· tarifa dinâmica x${String(precoCalc.fator_multiplicador).replace('.', ',')}` : '';
+  est.style.display = 'block'; btn.disabled = false;
 }
 document.querySelectorAll('#chamarCat .cat-chip').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#chamarCat .cat-chip').forEach((x) => x.classList.remove('active'));
@@ -308,9 +333,9 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   if (nomeCli.length < 3) { erro.textContent = 'Informe seu nome completo.'; erro.style.display = 'block'; document.getElementById('chamarNome').focus(); return; }
   if (telCli.replace(/\D/g, '').length < 10) { erro.textContent = 'Informe um celular válido com DDD.'; erro.style.display = 'block'; document.getElementById('chamarTel').focus(); return; }
   erro.style.display = 'none';
-  // serviço fixo (pneu/bateria): atendimento no local -> destino = origem
+  // serviço fixo (bateria): atendimento no local -> destino = origem
   const destino = destinoSel || { lat: userPos.lat, lng: userPos.lng, nome: 'Atendimento no local do cliente' };
-  const dist = distanciaKm(userPos.lat, userPos.lng, destino.lat, destino.lng);
+  const dist = catFixa() ? 0 : (distRota || await rotaDistKm(userPos, destino)); // distância real pelas ruas
   const v = precoCalc || calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
   const cat = PRECO_CATEGORIAS[categoriaSel];
   const codigo = String(Math.floor(1000 + Math.random() * 9000)); // PIN de retirada (cliente mostra ao guincho)
