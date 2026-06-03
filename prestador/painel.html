@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0A0A0A" />
   <title>Busca Guincho — Meu Painel</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/css/styles.css" />
@@ -12,6 +13,8 @@
     .chamado-card { border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:11px; }
     .chamado-card .cc-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
     .cc-top small { color:var(--text-soft); font-size:12px; }
+    .cc-cliente { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:700; color:var(--ink); background:#fff8d6; border:1px solid #ffe9a8; border-radius:9px; padding:8px 11px; margin-bottom:10px; }
+    .cc-cliente i { color:#caa200; }
     .st-pill { font-size:11px; font-weight:700; padding:5px 11px; border-radius:999px; white-space:nowrap; }
     .st-Pendente { background:#fff6d6; color:#9a7400; }
     .st-ACaminho, .st-Aceito { background:#e0eeff; color:#1d6fe0; }
@@ -126,7 +129,7 @@
 <body>
   <div class="dash">
     <header class="dash-header">
-      <img class="logo-icon-img" src="/img/logo3.png" alt="Busca Guincho" onerror="this.style.display='none'" style="height:30px" />
+      <span class="bg-logo"><span class="bgl-truck"><i class="fa-solid fa-truck-pickup"></i></span><span class="bgl-name"><b>BUSCA</b><i>GUINCHO</i></span></span>
       <h1>Meu Painel</h1>
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
@@ -187,6 +190,11 @@
         <div class="field"><label>Telefone</label><input type="text" id="telefone"></div>
         <div class="field"><label>Bairro / base</label><input type="text" id="bairro"></div>
         <div class="field"><label>Regiões que atende</label><textarea id="regioes" rows="2"></textarea></div>
+        <p class="helper" style="font-weight:600;color:var(--ink)"><i class="fa-solid fa-truck-pickup"></i> Meu guincho (aparece para o cliente no rastreio)</p>
+        <div class="grid-2">
+          <div class="field"><label>Placa do guincho</label><input type="text" id="placa" placeholder="ABC1D23"></div>
+          <div class="field"><label>Veículo (modelo)</label><input type="text" id="veiculo" placeholder="Ford Cargo / Munck"></div>
+        </div>
         <p class="helper" style="font-weight:600;color:var(--ink)"><i class="fa-solid fa-file-invoice"></i> Dados fiscais (saem no comprovante PDF)</p>
         <div class="field"><label>CNPJ ou CPF</label><input type="text" id="documento"></div>
         <div class="field"><label>Razão social (opcional)</label><input type="text" id="razao_social"></div>
@@ -242,6 +250,7 @@
       <h3 style="justify-content:center"><i class="fa-solid fa-bell" style="color:var(--yellow)"></i> Novo chamado!</h3>
       <p class="helper" style="text-align:center;margin-top:-6px">Um cliente precisa de guincho perto de você.</p>
       <div class="desp-info">
+        <div class="di-row"><i class="fa-solid fa-user"></i><div><small>Cliente</small><strong id="despCliente">—</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-location-dot"></i><div><small>Buscar o cliente em</small><strong id="despPartida">Local do cliente</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-flag-checkered"></i><div><small>Levar até</small><strong id="despDestino">—</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-route"></i><div><small>Distância da corrida</small><strong id="despDist">—</strong></div></div>
@@ -295,6 +304,7 @@
       if (!p) return; perfilAtual = p;
       nome.value=p.nome||''; whatsapp.value=p.whatsapp||''; telefone.value=p.telefone||''; bairro.value=p.bairro||'';
       regioes.value=p.atendimento_regioes||''; documento.value=p.documento||''; razao_social.value=p.razao_social||''; endereco_base.value=p.endereco_base||'';
+      placa.value=p.placa||''; veiculo.value=p.veiculo||'';
       SERVICOS.forEach((s) => { const cb=grid.querySelector(`[data-key="${s.key}"]`); cb.checked=!!p[s.key]; cb.closest('.check-item').classList.toggle('on', cb.checked); });
       // status online + transmissão
       const on = p.online !== false;
@@ -307,6 +317,7 @@
       const msg = document.getElementById('msgPerfil');
       const patch = { nome:nome.value.trim(), whatsapp:whatsapp.value.replace(/\D/g,''), telefone:telefone.value.replace(/\D/g,''),
         bairro:bairro.value.trim(), atendimento_regioes:regioes.value.trim(),
+        placa:placa.value.trim().toUpperCase(), veiculo:veiculo.value.trim(),
         documento:documento.value.trim(), razao_social:razao_social.value.trim(), endereco_base:endereco_base.value.trim() };
       SERVICOS.forEach((s) => { patch[s.key] = grid.querySelector(`[data-key="${s.key}"]`).checked; });
       const { error } = await sb.from('prestadores').update(patch).eq('id', PID);
@@ -343,6 +354,7 @@
     function mostrarDespacho(c) {
       if (despachoAtual && despachoAtual.id === c.id) return;
       despachoAtual = c;
+      document.getElementById('despCliente').textContent = c.nome_cliente || 'Cliente';
       document.getElementById('despDestino').textContent = c.endereco_destino || 'Destino informado pelo cliente';
       document.getElementById('despDist').textContent = (c.distancia_estimada_km != null ? Number(c.distancia_estimada_km).toFixed(1).replace('.', ',') + ' km' : '—');
       abrirModal('modalDespacho');
@@ -531,8 +543,9 @@
           const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : c.status === 'Cancelado' ? 'Cancelado pelo cliente.' : 'Chamado recusado.';
           acao = `<p class="helper" style="margin:6px 0 0">${txt}</p>`;
         }
+        const cliInfo = c.nome_cliente ? `<div class="cc-cliente"><i class="fa-solid fa-user"></i> ${c.nome_cliente}</div>` : '';
         div.innerHTML = `<div class="cc-top"><div><strong>${c.servico_solicitado||'Chamado'}</strong>${c.valor_servico!=null?` · <span style="color:#1f9d57">${fmtR(c.valor_servico)}</span>`:''}<br><small>${hora}</small></div>
-            <span class="st-pill st-${(c.status||'').replace(/\s/g,'')}">${c.status==='A Caminho'?'A caminho':c.status}</span></div>${acao}`;
+            <span class="st-pill st-${(c.status||'').replace(/\s/g,'')}">${c.status==='A Caminho'?'A caminho':c.status}</span></div>${cliInfo}${acao}`;
         div.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
           const a = b.dataset.act;
           if (a==='iniciar') iniciarDeslocamento(c);

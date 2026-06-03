@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#ffdd00" />
   <title>Busca Guincho — Encontre o guincho certo, onde você estiver</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -120,6 +121,11 @@
           <i class="fa-solid fa-route"></i> Distância estimada: <strong id="chamarDist">—</strong>
           <span class="ce-nota">O valor é combinado direto com o prestador.</span>
         </div>
+        <div class="chamar-cliente">
+          <label><i class="fa-solid fa-user"></i><input id="chamarNome" placeholder="Seu nome completo" autocomplete="name"></label>
+          <label><i class="fa-solid fa-phone"></i><input id="chamarTel" placeholder="Seu celular (WhatsApp)" inputmode="tel" autocomplete="tel"></label>
+        </div>
+        <p class="chamar-erro" id="chamarErro" style="display:none"></p>
         <button class="btn-chamar" id="btnConfirmarChamado" disabled><i class="fa-solid fa-truck-pickup"></i> Chamar guincho</button>
       </div>
       <!-- etapa 2: procurando -->
@@ -171,10 +177,12 @@
         </div>
       </div>
       <div class="pc-actions">
+        <!-- Contato direto desabilitado — atendimento todo pela plataforma (Chamar Guincho)
         <div class="acts-row">
           <a class="btn-whats" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
           <a class="btn-call"><i class="fa-solid fa-phone"></i> Ligar</a>
         </div>
+        -->
         <span class="eta">Chegada em <strong></strong></span>
       </div>
     </article>

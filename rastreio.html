@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0D0D0D" />
   <title>Busca Guincho — Acompanhe seu guincho</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -15,16 +16,16 @@
     #app { max-width:480px; margin:0 auto; height:100vh; position:relative; overflow:hidden; background:var(--ink); }
     #mapa { position:absolute; inset:0; z-index:1; }
 
-    .track-top { position:absolute; top:0; left:0; right:0; z-index:1000;
-      background:linear-gradient(180deg, rgba(13,13,13,.96), rgba(13,13,13,.7) 80%, transparent);
-      color:#fff; padding:16px 18px 26px; display:flex; align-items:center; gap:13px; }
-    .track-top .pulse { width:42px; height:42px; border-radius:50%; background:var(--yellow); color:var(--ink);
-      display:grid; place-items:center; font-size:19px; flex-shrink:0; animation:pulse 1.6s infinite; }
-    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,221,0,.5)} 70%{box-shadow:0 0 0 14px rgba(255,221,0,0)} 100%{box-shadow:0 0 0 0 rgba(255,221,0,0)} }
-    .tt-info { flex:1; min-width:0; }
-    .track-top h1 { font-size:16px; font-weight:700; line-height:1.1; }
-    .track-top p { font-size:12px; color:#bdbdbd; margin-top:3px; }
-    .aovivo { color:#5ce081; font-weight:700; }
+    /* topo: card branco estilo Uber/99 (Indo até <nome> + chegada + barra de progresso) */
+    .track-top { position:absolute; top:0; left:0; right:0; z-index:1000; padding:14px 14px 0; }
+    .tt-card { position:relative; background:#fff; border-radius:20px; padding:16px 18px; box-shadow:0 12px 34px rgba(0,0,0,.20); }
+    .tt-help { position:absolute; top:14px; right:14px; border:none; background:#f1f2f5; color:#3c3f46; font-weight:700; font-size:12.5px; padding:8px 13px; border-radius:999px; display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .tt-help i { color:var(--ink); }
+    .track-top h1 { font-size:20px; font-weight:800; color:var(--ink); line-height:1.12; padding-right:78px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .track-top p { font-size:13px; color:#7a828d; margin-top:4px; font-weight:600; }
+    .tt-progress { display:flex; gap:6px; margin-top:14px; }
+    .tt-progress span { flex:1; height:6px; border-radius:999px; background:#e9eaee; transition:background .35s; }
+    .tt-progress span.on { background:var(--yellow); }
 
     /* balão de ETA ancorado ao caminhão (estilo 99/Uber) */
     .bubble-divicon { background:transparent; border:none; }
@@ -33,14 +34,13 @@
     .track-bubble span { font-size:12px; color:#555; font-weight:600; }
     .track-bubble::after { content:''; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); border:7px solid transparent; border-top-color:#fff; }
 
-    /* card inferior moderno (avatar + selo/nota/status + chat + X) */
+    /* card inferior moderno (avatar + selo/nota/placa + chat + botão Cancelar) */
     .track-card { position:absolute; left:14px; right:14px; bottom:16px; z-index:1000;
-      background:#fff; border-radius:24px; padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 16px 44px rgba(0,0,0,.42); }
-    .tc-close { position:absolute; top:11px; right:13px; width:26px; height:26px; border-radius:50%; border:none; background:#f1f2f5; color:#777; font-size:13px; cursor:pointer; display:grid; place-items:center; z-index:3; transition:all .12s; }
-    .tc-close:active { background:#e23c3c; color:#fff; }
+      background:#fff; border-radius:24px; padding:16px 18px; display:flex; flex-direction:column; gap:13px; box-shadow:0 16px 44px rgba(0,0,0,.42); }
+    .tc-row { display:flex; align-items:center; gap:14px; }
     .tc-avatar { width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid var(--yellow); box-shadow:0 2px 8px rgba(0,0,0,.15); background:#e6e8ec; flex-shrink:0; }
     .tc-info { flex:1; min-width:0; }
-    .tc-info strong { font-size:19px; color:var(--ink); font-weight:800; display:block; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:22px; }
+    .tc-info strong { font-size:19px; color:var(--ink); font-weight:800; display:block; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .tc-meta { display:flex; align-items:center; gap:7px; margin-top:4px; font-size:13px; }
     .tc-verif { color:#2b7de9; font-weight:700; display:flex; align-items:center; gap:4px; }
     .tc-verif i { font-size:14px; }
@@ -48,9 +48,13 @@
     .tc-rating i { color:var(--yellow); font-size:13px; }
     .tc-sep { color:#cfd3da; }
     .tc-status { font-size:12.5px; color:#5b6675; margin-top:4px; }
-    .tc-chat { width:50px; height:50px; border-radius:50%; background:#fff; border:1px solid #f0f0f0; box-shadow:0 5px 14px rgba(0,0,0,.18); cursor:pointer; position:relative; display:grid; place-items:center; flex-shrink:0; transition:transform .1s; }
+    .tc-plate { display:flex; align-items:center; gap:8px; margin-top:6px; }
+    .tc-veic { font-size:12.5px; color:#5b6675; font-weight:600; }
+    .tc-pl { font-size:12.5px; font-weight:800; letter-spacing:1px; color:var(--ink); background:#f1f2f5; border:1px solid #e2e4e8; border-radius:6px; padding:2px 8px; }
+    .tc-chat { width:50px; height:50px; border-radius:50%; background:var(--yellow); border:none; box-shadow:0 6px 16px rgba(255,221,0,.45); cursor:pointer; position:relative; display:grid; place-items:center; flex-shrink:0; transition:transform .1s; }
     .tc-chat:active { transform:scale(.93); }
-    .tc-chat i { color:#000; font-size:20px; }
+    .tc-cancelar { width:100%; border:none; background:#f1f2f5; color:#3c3f46; font-family:inherit; font-weight:800; font-size:15px; padding:14px; border-radius:14px; cursor:pointer; transition:background .12s, color .12s; }
+    .tc-cancelar:active { background:#e23c3c; color:#fff; }
     .chat-badge { position:absolute; top:-4px; right:-4px; background:#e23c3c; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:2px 6px; display:none; }
 
     /* ícones do mapa */
@@ -106,23 +110,33 @@
     <div id="mapa"></div>
 
     <div class="track-top" id="trackTop">
-      <div class="pulse"><i class="fa-solid fa-truck-pickup"></i></div>
-      <div class="tt-info"><h1 id="topTitulo">Guincho a caminho</h1><p id="topSub"><span class="aovivo">● AO VIVO</span> · monitorando em tempo real</p></div>
+      <div class="tt-card">
+        <button class="tt-help" id="btnAjuda"><i class="fa-solid fa-headset"></i> Ajuda</button>
+        <h1 id="topTitulo">Indo até você</h1>
+        <p id="topSub">Calculando chegada...</p>
+        <div class="tt-progress" id="topProg"><span></span><span></span><span></span><span></span></div>
+      </div>
     </div>
 
     <div class="track-card" id="trackCard" style="display:none">
-      <button class="tc-close" id="btnCancelarRota" aria-label="Cancelar"><i class="fa-solid fa-xmark"></i></button>
-      <img class="tc-avatar" id="cardFoto" src="" alt="">
-      <div class="tc-info">
-        <strong id="cardNome">—</strong>
-        <div class="tc-meta">
-          <span class="tc-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span>
-          <span class="tc-sep">·</span>
-          <span class="tc-rating"><i class="fa-solid fa-star"></i> <span id="cardNota">5,0</span></span>
+      <div class="tc-row">
+        <img class="tc-avatar" id="cardFoto" src="" alt="">
+        <div class="tc-info">
+          <strong id="cardNome">—</strong>
+          <div class="tc-meta">
+            <span class="tc-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span>
+            <span class="tc-sep">·</span>
+            <span class="tc-rating"><i class="fa-solid fa-star"></i> <span id="cardNota">5,0</span></span>
+          </div>
+          <div class="tc-plate" id="cardPlaca" style="display:none"><span class="tc-veic" id="cardVeic"></span><span class="tc-pl" id="cardPlacaTxt"></span></div>
+          <div class="tc-status" id="cardStatus">A caminho</div>
         </div>
-        <div class="tc-status" id="cardStatus">A caminho</div>
+        <button class="tc-chat" id="btnChat" aria-label="Conversar">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#0D0D0D" d="M12 3C6.9 3 3 6.6 3 11c0 2.2 1 4.2 2.6 5.6L5 21l4.6-1.6c.8.2 1.6.3 2.4.3 5.1 0 9-3.6 9-8s-3.9-8-9-8z"/><circle cx="8.5" cy="11" r="1.2" fill="#fff"/><circle cx="12" cy="11" r="1.2" fill="#fff"/><circle cx="15.5" cy="11" r="1.2" fill="#fff"/></svg>
+          <span class="chat-badge" id="chatBadge">0</span>
+        </button>
       </div>
-      <button class="tc-chat" id="btnChat" aria-label="Chat"><i class="fa-solid fa-comment-dots"></i><span class="chat-badge" id="chatBadge">0</span></button>
+      <button class="tc-cancelar" id="btnCancelarRota">Cancelar</button>
     </div>
 
     <div class="aviso" id="aviso">
@@ -211,9 +225,10 @@
       chamado = data;
 
       const pid = chamado.prestador_id || chamado.prestador_notificado_id;
-      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,avaliacao').eq('id', pid).single();
+      const { data: pr } = await sb.from('prestadores').select('nome,foto_url,bairro,avaliacao,placa,veiculo').eq('id', pid).single();
       prestador = pr || { nome:'Prestador' };
       preencherCard();
+      setTopo(chamado.status);
 
       // local do cliente: partida do chamado, ou geolocalização, ou posição do guincho
       cliente = (chamado.local_partida_lat) ? { lat:+chamado.local_partida_lat, lng:+chamado.local_partida_lng } : null;
@@ -240,6 +255,13 @@
       const foto = prestador.foto_url || ('https://ui-avatars.com/api/?name='+encodeURIComponent(prestador.nome)+'&background=0D0D0D&color=ffdd00');
       document.getElementById('cardFoto').src = foto;
       document.getElementById('chatFoto').src = foto;
+      // veículo + placa do guincho (se preenchidos pelo prestador)
+      if (prestador.placa || prestador.veiculo) {
+        document.getElementById('cardVeic').textContent = prestador.veiculo || 'Guincho';
+        const pl = document.getElementById('cardPlacaTxt');
+        if (prestador.placa) { pl.textContent = prestador.placa; pl.style.display = ''; } else { pl.style.display = 'none'; }
+        document.getElementById('cardPlaca').style.display = 'flex';
+      }
       document.getElementById('trackCard').style.display = 'flex';
     }
 
@@ -270,11 +292,27 @@
       setETA(min, km);
       lastRota = Date.now();
     }
+    /* ---------- topo: título + chegada + barra de progresso ---------- */
+    const primeiroNome = () => { const n = (chamado && chamado.nome_cliente || '').trim().split(/\s+/)[0]; return n || 'você'; };
+    function setProgresso(n) { document.querySelectorAll('#topProg span').forEach((s, i) => s.classList.toggle('on', i < n)); }
+    function horaChegada(min) { const d = new Date(Date.now() + min * 60000); return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+    function setTopo(status) {
+      const t = document.getElementById('topTitulo'), s = document.getElementById('topSub');
+      if (status === 'Chegou') { t.textContent = 'Seu guincho chegou! 🎉'; s.textContent = 'Ele já está no seu local'; setProgresso(2); }
+      else if (status === 'Iniciado') { t.textContent = 'A caminho do destino'; setProgresso(3); }
+      else if (status === 'Finalizado') { t.textContent = 'Serviço concluído'; setProgresso(4); }
+      else { t.textContent = 'Indo até ' + primeiroNome(); setProgresso(1); }   // A Caminho / Aceito / Notificando
+    }
     function setETA(min, km) {
       etaAtual = min; kmAtual = km;
       if (mBubble) mBubble.setIcon(bubbleIcon(min, km)); // atualiza o balão que segue o caminhão
+      // "Chegada: HH:MM" no topo (não sobrescreve quando já chegou)
+      const titulo = document.getElementById('topTitulo').textContent.toLowerCase();
+      if (!titulo.includes('chegou') && !titulo.includes('concluído')) {
+        document.getElementById('topSub').textContent = (min != null) ? ('Chegada prevista: ' + horaChegada(min)) : 'Calculando chegada...';
+      }
       const st = document.getElementById('cardStatus');
-      if (st && !document.getElementById('topTitulo').textContent.toLowerCase().includes('chegou')) {
+      if (st && !titulo.includes('chegou')) {
         st.textContent = (min != null ? min + ' min' : 'A caminho') + (km != null ? ' • ' + km.toFixed(1).replace('.', ',') + ' km' : '');
       }
     }
@@ -315,16 +353,14 @@
     function irParaDestino() {
       if (emDestino) return;            // já está na etapa do destino
       emDestino = true;
+      setTopo('Iniciado');
       if (!destino) {                   // chamado sem destino cadastrado: só atualiza textos
-        document.getElementById('topTitulo').textContent = 'A caminho do destino';
         document.getElementById('cardStatus').textContent = 'Levando ao destino';
         return;
       }
       alvo = destino;
       if (mVoce) mVoce.setLatLng([destino.lat, destino.lng]).setIcon(voceIcon('Destino'));
       else mVoce = L.marker([destino.lat, destino.lng], { icon: voceIcon('Destino') }).addTo(mapa);
-      document.getElementById('topTitulo').textContent = 'A caminho do destino';
-      document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · seu veículo está sendo levado ao destino';
       document.getElementById('cardStatus').textContent = 'Levando ao destino';
       desenharRota(guinchoPos(), alvo);
       enquadrar();
@@ -336,14 +372,13 @@
         (p) => {
           const { latitude_atual_guincho:la, longitude_atual_guincho:lo, status } = p.new;
           if (status === 'Chegou') {
-            document.getElementById('topTitulo').textContent = 'Seu Guincho chegou! 🎉';
-            document.getElementById('topSub').innerHTML = '<span class="aovivo">● AO VIVO</span> · ele está no seu local';
+            setTopo('Chegou');
             document.getElementById('cardStatus').textContent = 'Chegou ao seu local';
             if (mBubble) mBubble.setIcon(L.divIcon({ className:'bubble-divicon', html:'<div class="track-bubble"><strong>Chegou! 🎉</strong></div>', iconSize:[0,0], iconAnchor:[0,0] }));
           } else if (status === 'Iniciado') {
             irParaDestino();
           } else if (status === 'A Caminho' || status === 'Aceito') {
-            document.getElementById('topTitulo').textContent = 'Guincho a caminho';
+            setTopo('A Caminho');
           }
           if (status === 'Finalizado') { if (canal) canal.unsubscribe(); desativarMapaEMostrarAvaliacao(); return; }
           if (la) atualizarGuincho(la, lo);
@@ -393,11 +428,13 @@
     async function marcarLidas() {
       await sb.from('mensagens').update({ lida:true }).eq('chamado_id', chamado.id).eq('autor', 'prestador').eq('lida', false);
     }
-    document.getElementById('btnChat').addEventListener('click', () => {
+    function abrirChat() {
       chatOverlay.classList.add('open'); naoLidas=0; document.getElementById('chatBadge').style.display='none';
       document.getElementById('chatMsgs').scrollTop = document.getElementById('chatMsgs').scrollHeight;
       marcarLidas();
-    });
+    }
+    document.getElementById('btnChat').addEventListener('click', abrirChat);
+    document.getElementById('btnAjuda').addEventListener('click', abrirChat);
     document.getElementById('chatClose').addEventListener('click', () => chatOverlay.classList.remove('open'));
     async function enviarMsg() {
       const inp = document.getElementById('chatInput'); const txt = inp.value.trim(); if (!txt) return;

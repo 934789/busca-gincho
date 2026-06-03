@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0A0A0A" />
   <title>Busca Guincho — Perfil do Prestador</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/css/styles.css" />
@@ -72,10 +73,13 @@
               <span class="chip"><i class="fa-regular fa-clock"></i> 24h</span>
               <span class="chip"><i class="fa-solid fa-shield-halved"></i> CNH Verificada</span>
             </div>
+            <!-- Contato direto (WhatsApp/Ligar) desabilitado — atendimento todo pela plataforma -->
+            <!--
             <div class="perfil-actions">
-              <a class="btn-whats" id="btnWhats" href="${wlink}" target="_blank" rel="noopener" style="flex:1.3"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-              <a class="btn-call" href="tel:+${String(p.telefone||p.whatsapp||'').replace(/\D/g,'')}" style="flex:1"><i class="fa-solid fa-phone"></i> Ligar</a>
+              <a class="btn-whats" id="btnWhats" target="_blank" rel="noopener" style="flex:1.3"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+              <a class="btn-call" style="flex:1"><i class="fa-solid fa-phone"></i> Ligar</a>
             </div>
+            -->
             <div class="perfil-info">
               <h3>Regiões de atendimento</h3>
               <p><i class="fa-solid fa-map-location-dot"></i> ${p.atendimento_regioes || 'Rio de Janeiro - RJ'}</p>
@@ -91,7 +95,8 @@
           </div>`;
         document.title = `${p.nome} — Busca Guincho`;
 
-        document.getElementById('btnWhats').addEventListener('click', async () => {
+        const _bw = document.getElementById('btnWhats'); // contato direto desabilitado
+        if (_bw) _bw.addEventListener('click', async () => {
           try {
             const { data } = await sb.from('chamados').insert({ prestador_id: p.id, status:'Pendente', servico_solicitado:'Contato WhatsApp (perfil)' }).select('id,link_token').single();
             if (data) localStorage.setItem('bg_chamado', JSON.stringify({ id:data.id, token:data.link_token, prestador:p.nome, ts:Date.now() }));

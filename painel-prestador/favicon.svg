@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="44" fill="#ffdd00"/>
+  <g fill="#0D0D0D">
+    <!-- corpo (caçamba + chassi) -->
+    <rect x="40" y="112" width="176" height="50" rx="10"/>
+    <!-- cabine com teto inclinado -->
+    <path d="M118 112 V82 a9 9 0 0 1 9-9 h34 a9 9 0 0 1 7 3.4 L190 112 Z"/>
+    <!-- para-choque/guincho na frente (esquerda) -->
+    <rect x="30" y="130" width="14" height="22" rx="4"/>
+    <!-- rodas (estilo donut) -->
+    <circle cx="92" cy="170" r="31"/>
+    <circle cx="176" cy="170" r="31"/>
+  </g>
+  <!-- janela e furos das rodas (amarelo) -->
+  <g fill="#ffdd00">
+    <path d="M130 108 V86 h28 l15 22 Z"/>
+    <circle cx="92" cy="170" r="13"/>
+    <circle cx="176" cy="170" r="13"/>
+  </g>
+</svg>

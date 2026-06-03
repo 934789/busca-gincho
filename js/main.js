@@ -41,10 +41,14 @@ function montarCard(p, i) {
   node.querySelector('.m-dist').textContent = km + ' km';
   node.querySelector('.eta strong').textContent = '~' + eta + ' min';
   node.querySelector('.m-bairro').textContent = p.bairro || ((p.atendimento_regioes || '').split(',')[0].trim() + ', RJ');
-  node.querySelector('.btn-call').href = 'tel:+' + String(p.telefone || p.whatsapp).replace(/\D/g, '');
+  // contato direto (WhatsApp/Ligar) desabilitado — guardado caso os botões estejam comentados
+  const btnCall = node.querySelector('.btn-call');
+  if (btnCall) btnCall.href = 'tel:+' + String(p.telefone || p.whatsapp).replace(/\D/g, '');
   const whats = node.querySelector('.btn-whats');
-  whats.href = 'https://wa.me/' + String(p.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(WHATSAPP_MSG);
-  whats.addEventListener('click', () => abrirChamado(p));
+  if (whats) {
+    whats.href = 'https://wa.me/' + String(p.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(WHATSAPP_MSG);
+    whats.addEventListener('click', () => abrirChamado(p));
+  }
   return node;
 }
 
@@ -267,9 +271,17 @@ async function buscarDestino(q) {
 /* confirmar -> cria chamado (dispara o despacho automático) */
 document.getElementById('btnConfirmarChamado').addEventListener('click', async () => {
   if (!destinoSel || !userPos || !sb) return;
+  // nome + celular do cliente (aparecem no acompanhamento e pro prestador)
+  const nomeCli = document.getElementById('chamarNome').value.trim();
+  const telCli  = document.getElementById('chamarTel').value.trim();
+  const erro = document.getElementById('chamarErro');
+  if (nomeCli.length < 3) { erro.textContent = 'Informe seu nome completo.'; erro.style.display = 'block'; document.getElementById('chamarNome').focus(); return; }
+  if (telCli.replace(/\D/g, '').length < 10) { erro.textContent = 'Informe um celular válido com DDD.'; erro.style.display = 'block'; document.getElementById('chamarTel').focus(); return; }
+  erro.style.display = 'none';
   const dist = distanciaKm(userPos.lat, userPos.lng, destinoSel.lat, destinoSel.lng);
   const { data, error } = await sb.from('chamados').insert({
     status: 'Pendente', servico_solicitado: 'Chamar Guincho',
+    nome_cliente: nomeCli, telefone_cliente: telCli,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
     local_chegada_lat: destinoSel.lat, local_chegada_lng: destinoSel.lng,
     distancia_estimada_km: +dist.toFixed(2), endereco_destino: destinoSel.nome,

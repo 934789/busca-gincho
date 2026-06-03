@@ -337,6 +337,14 @@ html, body {
 .dash-header { background: var(--ink); color: #fff; padding: 16px 18px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 0 0 20px 20px; position: sticky; top: 0; z-index: 20; }
 .dash-header h1 { font-size: 16px; font-weight: 700; }
 .dash-header .logo-img, .dash-header .logo-icon-img { height: 34px; }
+/* logo padrão (ícone+texto) igual ao da home — amarelo #ffdd00 */
+.bg-logo { display:inline-flex; align-items:center; gap:10px; text-decoration:none; line-height:1; }
+.bg-logo .bgl-truck { color:var(--yellow); font-size:27px; }
+.bg-logo .bgl-name { font-size:21px; font-weight:800; letter-spacing:.5px; }
+.bg-logo .bgl-name b { color:#fff; }                 /* fundo escuro (padrão) */
+.bg-logo .bgl-name i { color:var(--yellow); font-style:normal; }
+.bg-logo.on-light .bgl-truck { color:var(--ink); }
+.bg-logo.on-light .bgl-name b { color:var(--ink); }
 .dash-section { background: #fff; margin: 16px; border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
 .dash-section h2 { font-size: 15px; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 
@@ -514,6 +522,12 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .chamar-estimativa i { color:var(--yellow-dark); }
 .chamar-estimativa strong { color:var(--ink); }
 .chamar-estimativa .ce-nota { width:100%; font-size:11.5px; color:var(--text-soft); margin-top:2px; }
+.chamar-cliente { margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+.chamar-cliente label { display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:14px; padding:0 14px; background:#fff; transition:border-color .15s, box-shadow .15s; }
+.chamar-cliente label:focus-within { border-color:var(--yellow); box-shadow:0 0 0 4px rgba(255,221,0,.18); }
+.chamar-cliente label i { color:#9aa1ac; font-size:15px; width:16px; text-align:center; }
+.chamar-cliente input { flex:1; border:none; outline:none; background:transparent; padding:14px 0; font-family:inherit; font-size:14.5px; color:var(--text); }
+.chamar-erro { margin-top:10px; color:#e23c3c; font-size:13px; font-weight:600; text-align:center; }
 .btn-chamar { width:100%; margin-top:18px; background:var(--yellow); color:#000; border:none; border-radius:16px; padding:16px; font-family:inherit; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:filter .15s, transform .1s; }
 .btn-chamar:disabled { opacity:.45; cursor:not-allowed; }
 .btn-chamar:not(:disabled):active { transform:scale(.99); filter:brightness(.95); }

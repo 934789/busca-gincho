@@ -5,22 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#ffffff" />
   <title>Busca Guincho — Área do Prestador</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-    :root{ --ink:#0D0D0D; --yellow:#FFC400; --line:#E9EAEE; --soft:#8A8F98; }
+    :root{ --ink:#0D0D0D; --yellow:#ffdd00; --line:#E9EAEE; --soft:#8A8F98; }
     *{ box-sizing:border-box; margin:0; padding:0; }
     body{ font-family:'Poppins',system-ui,sans-serif; min-height:100vh; color:#16181d;
       display:flex; align-items:center; justify-content:center; padding:24px;
       background:
-        radial-gradient(880px 380px at 50% -10%, rgba(255,196,0,.20), transparent 60%),
+        radial-gradient(880px 380px at 50% -10%, rgba(255,221,0,.20), transparent 60%),
         linear-gradient(180deg, #FAFBFC 0%, #EDEEF1 100%); }
     .login{ width:100%; max-width:400px; }
     .brand{ text-align:center; margin-bottom:22px; }
     .brand img{ height:40px; }
+    .brand-logo{ display:inline-flex; align-items:center; gap:9px; line-height:1; }
+    .brand-logo > i{ color:var(--yellow); font-size:26px; }
+    .bl-name{ font-size:21px; font-weight:800; letter-spacing:.5px; }
+    .bl-name b{ color:var(--ink); } .bl-name i{ color:var(--yellow); font-style:normal; }
     .brand .sub{ margin-top:11px; font-size:13px; font-weight:600; color:var(--soft);
       display:inline-flex; align-items:center; gap:7px; }
-    .brand .sub i{ color:#E0A800; }
+    .brand .sub i{ color:#caa200; }
     .card{ background:#fff; border:1px solid var(--line); border-radius:22px; padding:26px 24px;
       box-shadow:0 22px 55px -20px rgba(20,24,40,.28); }
     .card h2{ font-size:19px; font-weight:800; letter-spacing:-.3px; }
@@ -32,7 +37,7 @@
     .input input{ width:100%; border:1.6px solid var(--line); background:#F7F8FA; border-radius:13px;
       padding:14px 44px 14px 42px; font-family:inherit; font-size:14.5px; color:#16181d; outline:none; transition:.15s; }
     .input input::placeholder{ color:#b3b7bf; }
-    .input input:focus{ border-color:var(--yellow); background:#fff; box-shadow:0 0 0 4px rgba(255,196,0,.18); }
+    .input input:focus{ border-color:var(--yellow); background:#fff; box-shadow:0 0 0 4px rgba(255,221,0,.18); }
     .input .toggle{ position:absolute; right:8px; top:50%; transform:translateY(-50%); width:34px; height:34px;
       border:none; background:transparent; color:#b3b7bf; cursor:pointer; border-radius:8px; font-size:15px; }
     .input .toggle:hover{ color:var(--ink); }
@@ -53,7 +58,7 @@
 <body>
   <div class="login">
     <div class="brand">
-      <img src="/img/logo_comprovante.png" alt="Busca Guincho" />
+      <span class="brand-logo"><i class="fa-solid fa-truck-pickup"></i><span class="bl-name"><b>BUSCA</b><i>GUINCHO</i></span></span>
       <div class="sub"><i class="fa-solid fa-helmet-safety"></i> Área do Prestador de Serviço</div>
     </div>
 
