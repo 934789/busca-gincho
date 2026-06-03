@@ -38,6 +38,11 @@
     .cc-etapa-go { color:#c77700; background:#fff3df; }
     .cc-dest { font-size:12.5px; color:var(--text); background:#f4f5f7; border-radius:9px; padding:8px 11px; margin-bottom:8px; }
     .cc-dest strong { color:var(--ink); }
+    .cc-pend { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:#c77700; background:#fff3df; border-radius:9px; padding:8px 11px; margin-bottom:8px; }
+    .cc-evid { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
+    .cc-evid .ev-tit { font-size:12px; font-weight:700; color:var(--text-soft); display:flex; align-items:center; gap:5px; }
+    .ev-ok { font-size:12px; font-weight:700; color:#1f9d57; display:flex; align-items:center; gap:5px; }
+    .ev-add { font-size:12px; font-weight:700; color:#2b7de9; background:#eef5ff; border:1px solid #d6e6ff; border-radius:9px; padding:6px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
     .cc-pdf { background:#1f9d57; color:#fff; }
     .cc-pdf-done { background:#e6e7ea; color:#8a8f98; }
     /* comprovante: preencher (branco/preto discreto) + gerar (ícone amarelo discreto) */
@@ -613,6 +618,7 @@
           const dest = c.endereco_destino ? `<div class="cc-dest"><i class="fa-solid fa-flag-checkered"></i> Levando para: <strong>${c.endereco_destino}</strong></div>` : '';
           acao = `<div class="cc-etapa cc-etapa-go"><i class="fa-solid fa-truck-fast"></i> A caminho do destino</div>
                   ${dest}
+                  ${!c.foto_antes_url ? '<div class="cc-pend"><i class="fa-solid fa-triangle-exclamation"></i> Pendente: Foto do Antes</div>' : ''}
                   <button class="cc-btn" style="background:var(--yellow);color:#000" onclick="location.href='/rastreio-prestador.html?t=${c.link_token}'"><i class="fa-solid fa-map-location-dot"></i> Abrir navegação no mapa</button>
                   <div class="cc-link"><i class="fa-solid fa-link"></i><span>${link}</span><button data-act="copiar" data-link="${link}">Copiar</button></div>
                   ${chatBtn}
@@ -627,6 +633,10 @@
           } else {
             acao = `<div class="cc-fin-row"><span class="helper" style="flex:1;margin:0">Atendimento finalizado.</span><button class="cc-icone-pdf" data-act="pdf" title="Gerar comprovante PDF"><i class="fa-solid fa-receipt"></i></button></div>`;
           }
+          // evidências: anexar fotos pendentes pela galeria
+          const evA = c.foto_antes_url ? `<span class="ev-ok"><i class="fa-solid fa-circle-check"></i> Antes</span>` : `<label class="ev-add"><i class="fa-solid fa-image"></i> Anexar ANTES<input type="file" accept="image/*" hidden data-foto="antes" data-id="${c.id}"></label>`;
+          const evD = c.foto_depois_url ? `<span class="ev-ok"><i class="fa-solid fa-circle-check"></i> Depois</span>` : `<label class="ev-add"><i class="fa-solid fa-image"></i> Anexar DEPOIS<input type="file" accept="image/*" hidden data-foto="depois" data-id="${c.id}"></label>`;
+          acao += `<div class="cc-evid"><span class="ev-tit"><i class="fa-solid fa-camera"></i> Evidências:</span>${evA}${evD}</div>`;
         } else {
           const txt = c.status === 'Expirado' ? 'Solicitação expirada (sem resposta em 5 min).' : c.status === 'Cancelado' ? 'Cancelado pelo cliente.' : 'Chamado recusado.';
           acao = `<p class="helper" style="margin:6px 0 0">${txt}</p>`;
@@ -645,6 +655,17 @@
           else if (a==='pdf' && c.valor_servico==null) abrirComprovante(c);
           else if (a==='pdf') { gerarPDF(c); pdfGerados.add(c.id); carregarChamados(); }
           else if (a==='copiar') { navigator.clipboard.writeText(b.dataset.link); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar',1500); }
+        }));
+        // upload de fotos pendentes pela galeria (histórico)
+        div.querySelectorAll('[data-foto]').forEach((inp) => inp.addEventListener('change', async (e) => {
+          const f = e.target.files[0]; if (!f) return;
+          const tipo = inp.dataset.foto, id = inp.dataset.id, lbl = inp.closest('label'); lbl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+          const path = `${id}/${tipo}_${Date.now()}.jpg`;
+          const { error } = await sb.storage.from('evidencias-chamados').upload(path, f, { upsert:true, cacheControl:'3600' });
+          if (error) { alert('Erro no upload: '+error.message); carregarChamados(); return; }
+          const { data } = sb.storage.from('evidencias-chamados').getPublicUrl(path);
+          await sb.from('chamados').update({ [tipo==='antes'?'foto_antes_url':'foto_depois_url']: data.publicUrl }).eq('id', id);
+          carregarChamados();
         }));
         box.appendChild(div);
       });
@@ -771,6 +792,12 @@
             <span style="font-size:14px;color:#fff">VALOR TOTAL</span>
             <span style="font-size:24px;font-weight:800">${fmtR(c.valor_servico)}</span>
           </div>
+          <h3 style="font-size:14px;margin:18px 0 4px;color:#FFCC00;background:#111;display:inline-block;padding:3px 10px;border-radius:6px">EVIDÊNCIAS VISUAIS DO ATENDIMENTO</h3>
+          ${(c.foto_antes_url || c.foto_depois_url) ? `
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+            ${c.foto_antes_url ? `<div style="flex:1;min-width:200px;text-align:center"><div style="font-size:11px;color:#666;margin-bottom:5px;font-weight:700">ANTES (retirada)</div><img src="${c.foto_antes_url}" crossorigin="anonymous" style="width:100%;max-width:280px;border-radius:10px;border:1px solid #eee"></div>` : ''}
+            ${c.foto_depois_url ? `<div style="flex:1;min-width:200px;text-align:center"><div style="font-size:11px;color:#666;margin-bottom:5px;font-weight:700">DEPOIS (entrega)</div><img src="${c.foto_depois_url}" crossorigin="anonymous" style="width:100%;max-width:280px;border-radius:10px;border:1px solid #eee"></div>` : ''}
+          </div>` : `<p style="font-size:12px;color:#999;font-style:italic;margin:6px 0 0">Evidências fotográficas pendentes de upload pelo prestador.</p>`}
           <p style="font-size:10.5px;color:#999;margin-top:18px;text-align:center">Documento gerado pela plataforma Busca Guincho. Apresente à sua seguradora para fins de reembolso.</p>
         </div>`;
       const nomeArq = `comprovante_${(c.placa_veiculo||'servico').replace(/\s/g,'')}.pdf`;

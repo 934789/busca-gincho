@@ -18,6 +18,15 @@
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
+    <!-- ATIVIDADE EM TEMPO REAL -->
+    <section class="dash-section">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#e7f7ee;color:#1f9d57"><i class="fa-solid fa-bolt"></i></span>
+        <div class="sh-txt"><strong>Atividade em tempo real <span class="live-dot"></span></strong><small>Novos chamados, mudanças de status e mensagens — ao vivo</small></div>
+      </div>
+      <div id="feedAtivo" class="feed-box"><p class="helper">Aguardando eventos...</p></div>
+    </section>
+
     <!-- RELATÓRIO DE CHAMADOS -->
     <section class="dash-section">
       <div class="sec-head">
@@ -34,9 +43,9 @@
         <label>Status</label>
         <select id="r_status">
           <option value="">Todos os status</option>
-          <option>Finalizado</option><option>A Caminho</option><option>Aceito</option>
-          <option>Notificando</option><option>Pendente</option><option>Recusado</option>
-          <option>Expirado</option><option>Cancelado</option>
+          <option>Finalizado</option><option>A Caminho</option><option>Chegou</option>
+          <option>Iniciado</option><option>Aceito</option><option>Notificando</option>
+          <option>Pendente</option><option>Recusado</option><option>Expirado</option><option>Cancelado</option>
         </select>
       </div>
       <div id="relLista"><p class="helper">Carregando...</p></div>
@@ -90,7 +99,8 @@
         <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-users-gear"></i></span>
         <div class="sh-txt"><strong>Prestadores</strong><small>Editar, excluir, ver métricas e ativar/ocultar</small></div>
       </div>
-      <p class="helper" style="margin-bottom:12px">Editar, excluir, ver métricas e ativar/ocultar (mensalidade).</p>
+      <div class="busca-prest"><i class="fa-solid fa-magnifying-glass"></i><input id="buscaPrest" placeholder="Buscar por nome, CPF/CNPJ ou celular..."></div>
+      <p class="helper" id="listaInfo" style="margin:10px 0 12px">Mostrando os prestadores com chamados mais recentes.</p>
       <div id="lista"><p class="helper">Carregando...</p></div>
     </section>
   </div>
@@ -151,6 +161,15 @@
       <div class="stats-grid" id="contStats" style="margin-bottom:14px"></div>
       <h4 id="contListaTit" style="color:var(--ink);font-size:14px;margin-bottom:8px">Contatos por mês</h4>
       <div id="contLista"></div>
+    </div>
+  </div>
+
+  <!-- MODAL CHAT (admin lê o chat de um chamado) -->
+  <div class="modal-bg" id="modalChatAdmin">
+    <div class="modal">
+      <h3><span><i class="fa-solid fa-comments"></i> Chat do chamado</span><span class="x" onclick="fecharModal('modalChatAdmin')">✕</span></h3>
+      <div id="adminChatMsgs" style="max-height:54vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
+      <p class="helper" style="margin-top:10px"><i class="fa-solid fa-eye"></i> Visualização do administrador (somente leitura) — atualiza em tempo real.</p>
     </div>
   </div>
 
@@ -233,9 +252,29 @@
         const o = cont[c.prestador_id] || (cont[c.prestador_id] = { total:0, mes:0 });
         o.total++; if (new Date(c.created_at) >= inicioMes) o.mes++;
       });
+      // data do último chamado por prestador (pra ordenar "mais recentes")
+      const ultimo = {};
+      (chs || []).forEach((c) => { const t = new Date(c.created_at).getTime(); if (!ultimo[c.prestador_id] || t > ultimo[c.prestador_id]) ultimo[c.prestador_id] = t; });
+
+      // busca por nome / CPF-CNPJ / celular; sem busca = 6 com chamados mais recentes
+      const termo = (document.getElementById('buscaPrest').value || '').trim().toLowerCase();
+      const info = document.getElementById('listaInfo');
+      let lista;
+      if (termo) {
+        const dig = termo.replace(/\D/g, '');
+        lista = data.filter(p => (p.nome||'').toLowerCase().includes(termo)
+          || (dig && String(p.documento||'').replace(/\D/g,'').includes(dig))
+          || (dig && String(p.whatsapp||'').replace(/\D/g,'').includes(dig))
+          || (dig && String(p.telefone||'').replace(/\D/g,'').includes(dig)));
+        info.textContent = `${lista.length} resultado(s) para "${termo}".`;
+      } else {
+        lista = data.slice().sort((a,b) => (ultimo[b.id]||0) - (ultimo[a.id]||0)).slice(0, 6);
+        info.textContent = data.length > 6 ? `Mostrando 6 de ${data.length} (chamados mais recentes). Busque para ver outros.` : 'Prestadores cadastrados.';
+      }
+      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum prestador encontrado.</p>'; return; }
 
       box.innerHTML = '';
-      data.forEach((p) => {
+      lista.forEach((p) => {
         const ct = cont[p.id] || { total:0, mes:0 };
         const row = document.createElement('div');
         row.className = 'admin-row';
@@ -349,8 +388,10 @@
     document.querySelectorAll('.modal-bg').forEach((bg) => bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('open'); }));
 
     /* ---------- relatório de chamados (todos) ---------- */
+    const ATIVOS = ['Pendente','Notificando','Aceito','A Caminho','Chegou','Iniciado'];
     async function carregarRelatorio() {
-      let q = sb.from('chamados').select('id,created_at,status,valor_servico,servico_solicitado,endereco_destino,prestadores!chamados_prestador_id_fkey(nome,foto_url)').order('created_at', { ascending:false }).limit(300);
+      const semFiltro = !r_de.value && !r_ate.value && !r_status.value;
+      let q = sb.from('chamados').select('id,created_at,status,valor_servico,servico_solicitado,endereco_destino,nome_cliente,prestador_id,prestadores!chamados_prestador_id_fkey(nome,foto_url)').order('created_at', { ascending:false }).limit(semFiltro ? 10 : 300);
       if (r_de.value)  q = q.gte('created_at', r_de.value + 'T00:00:00');
       if (r_ate.value) q = q.lte('created_at', r_ate.value + 'T23:59:59');
       if (r_status.value) q = q.eq('status', r_status.value);
@@ -359,33 +400,98 @@
       if (error) { box.innerHTML = '<p class="helper">Erro: ' + error.message + '</p>'; return; }
       const lista = data || [];
       const fin = lista.filter(c => c.status === 'Finalizado');
-      const andamento = lista.filter(c => ['A Caminho','Aceito','Notificando'].includes(c.status)).length;
+      const andamento = lista.filter(c => ['A Caminho','Aceito','Notificando','Chegou','Iniciado'].includes(c.status)).length;
       const fat = fin.reduce((s, c) => s + (Number(c.valor_servico) || 0), 0);
       document.getElementById('relResumo').innerHTML = `
-        <div class="stat-card"><div class="stat-num">${lista.length}</div><div class="stat-label">Chamados</div></div>
+        <div class="stat-card"><div class="stat-num">${lista.length}</div><div class="stat-label">${semFiltro ? 'Últimos' : 'Chamados'}</div></div>
         <div class="stat-card"><div class="stat-num">${andamento}</div><div class="stat-label">Em andamento</div></div>
         <div class="stat-card"><div class="stat-num">${fin.length}</div><div class="stat-label">Finalizados</div></div>
         <div class="stat-card accent"><div class="stat-num" style="font-size:17px">R$ ${fat.toFixed(2).replace('.', ',')}</div><div class="stat-label">Faturado</div></div>`;
-      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado neste período.</p>'; return; }
+      if (!lista.length) { box.innerHTML = '<p class="helper">Nenhum chamado.</p>'; return; }
       box.innerHTML = lista.map((c) => {
         const p = c.prestadores;
         const foto = p ? (p.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(p.nome)+'&background=0A0A0A&color=ffdd00') : 'https://ui-avatars.com/api/?name=?&background=cccccc&color=fff';
         const dt = new Date(c.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
         const val = c.valor_servico != null ? '<b>R$ ' + Number(c.valor_servico).toFixed(2).replace('.', ',') + '</b>' : '';
+        const ativo = ATIVOS.includes(c.status);
+        const acts = `<div class="cr-acts">
+            <button class="cr-chat" data-chat="${c.id}" title="Ler chat"><i class="fa-regular fa-comments"></i></button>
+            ${ativo ? `<button class="cr-enc" data-enc="${c.id}" data-pid="${c.prestador_id||''}" title="Encerrar">Encerrar</button>
+                       <button class="cr-can" data-can="${c.id}" data-pid="${c.prestador_id||''}" title="Cancelar">Cancelar</button>` : ''}
+          </div>`;
         return `<div class="chamado-row">
           <img class="cr-av" src="${foto}">
           <div class="cr-main"><strong>${p ? p.nome : '(aguardando aceite)'}</strong>
-            <small>${c.servico_solicitado || 'Chamado'}${c.endereco_destino ? ' → ' + c.endereco_destino : ''}</small>
-            <small><i class="fa-regular fa-clock"></i> ${dt}</small></div>
+            <small>${c.nome_cliente ? '👤 '+c.nome_cliente+' · ' : ''}${c.servico_solicitado || 'Chamado'}${c.endereco_destino ? ' → ' + c.endereco_destino : ''}</small>
+            <small><i class="fa-regular fa-clock"></i> ${dt}</small>${acts}</div>
           <div class="cr-val">${val}<br><span class="cr-pill crp-${(c.status||'').replace(/\s/g,'')}">${c.status}</span></div>
         </div>`;
       }).join('');
+      box.querySelectorAll('[data-enc]').forEach(b => b.onclick = async () => {
+        if (!confirm('Encerrar (finalizar) este chamado pelo admin?')) return;
+        await sb.from('chamados').update({ status:'Finalizado' }).eq('id', b.dataset.enc);
+        if (b.dataset.pid) await sb.from('prestadores').update({ status_disponibilidade:'Online' }).eq('id', b.dataset.pid);
+        carregarRelatorio();
+      });
+      box.querySelectorAll('[data-can]').forEach(b => b.onclick = async () => {
+        if (!confirm('Cancelar este chamado pelo admin? O cliente e o prestador são liberados.')) return;
+        await sb.from('chamados').update({ status:'Cancelado' }).eq('id', b.dataset.can);
+        if (b.dataset.pid) await sb.from('prestadores').update({ status_disponibilidade:'Online' }).eq('id', b.dataset.pid);
+        carregarRelatorio();
+      });
+      box.querySelectorAll('[data-chat]').forEach(b => b.onclick = () => abrirChatAdmin(b.dataset.chat));
     }
     document.getElementById('btnRelFiltrar').addEventListener('click', carregarRelatorio);
     document.getElementById('r_status').addEventListener('change', carregarRelatorio);
 
+    /* ---------- chat (admin lê) ---------- */
+    let adminChatId = null, adminChatCanal = null;
+    async function abrirChatAdmin(id) {
+      adminChatId = id;
+      const box = document.getElementById('adminChatMsgs'); box.innerHTML = '<p class="helper">Carregando...</p>';
+      abrirModal('modalChatAdmin');
+      const { data } = await sb.from('mensagens').select('*').eq('chamado_id', id).order('created_at', { ascending:true });
+      box.innerHTML = ''; (data||[]).forEach(addAdminMsg);
+      if (!data || !data.length) box.innerHTML = '<p class="helper">Sem mensagens neste chamado ainda.</p>';
+    }
+    window.abrirChatAdmin = abrirChatAdmin;
+    function addAdminMsg(m) {
+      const box = document.getElementById('adminChatMsgs'); const h = box.querySelector('.helper'); if (h) h.remove();
+      const d = document.createElement('div'); d.className = 'amsg ' + (m.autor==='cliente'?'a-cli':'a-pre');
+      const hora = new Date(m.created_at||Date.now()).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      d.innerHTML = `<b>${m.autor==='cliente'?'👤 Cliente':'🚚 Prestador'}:</b> ${(m.texto||'').replace(/</g,'&lt;')} <small>${hora}</small>`;
+      box.appendChild(d); box.scrollTop = box.scrollHeight;
+    }
+
+    /* ---------- atividade em tempo real ---------- */
+    let feedItens = [];
+    const somFeed = new Audio('/audio/call.mp3');
+    function feedAdd(txt, ico, cor, som) {
+      feedItens.unshift({ txt, ico, cor, hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) });
+      feedItens = feedItens.slice(0, 25);
+      document.getElementById('feedAtivo').innerHTML = feedItens.map(f =>
+        `<div class="feed-item"><span class="fi-ico" style="background:${f.cor}22;color:${f.cor}"><i class="fa-solid ${f.ico}"></i></span><div class="fi-txt">${f.txt}<small>${f.hora}</small></div></div>`).join('');
+      if (som) { try { somFeed.currentTime=0; somFeed.play().catch(()=>{}); } catch(e){} }
+    }
+    function escutarTudo() {
+      sb.channel('admin-chamados').on('postgres_changes', { event:'*', schema:'public', table:'chamados' }, (p) => {
+        const c = p.new || p.old || {};
+        if (p.eventType === 'INSERT') feedAdd(`Novo chamado — <b>${c.nome_cliente||'cliente'}</b>`, 'fa-bell', '#caa200', true);
+        else if (p.eventType === 'UPDATE' && p.old && p.new.status !== p.old.status) feedAdd(`<b>${c.nome_cliente||'Chamado'}</b> → ${p.new.status}`, 'fa-arrows-rotate', '#2b7de9');
+        carregarRelatorio();
+      }).subscribe();
+      sb.channel('admin-msgs').on('postgres_changes', { event:'INSERT', schema:'public', table:'mensagens' }, (p) => {
+        feedAdd(`Nova mensagem (${p.new.autor})`, 'fa-comment-dots', '#1f9d57');
+        if (adminChatId === p.new.chamado_id) addAdminMsg(p.new);
+      }).subscribe();
+    }
+
+    let buscaTimer;
+    document.getElementById('buscaPrest').addEventListener('input', () => { clearTimeout(buscaTimer); buscaTimer = setTimeout(listar, 300); });
+
     carregarRelatorio();
     listar();
+    escutarTudo();
   </script>
 </body>
 </html>

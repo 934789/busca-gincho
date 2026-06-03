@@ -580,5 +580,18 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .crp-Finalizado { background:#e0f7ea; color:#1f9d57; }
 .crp-ACaminho, .crp-Aceito, .crp-Notificando { background:#e0eeff; color:#1d6fe0; }
 .crp-Pendente { background:#fff6d6; color:#9a7400; }
+.crp-Chegou { background:#e7e0ff; color:#6b3fd1; } .crp-Iniciado { background:#fff0d6; color:#c77700; }
 .crp-Recusado, .crp-Expirado, .crp-Cancelado { background:#f1f1f4; color:#8a8f98; }
 .rel-resumo { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+/* admin V5.1: busca / feed tempo real / ações de chamado / chat */
+.busca-prest { display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:13px; padding:0 14px; background:#f7f8fa; }
+.busca-prest i { color:#9aa1ac; } .busca-prest input { flex:1; border:none; background:transparent; padding:13px 0; font-family:inherit; font-size:14px; outline:none; }
+.feed-box { display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; }
+.feed-item { display:flex; align-items:center; gap:11px; background:#f7f8fa; border-radius:11px; padding:9px 12px; }
+.fi-ico { width:34px; height:34px; border-radius:9px; display:grid; place-items:center; font-size:14px; flex-shrink:0; }
+.fi-txt { font-size:13px; color:var(--text); line-height:1.25; } .fi-txt small { display:block; font-size:10.5px; color:var(--text-soft); margin-top:1px; }
+.cr-acts { display:flex; gap:6px; margin-top:7px; }
+.cr-acts button { border:none; border-radius:8px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:11px; cursor:pointer; }
+.cr-chat { background:#eef5ff; color:#2b7de9; } .cr-enc { background:#e7f7ee; color:#1f9d57; } .cr-can { background:#ffe0e0; color:#e23c3c; }
+.amsg { font-size:13.5px; line-height:1.4; padding:9px 12px; border-radius:11px; background:#f4f5f7; align-self:flex-start; max-width:88%; }
+.amsg.a-cli { background:#fff8d6; align-self:flex-end; } .amsg small { color:#9aa1ac; font-size:10px; margin-left:5px; }
