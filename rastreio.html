@@ -198,6 +198,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase-config.js"></script>
+  <script src="/js/suporte.js"></script>
   <script>
     const token = new URLSearchParams(location.search).get('t');
     const elAviso = document.getElementById('aviso');
@@ -325,12 +326,18 @@
       else if (status === 'Iniciado') { t.textContent = 'A caminho do destino'; setProgresso(3); }
       else if (status === 'Finalizado') { t.textContent = 'Serviço concluído'; setProgresso(4); }
       else { t.textContent = 'Indo até ' + primeiroNome(); setProgresso(1); }   // A Caminho / Aceito / Notificando
-      // código de retirada: visível só na 1ª etapa (some quando o guincho confirma)
+      // 2 códigos: RETIRADA (antes de chegar) e ENTREGA (a caminho do destino)
       const cod = document.getElementById('topCodigo');
       if (cod) {
+        const lbl = cod.querySelector('.ttc-label');
         const antes = (status !== 'Chegou' && status !== 'Iniciado' && status !== 'Finalizado');
         if (antes && chamado && chamado.codigo_confirmacao) {
           document.getElementById('topCodigoNum').textContent = chamado.codigo_confirmacao;
+          if (lbl) lbl.textContent = 'Código de retirada';
+          cod.style.display = 'flex';
+        } else if (status === 'Iniciado' && chamado && chamado.codigo_entrega) {
+          document.getElementById('topCodigoNum').textContent = chamado.codigo_entrega;
+          if (lbl) lbl.textContent = 'Código de entrega';
           cod.style.display = 'flex';
         } else cod.style.display = 'none';
       }
@@ -481,11 +488,9 @@
       marcarLidas();
     }
     document.getElementById('btnChat').addEventListener('click', abrirChat);
-    // Ajuda -> WhatsApp do suporte BuscaGuincho
+    // Ajuda -> chat de suporte da plataforma (chatbot híbrido)
     document.getElementById('btnAjuda').addEventListener('click', () => {
-      const num = (window.SUPORTE_WHATSAPP || '').replace(/\D/g, '');
-      const msg = (typeof SUPORTE_MSG !== 'undefined') ? SUPORTE_MSG : 'Preciso de ajuda.';
-      window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+      abrirSuporte({ userTipo: 'cliente', userNome: (chamado && chamado.nome_cliente) || 'Cliente' });
     });
     // compartilhar/copiar o código de retirada
     document.getElementById('topCodigo').addEventListener('click', async () => {

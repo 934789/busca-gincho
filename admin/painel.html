@@ -27,6 +27,15 @@
       <div id="feedAtivo" class="feed-box"><p class="helper">Aguardando eventos...</p></div>
     </section>
 
+    <!-- SUPORTE (chatbot híbrido) -->
+    <section class="dash-section">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#fff3df;color:#caa200"><i class="fa-solid fa-headset"></i></span>
+        <div class="sh-txt"><strong>Suporte <span class="sup-badge" id="supBadge" style="display:none">0</span></strong><small>Conversas aguardando atendente humano</small></div>
+      </div>
+      <div id="supLista"><p class="helper">Carregando...</p></div>
+    </section>
+
     <!-- RELATÓRIO DE CHAMADOS -->
     <section class="dash-section">
       <div class="sec-head">
@@ -170,6 +179,19 @@
       <h3><span><i class="fa-solid fa-comments"></i> Chat do chamado</span><span class="x" onclick="fecharModal('modalChatAdmin')">✕</span></h3>
       <div id="adminChatMsgs" style="max-height:54vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
       <p class="helper" style="margin-top:10px"><i class="fa-solid fa-eye"></i> Visualização do administrador (somente leitura) — atualiza em tempo real.</p>
+    </div>
+  </div>
+
+  <!-- MODAL SUPORTE (admin responde como atendente) -->
+  <div class="modal-bg" id="modalSuporte">
+    <div class="modal">
+      <h3><span><i class="fa-solid fa-headset"></i> Suporte <span id="supModalNome"></span></span><span class="x" onclick="fecharModal('modalSuporte')">✕</span></h3>
+      <div id="supModalMsgs" style="max-height:48vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
+      <div style="display:flex;gap:9px;margin-top:12px">
+        <input id="supModalInput" placeholder="Responder como atendente..." style="flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;outline:none">
+        <button id="supModalSend" style="border:none;background:var(--ink);color:#fff;border-radius:12px;padding:0 16px;font-weight:700;cursor:pointer"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+      <button id="supModalResolver" style="width:100%;margin-top:8px;border:1.5px solid var(--line);background:#fff;color:#1f9d57;border-radius:11px;padding:10px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer"><i class="fa-solid fa-check"></i> Marcar como resolvido</button>
     </div>
   </div>
 
@@ -485,13 +507,80 @@
         feedAdd(`Nova mensagem (${p.new.autor})`, 'fa-comment-dots', '#1f9d57');
         if (adminChatId === p.new.chamado_id) addAdminMsg(p.new);
       }).subscribe();
+      // suporte: nova conversa / transbordo humano / mensagens
+      sb.channel('admin-sup-conv').on('postgres_changes', { event:'*', schema:'public', table:'suporte_conversas' }, (p) => {
+        if (p.new && p.new.status === 'humano' && (!p.old || p.old.status !== 'humano'))
+          feedAdd(`🆘 Suporte: <b>${p.new.user_nome||'usuário'}</b> pediu atendente`, 'fa-headset', '#e23c3c', true);
+        carregarSuporte();
+      }).subscribe();
+      sb.channel('admin-sup-msg').on('postgres_changes', { event:'INSERT', schema:'public', table:'suporte_mensagens' }, (p) => {
+        if (p.new.enviado_por === 'usuario') carregarSuporte();
+      }).subscribe();
     }
 
     let buscaTimer;
     document.getElementById('buscaPrest').addEventListener('input', () => { clearTimeout(buscaTimer); buscaTimer = setTimeout(listar, 300); });
 
+    /* ---------- SUPORTE (fila + atendimento humano) ---------- */
+    let supId = null, supCanal = null;
+    async function carregarSuporte() {
+      const { data } = await sb.from('suporte_conversas').select('*').order('updated_at', { ascending:false }).limit(40);
+      const lista = data || [];
+      const humanos = lista.filter(c => c.status === 'humano');
+      const badge = document.getElementById('supBadge');
+      if (humanos.length) { badge.textContent = humanos.length; badge.style.display = 'inline-block'; } else badge.style.display = 'none';
+      const box = document.getElementById('supLista');
+      const mostrar = humanos.length ? humanos : lista.slice(0, 8);
+      if (!mostrar.length) { box.innerHTML = '<p class="helper">Nenhuma conversa de suporte ainda.</p>'; return; }
+      box.innerHTML = mostrar.map(c => {
+        const dt = new Date(c.updated_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+        const cor = c.status==='humano' ? '#e23c3c' : (c.status==='resolvido' ? '#1f9d57' : '#caa200');
+        return `<div class="feed-item" style="cursor:pointer" data-sup="${c.id}" data-nome="${(c.user_nome||'Usuário').replace(/"/g,'')}">
+          <span class="fi-ico" style="background:${cor}22;color:${cor}"><i class="fa-solid fa-${c.status==='humano'?'hand':'robot'}"></i></span>
+          <div class="fi-txt"><b>${c.user_nome||'Usuário'}</b> · ${c.user_tipo}${c.status==='humano'?' — <b style="color:#e23c3c">aguardando</b>':c.status==='resolvido'?' — resolvido':''}<small>${dt}</small></div>
+        </div>`;
+      }).join('');
+      box.querySelectorAll('[data-sup]').forEach(b => b.onclick = () => abrirSuporteAdmin(b.dataset.sup, b.dataset.nome));
+    }
+    function addSupMsg(m) {
+      const box = document.getElementById('supModalMsgs'); const h = box.querySelector('.helper'); if (h) h.remove();
+      const d = document.createElement('div'); const por = m.enviado_por;
+      d.className = 'amsg ' + (por==='usuario' ? 'a-cli' : '');
+      const hora = new Date(m.created_at||Date.now()).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const tag = por==='usuario' ? '👤' : (por==='atendente' ? '🎧 Você' : '🤖 Bot');
+      d.innerHTML = `<b>${tag}:</b> ${(m.texto||'').replace(/</g,'&lt;')} <small>${hora}</small>`;
+      box.appendChild(d); box.scrollTop = box.scrollHeight;
+    }
+    async function abrirSuporteAdmin(id, nome) {
+      supId = id;
+      document.getElementById('supModalNome').textContent = '— ' + (nome||'');
+      const box = document.getElementById('supModalMsgs'); box.innerHTML = '<p class="helper">Carregando...</p>';
+      abrirModal('modalSuporte');
+      // assume o atendimento: status humano
+      await sb.from('suporte_conversas').update({ status:'humano', updated_at:new Date().toISOString() }).eq('id', id);
+      const { data } = await sb.from('suporte_mensagens').select('*').eq('conversa_id', id).order('created_at',{ascending:true});
+      box.innerHTML=''; (data||[]).forEach(addSupMsg);
+      if (!data||!data.length) box.innerHTML='<p class="helper">Sem mensagens.</p>';
+      if (supCanal) sb.removeChannel(supCanal);
+      supCanal = sb.channel('supadm-'+id).on('postgres_changes', { event:'INSERT', schema:'public', table:'suporte_mensagens', filter:`conversa_id=eq.${id}` }, (p)=>{ if (p.new.enviado_por!=='atendente') addSupMsg(p.new); }).subscribe();
+    }
+    async function enviarAtendente() {
+      const inp = document.getElementById('supModalInput'); const t = inp.value.trim(); if (!t || !supId) return;
+      inp.value=''; addSupMsg({ enviado_por:'atendente', texto:t });
+      await sb.from('suporte_mensagens').insert({ conversa_id:supId, enviado_por:'atendente', texto:t });
+      await sb.from('suporte_conversas').update({ updated_at:new Date().toISOString() }).eq('id', supId);
+    }
+    document.getElementById('supModalSend').onclick = enviarAtendente;
+    document.getElementById('supModalInput').addEventListener('keydown', e=>{ if(e.key==='Enter') enviarAtendente(); });
+    document.getElementById('supModalResolver').onclick = async () => {
+      if (!supId) return;
+      await sb.from('suporte_conversas').update({ status:'resolvido', updated_at:new Date().toISOString() }).eq('id', supId);
+      fecharModal('modalSuporte'); carregarSuporte();
+    };
+
     carregarRelatorio();
     listar();
+    carregarSuporte();
     escutarTudo();
   </script>
 </body>

@@ -166,11 +166,12 @@
       <div class="ov-card">
         <button class="ov-x" id="pinClose"><i class="fa-solid fa-xmark"></i></button>
         <div class="ov-ico" style="background:#fff8d6;color:#caa200"><i class="fa-solid fa-key"></i></div>
-        <h3>Código do cliente</h3>
-        <p>Peça ao cliente o <strong>código de 4 dígitos</strong> que aparece na tela dele e digite abaixo para confirmar a retirada.</p>
+        <h3 id="pinTitulo">Código do cliente</h3>
+        <p id="pinTexto">Peça ao cliente o código de 4 dígitos que aparece na tela dele e digite abaixo para confirmar a retirada.</p>
         <input id="pinInput" class="ov-pin" inputmode="numeric" maxlength="4" placeholder="0000">
         <p class="ov-status" id="pinStatus"></p>
-        <button class="ov-btn" id="pinConfirmar">Confirmar retirada</button>
+        <button class="ov-btn" id="pinConfirmar">Confirmar</button>
+        <button class="ov-ignorar" id="pinSemCliente" style="display:none">Cliente não está no destino — finalizar com foto</button>
       </div>
     </div>
 
@@ -191,6 +192,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase-config.js"></script>
+  <script src="/js/suporte.js"></script>
   <script>
     const token = new URLSearchParams(location.search).get('t');
     const PID = sessionStorage.getItem('prestador_id');
@@ -323,7 +325,7 @@
     }
     document.getElementById('btnAcao').addEventListener('click', async () => {
       const next = document.getElementById('btnAcao').dataset.next;
-      if (next === 'Chegou') { abrirPin(); return; }   // pede o código de 4 dígitos do cliente
+      if (next === 'Chegou') { abrirPin('retirada'); return; }   // PIN 1 — chegada ao cliente
       if (next === 'Iniciado') {
         pedirFoto('antes', async () => {           // foto ANTES (ou ignorar) -> inicia trajeto
           await sb.from('chamados').update({ status:'Iniciado' }).eq('id', chamado.id);
@@ -332,7 +334,8 @@
         return;
       }
       if (next === 'Finalizar') {
-        pedirFoto('depois', () => {                // foto DEPOIS (ou ignorar) -> comprovante no painel
+        // PIN 2 (entrega) OU foto obrigatória se o cliente não estiver no destino
+        abrirPin('entrega', () => {
           if (watchId) navigator.geolocation.clearWatch(watchId);
           location.href = 'prestador/painel.html?fin=' + chamado.id;
         });
@@ -340,13 +343,25 @@
       }
     });
 
-    /* CÓDIGO DO CLIENTE (PIN) na retirada — confirma presença sem depender de GPS */
-    function abrirPin() {
+    /* CÓDIGO DO CLIENTE (2 PINs): 'retirada' (chegada) e 'entrega' (destino) */
+    let pinModo = 'retirada', pinOnOk = null;
+    function abrirPin(modo, onOk) {
+      pinModo = modo; pinOnOk = onOk || null;
+      document.getElementById('pinTitulo').textContent = modo === 'entrega' ? 'Código de entrega' : 'Código de retirada';
+      document.getElementById('pinTexto').textContent = modo === 'entrega'
+        ? 'Peça ao cliente o código de ENTREGA (4 dígitos) na tela dele para concluir o serviço no destino.'
+        : 'Peça ao cliente o código de RETIRADA (4 dígitos) na tela dele para confirmar que você chegou.';
       document.getElementById('pinInput').value = '';
       document.getElementById('pinStatus').textContent = '';
+      // fallback só na ENTREGA: cliente ausente -> finaliza com foto obrigatória
+      document.getElementById('pinSemCliente').style.display = (modo === 'entrega') ? 'block' : 'none';
       document.getElementById('pinModal').classList.add('open');
       setTimeout(() => document.getElementById('pinInput').focus(), 120);
     }
+    document.getElementById('pinSemCliente').addEventListener('click', () => {
+      const done = pinOnOk; fecharPin();
+      pedirFoto('depois', () => { if (done) done(); }, true);  // foto obrigatória
+    });
     function fecharPin() { document.getElementById('pinModal').classList.remove('open'); }
     document.getElementById('pinClose').addEventListener('click', fecharPin);
     document.getElementById('pinConfirmar').addEventListener('click', async () => {
@@ -354,18 +369,22 @@
       const st = document.getElementById('pinStatus');
       if (!/^\d{4}$/.test(codigo)) { st.textContent = 'Digite os 4 dígitos do código do cliente.'; return; }
       st.textContent = 'Verificando...';
-      const { data, error } = await sb.rpc('confirmar_retirada', { p_chamado: chamado.id, p_codigo: codigo });
+      const rpc = pinModo === 'entrega' ? 'confirmar_entrega' : 'confirmar_retirada';
+      const { data, error } = await sb.rpc(rpc, { p_chamado: chamado.id, p_codigo: codigo });
       if (error) { st.textContent = 'Erro: ' + error.message; return; }
       if (!data) { st.textContent = 'Código incorreto — confirme com o cliente.'; return; }
-      chamado.status = 'Chegou'; fecharPin(); setTopo('Chegou'); setAcao('Chegou');
+      fecharPin();
+      if (pinModo === 'retirada') { chamado.status = 'Chegou'; setTopo('Chegou'); setAcao('Chegou'); if (pinOnOk) pinOnOk(); }
+      else { pedirFoto('depois', pinOnOk); }   // entrega: PIN ok -> foto opcional -> finaliza
     });
 
     /* FOTO de evidência (câmera) com opção de "ignorar e anexar depois" */
     let fotoTipo = null, fotoOnDone = null;
-    function pedirFoto(tipo, onDone) {
+    function pedirFoto(tipo, onDone, obrigatoria) {
       fotoTipo = tipo; fotoOnDone = onDone;
       document.getElementById('fotoTit').textContent = tipo === 'antes' ? 'Foto do veículo (ANTES)' : 'Foto da entrega (DEPOIS)';
-      document.getElementById('fotoStatus').textContent = '';
+      document.getElementById('fotoStatus').textContent = obrigatoria ? 'Cliente ausente: a foto da entrega é obrigatória para finalizar.' : '';
+      document.getElementById('fotoIgnorar').style.display = obrigatoria ? 'none' : 'block';  // sem "ignorar" quando obrigatória
       document.getElementById('fotoModal').classList.add('open');
     }
     function fecharFoto() { document.getElementById('fotoModal').classList.remove('open'); document.getElementById('fotoInput').value = ''; }
@@ -450,8 +469,7 @@
     document.getElementById('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') enviar(); });
 
     document.getElementById('btnAjuda').addEventListener('click', () => {
-      const num = (window.SUPORTE_WHATSAPP||'').replace(/\D/g,'');
-      window.open('https://wa.me/'+num+'?text='+encodeURIComponent('Suporte BuscaGuincho — sou prestador e preciso de ajuda no atendimento.'), '_blank');
+      abrirSuporte({ userId: PID, userTipo: 'prestador', userNome: sessionStorage.getItem('prestador_nome') || 'Prestador' });
     });
 
     init();

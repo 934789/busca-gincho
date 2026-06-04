@@ -338,10 +338,11 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   const dist = catFixa() ? 0 : (distRota || await rotaDistKm(userPos, destino)); // distância real pelas ruas
   const v = precoCalc || calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
   const cat = PRECO_CATEGORIAS[categoriaSel];
-  const codigo = String(Math.floor(1000 + Math.random() * 9000)); // PIN de retirada (cliente mostra ao guincho)
+  const codigo = String(Math.floor(1000 + Math.random() * 9000));        // PIN 1 — retirada (chegada ao cliente)
+  const codigoEntrega = String(Math.floor(1000 + Math.random() * 9000)); // PIN 2 — entrega (no destino)
   const { data, error } = await sb.from('chamados').insert({
     status: 'Pendente', servico_solicitado: cat.label, categoria_servico: categoriaSel,
-    nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo,
+    nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo, codigo_entrega: codigoEntrega,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
     local_chegada_lat: destino.lat, local_chegada_lng: destino.lng,
     distancia_estimada_km: +dist.toFixed(2), endereco_destino: destino.nome,

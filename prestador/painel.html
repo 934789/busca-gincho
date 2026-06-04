@@ -179,6 +179,29 @@
       display:grid; place-items:center; font-size:20px; animation:blink 1s infinite; }
     .toast strong { display:block; font-size:14px; }
     .toast small { color:#c3c6cc; font-size:12px; }
+    /* carteira do prestador (estilo fintech) */
+    .carteira { position:relative; overflow:hidden; background:linear-gradient(135deg,#ffe14d,#ffc400); border-radius:22px; padding:18px 20px; margin-bottom:14px; box-shadow:0 14px 30px -10px rgba(255,196,0,.6); }
+    .cart-glow { position:absolute; right:-40px; top:-50px; width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,.35); }
+    .carteira > *:not(.cart-glow) { position:relative; z-index:1; }
+    .cart-row1 { display:flex; align-items:center; justify-content:space-between; }
+    .cart-label { font-size:13px; font-weight:700; color:#5a4a00; display:flex; align-items:center; gap:7px; }
+    .cart-verif { font-size:11px; font-weight:800; color:#1f9d57; background:#fff; padding:4px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:5px; }
+    .cart-saldo { font-size:34px; font-weight:800; color:#0D0D0D; line-height:1.1; margin-top:8px; }
+    .cart-sub { font-size:11.5px; color:#6b5800; margin-top:2px; }
+    .cart-acts { display:flex; align-items:center; gap:12px; margin-top:14px; }
+    .cart-sacar { background:#0D0D0D; color:#fff; border:none; border-radius:13px; padding:12px 20px; font-family:inherit; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+    .cart-sacar i { color:var(--yellow); }
+    .cart-mini { margin-left:auto; text-align:right; } .cart-mini small { font-size:11px; color:#6b5800; display:block; } .cart-mini strong { font-size:15px; color:#0D0D0D; }
+    /* detalhe financeiro por corrida */
+    .fin-row { display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:13px; padding:11px 13px; margin-bottom:8px; cursor:pointer; }
+    .fin-row .fr-i { width:38px; height:38px; border-radius:10px; background:#e7f7ee; color:#1f9d57; display:grid; place-items:center; flex-shrink:0; }
+    .fin-row .fr-m { flex:1; min-width:0; } .fin-row .fr-m strong { font-size:13.5px; color:var(--ink); display:block; } .fin-row .fr-m small { font-size:11.5px; color:var(--text-soft); }
+    .fin-row .fr-v { text-align:right; } .fin-row .fr-v b { font-size:15px; color:#1f9d57; } .fin-row .fr-v small { display:block; font-size:10.5px; color:var(--text-soft); }
+    .nota-lin { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; } .nota-lin:last-child { border:none; }
+    .nota-lin span { color:var(--text-soft); } .nota-lin b { color:var(--ink); }
+    .nota-total { background:#0D0D0D; color:#fff; border-radius:12px; padding:13px 16px; display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+    .nota-total b { font-size:20px; color:var(--yellow); }
+    .sup-badge { background:#e23c3c; color:#fff; font-size:11px; font-weight:800; border-radius:999px; padding:1px 8px; margin-left:4px; }
   </style>
 </head>
 <body>
@@ -232,16 +255,31 @@
     <section class="dash-section tabpane" data-pane="financeiro">
       <div class="sec-head">
         <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-sack-dollar"></i></span>
-        <div class="sh-txt"><strong>Financeiro</strong><small>Quanto você faturou pela plataforma</small></div>
+        <div class="sh-txt"><strong>Financeiro</strong><small>Sua carteira, ganhos e comprovantes</small></div>
       </div>
+
+      <!-- CARTEIRA -->
+      <div class="carteira">
+        <div class="cart-glow"></div>
+        <div class="cart-row1"><span class="cart-label"><i class="fa-regular fa-eye"></i> Minha Carteira (R$)</span><span class="cart-verif"><i class="fa-solid fa-circle-check"></i> Verificado</span></div>
+        <div class="cart-saldo" id="cartSaldo">R$ 0,00</div>
+        <div class="cart-sub">Disponível para saque · ganhos líquidos acumulados</div>
+        <div class="cart-acts">
+          <button class="cart-sacar" id="btnSacar"><i class="fa-solid fa-money-bill-transfer"></i> Sacar</button>
+          <div class="cart-mini"><small>Recebido (mês)</small><strong id="cartMes">R$ 0,00</strong></div>
+        </div>
+      </div>
+
       <div class="stats-grid" style="margin-bottom:14px">
         <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div><div class="stat-num" id="f_semana">—</div><div class="stat-label">Esta semana</div></div>
         <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div><div class="stat-num" id="f_mes">—</div><div class="stat-label">Este mês</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flag-checkered"></i></div><div class="stat-num" id="f_atend">—</div><div class="stat-label">Atendimentos (mês)</div></div>
         <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-star"></i></div><div class="stat-num" id="f_aval">—</div><div class="stat-label">Avaliação</div></div>
       </div>
-      <p class="helper" style="margin-bottom:8px">Faturamento dos últimos 7 dias:</p>
+      <p class="helper" style="margin-bottom:8px">Faturamento (ganho líquido) dos últimos 7 dias:</p>
       <canvas id="fatChart"></canvas>
+      <h2 style="margin:18px 0 10px;font-size:15px"><i class="fa-solid fa-receipt"></i> Comprovantes por corrida</h2>
+      <div id="finDetalhe"><p class="helper">Sem corridas finalizadas ainda.</p></div>
     </section>
 
     <!-- PERFIL -->
@@ -342,6 +380,26 @@
     </div>
   </div>
 
+  <!-- MODAL SAQUE -->
+  <div class="modal-bg" id="modalSaque">
+    <div class="modal">
+      <h3><span><i class="fa-solid fa-money-bill-transfer"></i> Solicitar saque</span><span class="x" onclick="fecharModal('modalSaque')">✕</span></h3>
+      <p class="helper" style="margin-bottom:12px">Saldo disponível: <strong id="saqueSaldo" style="color:#1f9d57">R$ 0,00</strong></p>
+      <div class="field"><label>Valor do saque (R$)</label><input type="text" id="saqueValor" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label>Sua chave PIX</label><input type="text" id="saquePix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+      <button class="btn-primary" id="saqueConfirmar" style="margin-top:6px"><i class="fa-solid fa-paper-plane"></i> Solicitar saque</button>
+      <p class="form-msg" id="saqueMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL DETALHE DA CORRIDA (comprovante financeiro) -->
+  <div class="modal-bg" id="modalNota">
+    <div class="modal">
+      <h3><span><i class="fa-solid fa-receipt"></i> Detalhe da corrida</span><span class="x" onclick="fecharModal('modalNota')">✕</span></h3>
+      <div id="notaConteudo"></div>
+    </div>
+  </div>
+
   <div class="pdf-template" id="pdfTemplate"></div>
 
   <!-- CHAT com o cliente -->
@@ -362,6 +420,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
   <script src="/js/supabase-config.js"></script>
+  <script src="/js/suporte.js"></script>
   <script>
     const PID = sessionStorage.getItem('prestador_id');
     if (!PID || !sb) location.href = 'login.html';
@@ -548,8 +607,45 @@
 
     /* ---------- chamados + faturamento ---------- */
     const EXPIRA_MS = 5 * 60 * 1000;          // solicitação expira em 5 min
-    let fatChart = null, pendentesAtivos = [];
+    let fatChart = null, pendentesAtivos = [], saldoDisponivel = 0;
     const pdfGerados = new Set();
+
+    /* ---------- carteira: saque ---------- */
+    document.getElementById('btnSacar').addEventListener('click', () => {
+      document.getElementById('saqueSaldo').textContent = fmtR(saldoDisponivel);
+      document.getElementById('saqueValor').value = ''; document.getElementById('saquePix').value = '';
+      document.getElementById('saqueMsg').textContent = '';
+      abrirModal('modalSaque');
+    });
+    document.getElementById('saqueConfirmar').addEventListener('click', async () => {
+      const msg = document.getElementById('saqueMsg');
+      const valor = parseFloat(String(document.getElementById('saqueValor').value).replace(/\./g,'').replace(',','.')) || 0;
+      const pix = document.getElementById('saquePix').value.trim();
+      if (valor < 10) { msg.className='form-msg error'; msg.textContent='Valor mínimo de saque: R$ 10,00.'; return; }
+      if (valor > saldoDisponivel) { msg.className='form-msg error'; msg.textContent='Valor acima do saldo disponível.'; return; }
+      if (!pix) { msg.className='form-msg error'; msg.textContent='Informe sua chave PIX.'; return; }
+      const { error } = await sb.from('saques').insert({ prestador_id: PID, valor, chave_pix: pix, status: 'Pendente' });
+      if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
+      msg.className='form-msg ok'; msg.textContent='✓ Saque solicitado! Cai na sua conta em até 1 dia útil.';
+      setTimeout(()=>{ fecharModal('modalSaque'); carregarChamados(); }, 1200);
+    });
+
+    /* ---------- nota/comprovante financeiro de uma corrida ---------- */
+    function abrirNota(c) {
+      if (!c) return;
+      const dt = new Date(c.created_at).toLocaleString('pt-BR');
+      const lin = (l,v) => `<div class="nota-lin"><span>${l}</span><b>${v}</b></div>`;
+      document.getElementById('notaConteudo').innerHTML =
+        lin('Serviço', c.servico_solicitado||'Corrida') +
+        lin('Cliente', c.nome_cliente||'—') +
+        lin('Data', dt) +
+        lin('Distância', c.distancia_estimada_km!=null?(Number(c.distancia_estimada_km).toFixed(1).replace('.',',')+' km'):'—') +
+        lin('Valor pago pelo cliente', fmtR(c.valor_cliente!=null?c.valor_cliente:c.valor_servico)) +
+        lin('Taxa da plataforma', '− ' + fmtR(c.comissao_plataforma)) +
+        `<div class="nota-total"><span>Seu ganho líquido</span><b>${fmtR(c.ganho_prestador!=null?c.ganho_prestador:c.valor_servico)}</b></div>` +
+        `<p class="helper" style="margin-top:12px"><i class="fa-solid fa-info-circle"></i> A taxa da plataforma (15% + R$ 5) cobre processamento, mapa, suporte e operação.</p>`;
+      abrirModal('modalNota');
+    }
     function mmss(ms){ if(ms<0)ms=0; const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
     async function recusarChamado(c){ pararTracking(); await sb.from('chamados').update({ status:'Recusado' }).eq('id', c.id); carregarChamados(); }
     // contador regressivo das solicitações pendentes (atualiza a cada segundo)
@@ -571,11 +667,27 @@
       const now = new Date();
       const iniSem = new Date(now); iniSem.setDate(now.getDate()-now.getDay()); iniSem.setHours(0,0,0,0);
       const iniMes = new Date(now.getFullYear(), now.getMonth(), 1);
-      const soma = (arr) => arr.reduce((s,c)=>s+(Number(c.valor_servico)||0), 0);
+      const ganhoDe = (c) => Number(c.ganho_prestador != null ? c.ganho_prestador : (c.valor_servico || 0));
+      const soma = (arr) => arr.reduce((s,c)=>s + ganhoDe(c), 0);
       f_semana.textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniSem)));
       f_mes.textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniMes)));
       f_atend.textContent = fin.filter(c=>new Date(c.created_at)>=iniMes).length;
       desenharGrafico(fin);
+      // ---- CARTEIRA: saldo = ganhos finalizados - saques (não recusados) ----
+      const { data: sqs } = await sb.from('saques').select('valor,status').eq('prestador_id', PID);
+      const totalSaque = (sqs||[]).filter(s=>s.status!=='Recusado').reduce((s,x)=>s+Number(x.valor||0),0);
+      saldoDisponivel = Math.max(0, soma(fin) - totalSaque);
+      document.getElementById('cartSaldo').textContent = fmtR(saldoDisponivel);
+      document.getElementById('cartMes').textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniMes)));
+      // ---- DETALHE por corrida (comprovantes financeiros) ----
+      const det = document.getElementById('finDetalhe');
+      if (fin.length) {
+        det.innerHTML = fin.slice(0,20).map(c => { const d = new Date(c.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+          return `<div class="fin-row" data-nota="${c.id}"><span class="fr-i"><i class="fa-solid fa-truck-pickup"></i></span>
+            <div class="fr-m"><strong>${c.servico_solicitado||'Corrida'}</strong><small>${c.nome_cliente||'Cliente'} · ${d}</small></div>
+            <div class="fr-v"><b>${fmtR(ganhoDe(c))}</b><small>seu ganho</small></div></div>`; }).join('');
+        det.querySelectorAll('[data-nota]').forEach(r => r.onclick = () => abrirNota(fin.find(x=>x.id===r.dataset.nota)));
+      } else det.innerHTML = '<p class="helper">Sem corridas finalizadas ainda.</p>';
 
       // expira solicitações pendentes com mais de 5 min
       const agora = Date.now();
@@ -683,7 +795,7 @@
         const d=new Date(now); d.setDate(now.getDate()-i); d.setHours(0,0,0,0);
         const d2=new Date(d); d2.setDate(d.getDate()+1);
         labels.push(d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
-        valores.push(fin.filter(c=>{const t=new Date(c.created_at); return t>=d && t<d2;}).reduce((s,c)=>s+(Number(c.valor_servico)||0),0));
+        valores.push(fin.filter(c=>{const t=new Date(c.created_at); return t>=d && t<d2;}).reduce((s,c)=>s+(Number(c.ganho_prestador!=null?c.ganho_prestador:c.valor_servico)||0),0));
       }
       const ctx = document.getElementById('fatChart');
       if (fatChart) fatChart.destroy();
