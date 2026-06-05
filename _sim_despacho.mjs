@@ -32,6 +32,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const ch = await api('chamados', { method: 'POST', body: JSON.stringify({
     status: 'Pendente', servico_solicitado: 'Guincho Leve', categoria_servico: 'guincho_leve',
     nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554', codigo_confirmacao: PIN, codigo_entrega: PIN_ENTREGA,
+    modelo_veiculo: 'Chevrolet Onix prata', placa_veiculo: 'RIO2A45',
     local_partida_lat: P.latitude + 0.002, local_partida_lng: P.longitude + 0.002,
     local_chegada_lat: -22.9240, local_chegada_lng: -43.2330,
     distancia_estimada_km: dist, endereco_destino: 'Oficina Central, Tijuca - RJ',

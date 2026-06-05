@@ -106,10 +106,11 @@
     /* avaliação estilo 99 com banner */
     .modal-avaliacao.show { overflow-y:auto; }
     .av-card-banner { padding:0; overflow:hidden; max-width:420px; }
-    .av-banner { width:100%; aspect-ratio:16/10; background:linear-gradient(135deg,#ffe14d,#ffc400); position:relative; }
-    .av-banner img { width:100%; height:100%; object-fit:cover; display:block; }
+    .av-banner { width:100%; background:linear-gradient(135deg,#ffe14d,#ffc400); position:relative; line-height:0; }
+    .av-banner img { width:100%; height:auto; display:block; }
+    .av-banner.noimg { aspect-ratio:16/9; }
     .av-banner.noimg img { display:none; }
-    .av-banner.noimg::after { content:"\f4d7"; font-family:"Font Awesome 6 Free"; font-weight:900; color:#0d0d0d; font-size:54px; position:absolute; inset:0; display:grid; place-items:center; }
+    .av-banner.noimg::after { content:"\f4d7"; font-family:"Font Awesome 6 Free"; font-weight:900; color:#0d0d0d; font-size:54px; position:absolute; inset:0; display:grid; place-items:center; line-height:1; }
     .av-body { padding:22px 22px 26px; text-align:center; }
     .av-body h2 { font-size:21px; }
     .av-status { display:flex; align-items:center; gap:9px; background:#fff8d6; border-radius:13px; padding:12px 14px; font-size:13px; font-weight:600; color:#7a5e00; margin:16px 0; text-align:left; }
@@ -221,19 +222,21 @@
         </div>
       </div>
       <!-- cadastro do cliente (após avaliar) -->
-      <div class="av-card" id="avCadastro" style="display:none">
-        <div class="check" style="background:#fff8d6;color:#caa200"><i class="fa-solid fa-user-plus"></i></div>
-        <h2>Crie sua conta</h2>
-        <p class="sub">Guarde seus dados e veja seu histórico nas próximas vezes. Leva 10 segundos.</p>
-        <div style="margin-top:18px">
-          <input id="cadNome" placeholder="Nome completo">
-          <input id="cadEmail" type="email" placeholder="E-mail">
-          <input id="cadCpf" placeholder="CPF (para recibo do seguro)" inputmode="numeric">
-          <input id="cadSenha" type="password" placeholder="Crie uma senha">
+      <div class="av-card av-card-banner" id="avCadastro" style="display:none">
+        <div class="av-banner"><img src="/img/cadastro_cliente.png" alt="Busca Guincho" onerror="this.parentNode.classList.add('noimg')"></div>
+        <div class="av-body">
+          <h2>Crie sua conta 🚀</h2>
+          <p class="sub">Guarde seus dados, veja seu histórico e chame mais rápido nas próximas vezes. Leva 10 segundos.</p>
+          <div style="margin-top:18px">
+            <input id="cadNome" placeholder="Nome completo">
+            <input id="cadEmail" type="email" placeholder="E-mail">
+            <input id="cadCpf" placeholder="CPF (para recibo do seguro)" inputmode="numeric">
+            <input id="cadSenha" type="password" placeholder="Crie uma senha">
+          </div>
+          <button class="btn-enviar" id="btnCriarConta">Criar minha conta</button>
+          <button class="btn-pular" id="btnPularCadastro">Agora não, obrigado</button>
+          <p class="msg" id="cadMsg" style="font-size:13px;font-weight:600;margin-top:8px;min-height:16px"></p>
         </div>
-        <button class="btn-enviar" id="btnCriarConta">Criar minha conta</button>
-        <button class="btn-pular" id="btnPularCadastro">Agora não, obrigado</button>
-        <p class="msg" id="cadMsg" style="font-size:13px;font-weight:600;margin-top:8px;min-height:16px"></p>
       </div>
       <div class="av-card av-obrigado" id="avObrigado">
         <div class="check"><i class="fa-solid fa-heart"></i></div>
