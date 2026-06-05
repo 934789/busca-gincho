@@ -20,7 +20,8 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     latitude_atual: P.latitude, longitude_atual: P.longitude }) });
 
   // 2) cria um chamado PENDENTE pertinho dele -> o trigger 'despachar_chamado' notifica
-  const PIN = '4321';
+  const PIN = '4321';        // retirada
+  const PIN_ENTREGA = '8765'; // entrega no destino
   // precificação (Guincho Leve, 15 km -> tem km excedente)
   const dist = 15, taxaSaida = 180, kmExc = 8, franquia = 10;
   const h = new Date().getHours(); const mult = (h >= 22 || h < 6) ? 1.2 : 1.0;
@@ -30,7 +31,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const ganho = +(valorCliente - comissao).toFixed(2);
   const ch = await api('chamados', { method: 'POST', body: JSON.stringify({
     status: 'Pendente', servico_solicitado: 'Guincho Leve', categoria_servico: 'guincho_leve',
-    nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554', codigo_confirmacao: PIN,
+    nome_cliente: 'Mariana Lopes', telefone_cliente: '21997766554', codigo_confirmacao: PIN, codigo_entrega: PIN_ENTREGA,
     local_partida_lat: P.latitude + 0.002, local_partida_lng: P.longitude + 0.002,
     local_chegada_lat: -22.9240, local_chegada_lng: -43.2330,
     distancia_estimada_km: dist, endereco_destino: 'Oficina Central, Tijuca - RJ',
@@ -45,8 +46,9 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     if (c[0].status === 'Notificando') {
       console.log('\n✅ DESPACHADO! status=Notificando');
       console.log('   >>> Abra o PAINEL do prestador (logado): aparece o modal Aceitar/Recusar (2 min).');
-      console.log('   >>> No "Cheguei ao cliente", digite o PIN do cliente: ' + PIN);
-      console.log('   >>> Link do cliente (mostra o PIN ' + PIN + '): http://localhost:5500/rastreio.html?t=' + ch[0].link_token);
+      console.log('   >>> "Cheguei ao cliente" -> PIN de RETIRADA: ' + PIN);
+      console.log('   >>> "Finalizar" -> PIN de ENTREGA: ' + PIN_ENTREGA + ' (ou "cliente ausente -> foto")');
+      console.log('   >>> Link do cliente: http://localhost:5500/rastreio.html?t=' + ch[0].link_token);
       return;
     }
     process.stdout.write('.');

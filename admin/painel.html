@@ -9,6 +9,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .a-tabpane { display:none; } .a-tabpane.active { display:block; }
+    .dash { padding-bottom:80px; }
+    .a-bnav { position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto; background:#fff; border-top:1px solid var(--line); display:flex; padding:8px 2px calc(8px + env(safe-area-inset-bottom)); z-index:40; box-shadow:0 -6px 20px rgba(0,0,0,.06); }
+    .a-bnav button { flex:1; border:none; background:transparent; display:flex; flex-direction:column; align-items:center; gap:3px; font-family:inherit; font-size:9.5px; font-weight:700; color:#9aa1ac; cursor:pointer; padding:5px 0; position:relative; }
+    .a-bnav button i { font-size:16px; }
+    .a-bnav button.active { color:var(--ink); } .a-bnav button.active i { color:#caa200; }
+    .a-bnav .nb-badge { position:absolute; top:-1px; left:50%; margin-left:6px; background:#e23c3c; color:#fff; font-size:8.5px; font-weight:800; border-radius:999px; padding:0 5px; }
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:16px; }
+    .kpi { background:#fff; border:1px solid var(--line); border-radius:16px; padding:15px; }
+    .kpi .kpi-ico { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:15px; margin-bottom:9px; }
+    .kpi .kpi-num { font-size:22px; font-weight:800; color:var(--ink); line-height:1; }
+    .kpi .kpi-lbl { font-size:11.5px; color:var(--text-soft); margin-top:3px; }
+    .cli-row { display:flex; align-items:center; gap:11px; border:1px solid var(--line); border-radius:13px; padding:11px 13px; margin-bottom:8px; cursor:pointer; }
+    .cli-row .ci { width:38px; height:38px; border-radius:50%; background:#eef2f7; color:#2b3a4f; display:grid; place-items:center; flex-shrink:0; }
+    .cli-row .cm { flex:1; min-width:0; } .cli-row .cm strong { font-size:13.5px; color:var(--ink); display:block; } .cli-row .cm small { font-size:11.5px; color:var(--text-soft); }
+    .cli-row .cv { text-align:right; } .cli-row .cv b { font-size:14px; color:#1f9d57; } .cli-row .cv small { display:block; font-size:10.5px; color:var(--text-soft); }
+    .saque-row { display:flex; align-items:center; gap:11px; border:1px solid var(--line); border-radius:13px; padding:11px 13px; margin-bottom:8px; flex-wrap:wrap; }
+    .saque-row .sm { flex:1; min-width:150px; } .saque-row .sm strong { font-size:14px; color:var(--ink); display:block; } .saque-row .sm small { font-size:11.5px; color:var(--text-soft); word-break:break-all; }
+    .saque-acts { display:flex; gap:6px; } .saque-acts button { border:none; border-radius:8px; padding:7px 12px; font-family:inherit; font-weight:700; font-size:12px; cursor:pointer; }
+    .sq-pagar { background:#e7f7ee; color:#1f9d57; } .sq-recusar { background:#ffe0e0; color:#e23c3c; }
+    .sq-pill { font-size:10px; font-weight:800; padding:3px 9px; border-radius:999px; }
+    .sqp-Pendente { background:#fff6d6; color:#9a7400; } .sqp-Pago { background:#e0f7ea; color:#1f9d57; } .sqp-Recusado { background:#f1f1f4; color:#8a8f98; }
+  </style>
 </head>
 <body>
   <div class="dash">
@@ -18,17 +42,24 @@
       <button class="btn-ghost" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
     </header>
 
-    <!-- ATIVIDADE EM TEMPO REAL -->
-    <section class="dash-section">
+    <!-- ===== INÍCIO (dashboard) ===== -->
+    <section class="dash-section a-tabpane active" data-pane="inicio">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-gauge-high"></i></span>
+        <div class="sh-txt"><strong>Visão geral</strong><small>Resumo da plataforma</small></div>
+      </div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+    </section>
+    <section class="dash-section a-tabpane active" data-pane="inicio">
       <div class="sec-head">
         <span class="sh-ico" style="background:#e7f7ee;color:#1f9d57"><i class="fa-solid fa-bolt"></i></span>
-        <div class="sh-txt"><strong>Atividade em tempo real <span class="live-dot"></span></strong><small>Novos chamados, mudanças de status e mensagens — ao vivo</small></div>
+        <div class="sh-txt"><strong>Atividade em tempo real <span class="live-dot"></span></strong><small>Chamados, status e mensagens — ao vivo</small></div>
       </div>
       <div id="feedAtivo" class="feed-box"><p class="helper">Aguardando eventos...</p></div>
     </section>
 
-    <!-- SUPORTE (chatbot híbrido) -->
-    <section class="dash-section">
+    <!-- ===== SUPORTE ===== -->
+    <section class="dash-section a-tabpane" data-pane="suporte">
       <div class="sec-head">
         <span class="sh-ico" style="background:#fff3df;color:#caa200"><i class="fa-solid fa-headset"></i></span>
         <div class="sh-txt"><strong>Suporte <span class="sup-badge" id="supBadge" style="display:none">0</span></strong><small>Conversas aguardando atendente humano</small></div>
@@ -36,8 +67,8 @@
       <div id="supLista"><p class="helper">Carregando...</p></div>
     </section>
 
-    <!-- RELATÓRIO DE CHAMADOS -->
-    <section class="dash-section">
+    <!-- ===== CHAMADOS ===== -->
+    <section class="dash-section a-tabpane" data-pane="chamados">
       <div class="sec-head">
         <span class="sh-ico" style="background:#fff6d6;color:#9a7400"><i class="fa-solid fa-clipboard-list"></i></span>
         <div class="sh-txt"><strong>Relatório de Chamados</strong><small>Todos os chamados da plataforma — data, hora, prestador e status</small></div>
@@ -60,8 +91,8 @@
       <div id="relLista"><p class="helper">Carregando...</p></div>
     </section>
 
-    <!-- CADASTRO -->
-    <section class="dash-section">
+    <!-- ===== PRESTADORES (cadastro) ===== -->
+    <section class="dash-section a-tabpane" data-pane="prestadores">
       <div class="sec-head">
         <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-user-plus"></i></span>
         <div class="sh-txt"><strong>Cadastrar prestador</strong><small>Adicione um novo guincho à plataforma</small></div>
@@ -102,17 +133,49 @@
       </form>
     </section>
 
-    <!-- GESTÃO -->
-    <section class="dash-section">
+    <!-- ===== PRESTADORES (gestão) ===== -->
+    <section class="dash-section a-tabpane" data-pane="prestadores">
       <div class="sec-head">
         <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-users-gear"></i></span>
-        <div class="sh-txt"><strong>Prestadores</strong><small>Editar, excluir, ver métricas e ativar/ocultar</small></div>
+        <div class="sh-txt"><strong>Prestadores cadastrados</strong><small>Editar, excluir, ver métricas e ativar/ocultar</small></div>
       </div>
       <div class="busca-prest"><i class="fa-solid fa-magnifying-glass"></i><input id="buscaPrest" placeholder="Buscar por nome, CPF/CNPJ ou celular..."></div>
       <p class="helper" id="listaInfo" style="margin:10px 0 12px">Mostrando os prestadores com chamados mais recentes.</p>
       <div id="lista"><p class="helper">Carregando...</p></div>
     </section>
+
+    <!-- ===== CLIENTES ===== -->
+    <section class="dash-section a-tabpane" data-pane="clientes">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#eef2f7;color:#2b3a4f"><i class="fa-solid fa-users"></i></span>
+        <div class="sh-txt"><strong>Clientes</strong><small>Quem usou a plataforma — chamados e total gasto</small></div>
+      </div>
+      <div class="busca-prest"><i class="fa-solid fa-magnifying-glass"></i><input id="buscaCli" placeholder="Buscar cliente por nome ou telefone..."></div>
+      <div id="cliLista" style="margin-top:12px"><p class="helper">Carregando...</p></div>
+    </section>
+
+    <!-- ===== FINANCEIRO (plataforma + saques) ===== -->
+    <section class="dash-section a-tabpane" data-pane="financeiro">
+      <div class="sec-head">
+        <span class="sh-ico" style="background:#e0f7ea;color:#1f9d57"><i class="fa-solid fa-sack-dollar"></i></span>
+        <div class="sh-txt"><strong>Financeiro da plataforma</strong><small>Faturamento, comissão e saques dos prestadores</small></div>
+      </div>
+      <div class="kpi-grid" id="finKpis"></div>
+      <h2 style="margin:6px 0 12px;font-size:15px"><i class="fa-solid fa-money-bill-transfer"></i> Saques <span class="sup-badge" id="saqueBadge" style="display:none">0</span></h2>
+      <p class="helper" style="margin-bottom:10px">Solicitações dos prestadores — aprove (pago) ou recuse.</p>
+      <div id="saqueLista"><p class="helper">Carregando...</p></div>
+    </section>
   </div>
+
+  <!-- BOTTOM NAV (abas) -->
+  <nav class="a-bnav">
+    <button class="active" data-pane="inicio"><i class="fa-solid fa-gauge-high"></i><span>Início</span></button>
+    <button data-pane="chamados"><i class="fa-solid fa-clipboard-list"></i><span>Chamados</span></button>
+    <button data-pane="prestadores"><i class="fa-solid fa-users-gear"></i><span>Prestadores</span></button>
+    <button data-pane="clientes"><i class="fa-solid fa-users"></i><span>Clientes</span></button>
+    <button data-pane="financeiro"><i class="fa-solid fa-sack-dollar"></i><span>Financeiro</span></button>
+    <button data-pane="suporte"><i class="fa-solid fa-headset"></i><span>Suporte</span><span class="nb-badge" id="nbSup" style="display:none">0</span></button>
+  </nav>
 
   <!-- MODAL EDITAR -->
   <div class="modal-bg" id="modalEditar">
@@ -527,8 +590,9 @@
       const { data } = await sb.from('suporte_conversas').select('*').order('updated_at', { ascending:false }).limit(40);
       const lista = data || [];
       const humanos = lista.filter(c => c.status === 'humano');
-      const badge = document.getElementById('supBadge');
-      if (humanos.length) { badge.textContent = humanos.length; badge.style.display = 'inline-block'; } else badge.style.display = 'none';
+      const badge = document.getElementById('supBadge'), nb = document.getElementById('nbSup');
+      if (humanos.length) { badge.textContent = humanos.length; badge.style.display = 'inline-block'; nb.textContent = humanos.length; nb.style.display = 'inline-block'; }
+      else { badge.style.display = 'none'; nb.style.display = 'none'; }
       const box = document.getElementById('supLista');
       const mostrar = humanos.length ? humanos : lista.slice(0, 8);
       if (!mostrar.length) { box.innerHTML = '<p class="helper">Nenhuma conversa de suporte ainda.</p>'; return; }
@@ -578,10 +642,111 @@
       fecharModal('modalSuporte'); carregarSuporte();
     };
 
+    /* ================= ABAS (bottom nav) ================= */
+    const fmtR2 = (v) => 'R$ ' + (Number(v)||0).toFixed(2).replace('.', ',');
+    function irParaAba(pane) {
+      document.querySelectorAll('.a-tabpane').forEach(s => s.classList.toggle('active', s.dataset.pane === pane));
+      document.querySelectorAll('.a-bnav button').forEach(b => b.classList.toggle('active', b.dataset.pane === pane));
+      window.scrollTo(0, 0);
+      if (pane === 'inicio') carregarKpis();
+      if (pane === 'clientes') carregarClientes();
+      if (pane === 'financeiro') { carregarKpisFin(); carregarSaques(); }
+    }
+    document.querySelectorAll('.a-bnav button').forEach(b => b.onclick = () => irParaAba(b.dataset.pane));
+
+    /* ---------- KPIs do dashboard (Início) ---------- */
+    const kpiCard = (ico,cor,bg,num,lbl) => `<div class="kpi"><div class="kpi-ico" style="background:${bg};color:${cor}"><i class="fa-solid ${ico}"></i></div><div class="kpi-num">${num}</div><div class="kpi-lbl">${lbl}</div></div>`;
+    async function carregarKpis() {
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const { data: chs } = await sb.from('chamados').select('status,created_at,valor_cliente,comissao_plataforma,nome_cliente,telefone_cliente');
+      const lista = chs || [];
+      const emAndamento = lista.filter(c => ['Notificando','Aceito','A Caminho','Chegou','Iniciado'].includes(c.status)).length;
+      const hojeQ = lista.filter(c => new Date(c.created_at) >= hoje).length;
+      const fin = lista.filter(c => c.status === 'Finalizado');
+      const fat = fin.reduce((s,c)=>s+(Number(c.valor_cliente)||0),0);
+      const clientes = new Set(lista.map(c => c.telefone_cliente || c.nome_cliente).filter(Boolean)).size;
+      const { count: nPrest } = await sb.from('prestadores').select('id', { count:'exact', head:true });
+      const { count: nOnline } = await sb.from('prestadores').select('id', { count:'exact', head:true }).eq('online', true);
+      document.getElementById('kpiGrid').innerHTML =
+        kpiCard('fa-bolt','#9a7400','#fff6d6', emAndamento, 'Em andamento') +
+        kpiCard('fa-calendar-day','#2b7de9','#e7f0ff', hojeQ, 'Chamados hoje') +
+        kpiCard('fa-truck','#1f9d57','#e7f7ee', (nOnline||0)+'/'+(nPrest||0), 'Guinchos online') +
+        kpiCard('fa-users','#2b3a4f','#eef2f7', clientes, 'Clientes atendidos') +
+        kpiCard('fa-money-bill-wave','#1f9d57','#e7f7ee', fmtR2(fat), 'Faturado (total)') +
+        kpiCard('fa-flag-checkered','#caa200','#fff6d6', fin.length, 'Corridas concluídas');
+    }
+
+    /* ---------- CLIENTES ---------- */
+    async function carregarClientes(filtro) {
+      const { data } = await sb.from('chamados').select('nome_cliente,telefone_cliente,valor_cliente,status,created_at').order('created_at',{ascending:false});
+      const map = {};
+      (data||[]).forEach(c => {
+        const k = c.telefone_cliente || c.nome_cliente || '—';
+        if (!map[k]) map[k] = { nome: c.nome_cliente||'Cliente', tel: c.telefone_cliente||'', qtd:0, total:0, ultimo:c.created_at };
+        map[k].qtd++; if (c.status==='Finalizado') map[k].total += Number(c.valor_cliente)||0;
+      });
+      let arr = Object.values(map);
+      if (filtro) { const f = filtro.toLowerCase(); arr = arr.filter(x => (x.nome||'').toLowerCase().includes(f) || (x.tel||'').includes(f)); }
+      const box = document.getElementById('cliLista');
+      if (!arr.length) { box.innerHTML = '<p class="helper">Nenhum cliente encontrado.</p>'; return; }
+      box.innerHTML = arr.map(x => { const d = new Date(x.ultimo).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+        return `<div class="cli-row"><span class="ci"><i class="fa-solid fa-user"></i></span>
+          <div class="cm"><strong>${x.nome}</strong><small>${x.tel||'sem telefone'} · ${x.qtd} chamado(s) · último ${d}</small></div>
+          <div class="cv"><b>${fmtR2(x.total)}</b><small>total gasto</small></div></div>`; }).join('');
+    }
+    let buscaCliT; document.getElementById('buscaCli').addEventListener('input', e => { clearTimeout(buscaCliT); const v=e.target.value.trim(); buscaCliT=setTimeout(()=>carregarClientes(v),250); });
+
+    /* ---------- FINANCEIRO da plataforma + SAQUES ---------- */
+    async function carregarKpisFin() {
+      const { data: chs } = await sb.from('chamados').select('status,valor_cliente,comissao_plataforma,ganho_prestador,created_at');
+      const fin = (chs||[]).filter(c=>c.status==='Finalizado');
+      const mes = new Date(); mes.setDate(1); mes.setHours(0,0,0,0);
+      const fat = fin.reduce((s,c)=>s+(Number(c.valor_cliente)||0),0);
+      const com = fin.reduce((s,c)=>s+(Number(c.comissao_plataforma)||0),0);
+      const comMes = fin.filter(c=>new Date(c.created_at)>=mes).reduce((s,c)=>s+(Number(c.comissao_plataforma)||0),0);
+      const { data: sqs } = await sb.from('saques').select('valor,status');
+      const aPagar = (sqs||[]).filter(s=>s.status==='Pendente').reduce((s,x)=>s+Number(x.valor||0),0);
+      document.getElementById('finKpis').innerHTML =
+        kpiCard('fa-money-bill-wave','#1f9d57','#e7f7ee', fmtR2(fat), 'Faturamento total') +
+        kpiCard('fa-hand-holding-dollar','#caa200','#fff6d6', fmtR2(com), 'Comissão (total)') +
+        kpiCard('fa-calendar-day','#2b7de9','#e7f0ff', fmtR2(comMes), 'Comissão (mês)') +
+        kpiCard('fa-money-bill-transfer','#e23c3c','#ffe0e0', fmtR2(aPagar), 'Saques a pagar');
+    }
+    async function carregarSaques() {
+      const { data } = await sb.from('saques').select('*, prestadores(nome)').order('created_at',{ascending:false}).limit(50);
+      const lista = data || [];
+      const pend = lista.filter(s=>s.status==='Pendente');
+      const badge = document.getElementById('saqueBadge');
+      if (pend.length) { badge.textContent = pend.length; badge.style.display='inline-block'; } else badge.style.display='none';
+      const box = document.getElementById('saqueLista');
+      if (!lista.length) { box.innerHTML='<p class="helper">Nenhuma solicitação de saque.</p>'; return; }
+      box.innerHTML = lista.map(s => {
+        const nome = (s.prestadores && s.prestadores.nome) || 'Prestador';
+        const dt = new Date(s.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const acts = s.status==='Pendente'
+          ? `<div class="saque-acts"><button class="sq-pagar" data-pg="${s.id}"><i class="fa-solid fa-check"></i> Pagar</button><button class="sq-recusar" data-rc="${s.id}"><i class="fa-solid fa-xmark"></i> Recusar</button></div>`
+          : `<span class="sq-pill sqp-${s.status}">${s.status}</span>`;
+        return `<div class="saque-row"><div class="sm"><strong>${nome} — ${fmtR2(s.valor)}</strong><small>PIX: ${s.chave_pix||'—'} · ${dt}</small></div>${acts}</div>`;
+      }).join('');
+      box.querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>mudarSaque(b.dataset.pg,'Pago'));
+      box.querySelectorAll('[data-rc]').forEach(b=>b.onclick=()=>mudarSaque(b.dataset.rc,'Recusado'));
+    }
+    async function mudarSaque(id, status) {
+      const ok = status==='Pago' ? confirm('Confirmar que o PIX foi PAGO a este prestador?') : confirm('Recusar este saque? O valor volta ao saldo do prestador.');
+      if (!ok) return;
+      await sb.from('saques').update({ status }).eq('id', id);
+      carregarSaques(); carregarKpisFin();
+    }
+
     carregarRelatorio();
     listar();
     carregarSuporte();
+    carregarKpis();
     escutarTudo();
+    // saque novo / mudança -> atualiza badges quando o admin está na aba
+    sb.channel('admin-saques').on('postgres_changes', { event:'*', schema:'public', table:'saques' }, () => {
+      if (document.querySelector('.a-tabpane[data-pane="financeiro"]').classList.contains('active')) { carregarSaques(); carregarKpisFin(); }
+    }).subscribe();
   </script>
 </body>
 </html>

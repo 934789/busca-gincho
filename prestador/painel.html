@@ -269,6 +269,7 @@
           <div class="cart-mini"><small>Recebido (mês)</small><strong id="cartMes">R$ 0,00</strong></div>
         </div>
       </div>
+      <div id="saquesPrest"></div>
 
       <div class="stats-grid" style="margin-bottom:14px">
         <div class="stat-card accent"><div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div><div class="stat-num" id="f_semana">—</div><div class="stat-label">Esta semana</div></div>
@@ -626,7 +627,7 @@
       if (!pix) { msg.className='form-msg error'; msg.textContent='Informe sua chave PIX.'; return; }
       const { error } = await sb.from('saques').insert({ prestador_id: PID, valor, chave_pix: pix, status: 'Pendente' });
       if (error) { msg.className='form-msg error'; msg.textContent='Erro: '+error.message; return; }
-      msg.className='form-msg ok'; msg.textContent='✓ Saque solicitado! Cai na sua conta em até 1 dia útil.';
+      msg.className='form-msg ok'; msg.textContent='✓ Saque solicitado! Está EM ANÁLISE pelo admin — você recebe assim que for aprovado.';
       setTimeout(()=>{ fecharModal('modalSaque'); carregarChamados(); }, 1200);
     });
 
@@ -674,9 +675,22 @@
       f_atend.textContent = fin.filter(c=>new Date(c.created_at)>=iniMes).length;
       desenharGrafico(fin);
       // ---- CARTEIRA: saldo = ganhos finalizados - saques (não recusados) ----
-      const { data: sqs } = await sb.from('saques').select('valor,status').eq('prestador_id', PID);
+      const { data: sqs } = await sb.from('saques').select('valor,status,created_at,chave_pix').eq('prestador_id', PID).order('created_at',{ascending:false});
       const totalSaque = (sqs||[]).filter(s=>s.status!=='Recusado').reduce((s,x)=>s+Number(x.valor||0),0);
       saldoDisponivel = Math.max(0, soma(fin) - totalSaque);
+      // lista de saques (em análise / pago / recusado)
+      const sp = document.getElementById('saquesPrest');
+      if (sqs && sqs.length) {
+        const rotulo = { Pendente:'Em análise', Pago:'Pago ✓', Recusado:'Recusado' };
+        const cor = { Pendente:'#9a7400', Pago:'#1f9d57', Recusado:'#e23c3c' };
+        const bg  = { Pendente:'#fff6d6', Pago:'#e0f7ea', Recusado:'#ffe0e0' };
+        sp.innerHTML = '<p class="helper" style="margin:14px 0 8px"><i class="fa-solid fa-money-bill-transfer"></i> Meus saques</p>' + sqs.slice(0,6).map(s => {
+          const d = new Date(s.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+          return `<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:11px;padding:10px 13px;margin-bottom:7px">
+            <div><strong style="font-size:14px">${fmtR(s.valor)}</strong><br><small style="color:var(--text-soft);font-size:11px">${d} · PIX ${s.chave_pix||'—'}</small></div>
+            <span style="font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;background:${bg[s.status]};color:${cor[s.status]}">${rotulo[s.status]||s.status}</span>
+          </div>`; }).join('');
+      } else sp.innerHTML = '';
       document.getElementById('cartSaldo').textContent = fmtR(saldoDisponivel);
       document.getElementById('cartMes').textContent = fmtR(soma(fin.filter(c=>new Date(c.created_at)>=iniMes)));
       // ---- DETALHE por corrida (comprovantes financeiros) ----
