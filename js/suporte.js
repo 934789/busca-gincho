@@ -11,7 +11,8 @@
   .sup-sheet{background:#f4f5f7;width:100%;max-width:480px;height:86%;border-radius:24px 24px 0 0;display:flex;flex-direction:column;animation:supUp .3s ease;font-family:'Poppins',system-ui,sans-serif}
   @keyframes supUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
   .sup-head{background:#0D0D0D;color:#fff;border-radius:24px 24px 0 0;padding:16px 18px;display:flex;align-items:center;gap:12px}
-  .sup-head .av{width:42px;height:42px;border-radius:50%;background:#ffdd00;color:#0D0D0D;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+  .sup-head .av{width:44px;height:44px;border-radius:50%;background:#ffdd00;color:#0D0D0D;display:grid;place-items:center;font-size:18px;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.25)}
+  .sup-head .av img{width:100%;height:100%;object-fit:cover;display:block}
   .sup-head strong{font-size:15px;display:block} .sup-head small{font-size:11.5px;color:#9aa1ac}
   .sup-head .sup-x{margin-left:auto;width:36px;height:36px;border:none;background:#222;color:#fff;border-radius:50%;font-size:16px;cursor:pointer}
   .sup-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:9px}
@@ -33,9 +34,10 @@
   ov.innerHTML = `
     <div class="sup-sheet">
       <div class="sup-head">
-        <div class="av"><i class="fa-solid fa-headset"></i></div>
-        <div><strong>Suporte Busca Guincho</strong><small id="supStatus">Assistente virtual</small></div>
-        <button class="sup-x" id="supX"><i class="fa-solid fa-xmark"></i></button>
+        <div class="av"><img src="/img/agente_sac.png" alt="Bruna"></div>
+        <div><strong>Bruna</strong><small id="supStatus">Atendimento BuscaGuincho</small></div>
+        <button class="sup-x" id="supNova" title="Encerrar e iniciar nova conversa"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="sup-x" id="supX" style="margin-left:8px"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="sup-msgs" id="supMsgs"></div>
       <div class="sup-botoes" id="supBotoes"></div>
@@ -61,7 +63,7 @@
     { q: 'Consigo reembolso no meu seguro?', a: () => 'Sim! Se o seu seguro tem a modalidade "Livre Escolha", basta solicitar o reembolso a eles. Ao final da corrida, geramos um PDF detalhado com o recibo do prestador e as fotos do atendimento, que serve como comprovação para a seguradora.' },
   ];
 
-  let conversaId = null, canal = null, uTipo = 'cliente', uId = null, uNome = '', uRef = null;
+  let conversaId = null, canal = null, uTipo = 'cliente', uId = null, uNome = '', uRef = null, lastOpts = {};
   const som = new Audio('/audio/chat.mp3'); som.preload = 'auto';
 
   function addMsg(m) {
@@ -94,6 +96,7 @@
 
   window.abrirSuporte = async function (opts) {
     opts = opts || {};
+    lastOpts = opts;
     if (typeof sb === 'undefined' || !sb) { alert('Suporte indisponível no momento.'); return; }
     uTipo = opts.userTipo || 'cliente';
     uNome = opts.userNome || (uTipo === 'prestador' ? 'Prestador' : 'Cliente');
@@ -104,19 +107,20 @@
     const box = document.getElementById('supMsgs'); box.innerHTML = '<div class="sup-msg bot">Carregando...</div>';
 
     // acha a conversa do usuário ou cria
-    const { data: cs } = await sb.from('suporte_conversas').select('*').eq('user_id', uId).order('updated_at', { ascending: false }).limit(1);
+    // reaproveita só conversa AINDA ATIVA (bot/humano). Resolvidas começam do zero.
+    const { data: cs } = await sb.from('suporte_conversas').select('*').eq('user_id', uId).neq('status', 'resolvido').order('updated_at', { ascending: false }).limit(1);
     if (cs && cs.length) {
       conversaId = cs[0].id;
-      document.getElementById('supStatus').textContent = cs[0].status === 'humano' ? 'Aguardando atendente humano...' : 'Assistente virtual';
+      document.getElementById('supStatus').textContent = cs[0].status === 'humano' ? 'Aguardando atendente humano...' : 'Atendimento BuscaGuincho';
       if (uRef && cs[0].user_ref !== uRef) sb.from('suporte_conversas').update({ user_ref: uRef }).eq('id', conversaId).then(()=>{});
     } else {
       const { data: nv } = await sb.from('suporte_conversas').insert({ user_id: uId, user_nome: uNome, user_tipo: uTipo, user_ref: uRef, status: 'bot' }).select('id').single();
-      conversaId = nv.id; document.getElementById('supStatus').textContent = 'Assistente virtual';
+      conversaId = nv.id; document.getElementById('supStatus').textContent = 'Atendimento BuscaGuincho';
     }
     // histórico
     const { data: msgs } = await sb.from('suporte_mensagens').select('*').eq('conversa_id', conversaId).order('created_at', { ascending: true });
     box.innerHTML = '';
-    if (!msgs || !msgs.length) addMsg({ enviado_por: 'bot', texto: `Olá, ${uNome.split(' ')[0]}! 👋 Sou o assistente do Busca Guincho. Toque numa dúvida abaixo ou fale com um atendente.` });
+    if (!msgs || !msgs.length) addMsg({ enviado_por: 'bot', texto: `Olá, sou a Bruna 👋 Atendimento BuscaGuincho.\nComo posso te ajudar? Toque numa dúvida abaixo ou escreva sua mensagem.` });
     (msgs || []).forEach(addMsg);
     renderBotoes();
 
@@ -131,6 +135,16 @@
   };
 
   document.getElementById('supX').onclick = () => { ov.classList.remove('open'); if (canal) { sb.removeChannel(canal); canal = null; } };
+  // "Nova conversa": encerra a atual (resolvido) e reabre do zero
+  document.getElementById('supNova').onclick = async () => {
+    if (conversaId) {
+      if (!confirm('Encerrar este atendimento e começar uma nova conversa?')) return;
+      await sb.from('suporte_conversas').update({ status: 'resolvido', updated_at: new Date().toISOString() }).eq('id', conversaId);
+      if (canal) { sb.removeChannel(canal); canal = null; }
+      conversaId = null;
+    }
+    abrirSuporte(lastOpts);   // a anterior virou 'resolvido' -> cria uma nova
+  };
   async function enviarTexto() {
     const inp = document.getElementById('supInput'); const t = inp.value.trim(); if (!t || !conversaId) return;
     inp.value = ''; await enviar('usuario', t);
