@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-2.5-flash";  // 2.0 está com cota 0 no projeto; 2.5-flash tem free tier
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
