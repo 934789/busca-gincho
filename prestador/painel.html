@@ -369,6 +369,7 @@
       <p class="helper" style="text-align:center;margin-top:-6px">Um cliente precisa de guincho perto de você.</p>
       <div class="desp-info">
         <div class="di-row"><i class="fa-solid fa-user"></i><div><small>Cliente</small><strong id="despCliente">—</strong></div></div>
+        <div class="di-row"><i class="fa-solid fa-car"></i><div><small>Veículo a rebocar</small><strong id="despVeiculo">—</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-location-dot"></i><div><small>Buscar o cliente em</small><strong id="despPartida">Local do cliente</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-flag-checkered"></i><div><small>Levar até</small><strong id="despDestino">—</strong></div></div>
         <div class="di-row"><i class="fa-solid fa-route"></i><div><small>Distância da corrida</small><strong id="despDist">—</strong></div></div>
@@ -501,6 +502,7 @@
       if (despachoAtual && despachoAtual.id === c.id) return;
       despachoAtual = c;
       document.getElementById('despCliente').textContent = c.nome_cliente || 'Cliente';
+      document.getElementById('despVeiculo').textContent = [c.modelo_veiculo, c.placa_veiculo].filter(Boolean).join(' · ') || 'Não informado';
       document.getElementById('despDestino').textContent = c.endereco_destino || 'Destino informado pelo cliente';
       document.getElementById('despDist').textContent = (c.distancia_estimada_km != null ? Number(c.distancia_estimada_km).toFixed(1).replace('.', ',') + ' km' : '—');
       document.getElementById('despGanho').textContent = c.ganho_prestador != null ? ('R$ ' + Number(c.ganho_prestador).toFixed(2).replace('.', ',')) : '—';

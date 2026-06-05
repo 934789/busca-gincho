@@ -329,7 +329,11 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   // nome + celular do cliente (aparecem no acompanhamento e pro prestador)
   const nomeCli = document.getElementById('chamarNome').value.trim();
   const telCli  = document.getElementById('chamarTel').value.trim();
+  const veicCli = document.getElementById('chamarVeiculo').value.trim();
+  const placaCli = document.getElementById('chamarPlaca').value.trim().toUpperCase();
   const erro = document.getElementById('chamarErro');
+  if (veicCli.length < 2) { erro.textContent = 'Informe o veículo (modelo e cor).'; erro.style.display = 'block'; document.getElementById('chamarVeiculo').focus(); return; }
+  if (placaCli.replace(/[^A-Z0-9]/g, '').length < 7) { erro.textContent = 'Informe a placa do veículo.'; erro.style.display = 'block'; document.getElementById('chamarPlaca').focus(); return; }
   if (nomeCli.length < 3) { erro.textContent = 'Informe seu nome completo.'; erro.style.display = 'block'; document.getElementById('chamarNome').focus(); return; }
   if (telCli.replace(/\D/g, '').length < 10) { erro.textContent = 'Informe um celular válido com DDD.'; erro.style.display = 'block'; document.getElementById('chamarTel').focus(); return; }
   erro.style.display = 'none';
@@ -343,6 +347,7 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   const { data, error } = await sb.from('chamados').insert({
     status: 'Pendente', servico_solicitado: cat.label, categoria_servico: categoriaSel,
     nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo, codigo_entrega: codigoEntrega,
+    modelo_veiculo: veicCli, placa_veiculo: placaCli,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
     local_chegada_lat: destino.lat, local_chegada_lng: destino.lng,
     distancia_estimada_km: +dist.toFixed(2), endereco_destino: destino.nome,

@@ -127,6 +127,7 @@
         <div class="pc-ava"><i class="fa-solid fa-user"></i></div>
         <div class="pc-info">
           <strong id="cliNome">Cliente</strong>
+          <div class="pc-dest"><i class="fa-solid fa-car"></i> <span id="cliVeiculo">—</span></div>
           <div class="pc-dest"><i class="fa-solid fa-flag-checkered"></i> <span id="cliDestino">—</span></div>
           <div class="pc-ganho" id="pcGanho" style="display:none"><i class="fa-solid fa-sack-dollar"></i> Você ganha <strong id="pcGanhoVal">—</strong></div>
         </div>
@@ -218,7 +219,7 @@
       if (!window.sb) return mostrarAviso('Conexão indisponível', 'Recarregue a página.', 'fa-gear');
 
       // não traz codigo_confirmacao (o prestador não pode ler o PIN do cliente)
-      const cols = 'id,link_token,status,prestador_id,prestador_notificado_id,nome_cliente,endereco_destino,local_partida_lat,local_partida_lng,local_chegada_lat,local_chegada_lng,latitude_atual_guincho,longitude_atual_guincho,prestadores_recusaram,foto_antes_url,foto_depois_url,ganho_prestador,servico_solicitado';
+      const cols = 'id,link_token,status,prestador_id,prestador_notificado_id,nome_cliente,endereco_destino,local_partida_lat,local_partida_lng,local_chegada_lat,local_chegada_lng,latitude_atual_guincho,longitude_atual_guincho,prestadores_recusaram,foto_antes_url,foto_depois_url,ganho_prestador,servico_solicitado,modelo_veiculo,placa_veiculo';
       const { data, error } = await sb.from('chamados').select(cols).eq('link_token', token).single();
       if (error || !data) return mostrarAviso('Atendimento não encontrado', 'Verifique o link.', 'fa-triangle-exclamation');
       chamado = data;
@@ -234,6 +235,7 @@
 
       document.getElementById('cliNome').textContent = chamado.nome_cliente || 'Cliente';
       document.getElementById('chatNome').textContent = chamado.nome_cliente || 'Cliente';
+      document.getElementById('cliVeiculo').textContent = [chamado.modelo_veiculo, chamado.placa_veiculo].filter(Boolean).join(' · ') || 'Veículo não informado';
       document.getElementById('cliDestino').textContent = chamado.endereco_destino || 'Destino informado';
       if (chamado.ganho_prestador != null) { document.getElementById('pcGanhoVal').textContent = 'R$ ' + Number(chamado.ganho_prestador).toFixed(2).replace('.', ','); document.getElementById('pcGanho').style.display = 'flex'; }
       document.getElementById('pcCard').style.display = 'flex';

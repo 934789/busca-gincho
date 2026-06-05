@@ -90,7 +90,8 @@
       <p class="foot"><i class="fa-solid fa-shield-halved"></i> Acesso seguro e exclusivo de parceiros</p>
     </div>
 
-    <div class="back"><a href="/">← Voltar ao site</a></div>
+    <div class="back"><a href="cadastro.html">Ainda não é parceiro? <b style="color:#caa200">Cadastre-se</b></a></div>
+    <div class="back" style="margin-top:8px"><a href="/">← Voltar ao site</a></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -112,8 +113,10 @@
       const senha = document.getElementById('senha').value;
       // login: filtra por email+senha e retorna só id/nome (a senha não trafega de volta)
       const { data, error } = await sb.from('prestadores')
-        .select('id, nome').eq('email', email).eq('senha_provisoria', senha).maybeSingle();
+        .select('id, nome, status_cadastro').eq('email', email).eq('senha_provisoria', senha).maybeSingle();
       if (error || !data) { msg.className = 'msg error'; msg.textContent = 'E-mail ou senha inválidos.'; return; }
+      if (data.status_cadastro === 'em_analise') { msg.className = 'msg error'; msg.textContent = 'Seu cadastro está em análise. Avisaremos quando for aprovado.'; return; }
+      if (data.status_cadastro === 'recusado') { msg.className = 'msg error'; msg.textContent = 'Cadastro não aprovado. Fale com o suporte.'; return; }
       msg.className = 'msg ok'; msg.textContent = 'Bem-vindo! Entrando...';
       sessionStorage.setItem('prestador_id', data.id);
       sessionStorage.setItem('prestador_nome', data.nome);

@@ -23,6 +23,10 @@
     .tt-help i { color:var(--ink); }
     .track-top h1 { font-size:20px; font-weight:800; color:var(--ink); line-height:1.12; padding-right:78px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .track-top p { font-size:13px; color:#7a828d; margin-top:4px; font-weight:600; }
+    .tt-safety { display:flex; gap:8px; margin-top:12px; }
+    .tt-safety button { flex:1; border:1.5px solid #ececf0; background:#f7f8fa; color:#3c3f46; font-family:inherit; font-weight:700; font-size:12.5px; padding:10px; border-radius:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; }
+    .tt-safety button i { color:var(--ink); }
+    .tt-safety .sos { background:#fff0f0; border-color:#ffd0d0; color:#e23c3c; } .tt-safety .sos i { color:#e23c3c; }
     .tt-progress { display:flex; gap:6px; margin-top:14px; }
     .tt-progress span { position:relative; flex:1; height:6px; border-radius:999px; background:#e9eaee; overflow:hidden; transition:background .35s; }
     .tt-progress span.on { background:var(--yellow); }
@@ -93,8 +97,11 @@
     .stars i { font-size:38px; color:#e2e4e8; cursor:pointer; transition:transform .1s,color .15s; }
     .stars i.active { color:var(--yellow); }
     .av-card textarea { width:100%; border:1.5px solid #ececf0; border-radius:14px; padding:13px; font-family:inherit; font-size:14px; resize:none; outline:none; }
+    .av-card input { width:100%; border:1.5px solid #ececf0; background:#f7f8fa; border-radius:12px; padding:13px 14px; font-family:inherit; font-size:14px; outline:none; margin-bottom:10px; text-align:left; }
+    .av-card input:focus { border-color:var(--yellow); background:#fff; }
     .btn-enviar { width:100%; background:var(--ink); color:#fff; border:none; border-radius:14px; padding:15px; font-family:inherit; font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; }
     .btn-enviar:disabled { opacity:.45; }
+    .btn-pular { width:100%; background:transparent; border:none; color:#9aa1ac; font-family:inherit; font-size:13.5px; font-weight:600; margin-top:10px; cursor:pointer; }
     .av-obrigado { display:none; }
 
     /* CHAT */
@@ -126,6 +133,10 @@
         <h1 id="topTitulo">Indo até você</h1>
         <p id="topSub">Calculando chegada...</p>
         <div class="tt-progress" id="topProg"><span></span><span></span><span></span><span></span></div>
+        <div class="tt-safety">
+          <button id="btnCompartilhar"><i class="fa-solid fa-share-nodes"></i> Compartilhar trajeto</button>
+          <button id="btnSOS" class="sos"><i class="fa-solid fa-triangle-exclamation"></i> SOS</button>
+        </div>
       </div>
       <button class="tt-codigo" id="topCodigo" style="display:none" aria-label="Compartilhar código">
         <span class="ttc-label">Compartilhar código</span>
@@ -188,9 +199,24 @@
         <textarea id="avComentario" rows="3" placeholder="Deixe um comentário (opcional)"></textarea>
         <button class="btn-enviar" id="btnEnviar" disabled>Enviar Avaliação</button>
       </div>
+      <!-- cadastro do cliente (após avaliar) -->
+      <div class="av-card" id="avCadastro" style="display:none">
+        <div class="check" style="background:#fff8d6;color:#caa200"><i class="fa-solid fa-user-plus"></i></div>
+        <h2>Crie sua conta</h2>
+        <p class="sub">Guarde seus dados e veja seu histórico nas próximas vezes. Leva 10 segundos.</p>
+        <div style="margin-top:18px">
+          <input id="cadNome" placeholder="Nome completo">
+          <input id="cadEmail" type="email" placeholder="E-mail">
+          <input id="cadCpf" placeholder="CPF (para recibo do seguro)" inputmode="numeric">
+          <input id="cadSenha" type="password" placeholder="Crie uma senha">
+        </div>
+        <button class="btn-enviar" id="btnCriarConta">Criar minha conta</button>
+        <button class="btn-pular" id="btnPularCadastro">Agora não, obrigado</button>
+        <p class="msg" id="cadMsg" style="font-size:13px;font-weight:600;margin-top:8px;min-height:16px"></p>
+      </div>
       <div class="av-card av-obrigado" id="avObrigado">
         <div class="check"><i class="fa-solid fa-heart"></i></div>
-        <h2>Obrigado pela sua avaliação!</h2><p class="sub">Redirecionando...</p>
+        <h2 id="obrigadoTit">Obrigado pela sua avaliação!</h2><p class="sub">Redirecionando...</p>
       </div>
     </div>
   </div>
@@ -492,6 +518,19 @@
     document.getElementById('btnAjuda').addEventListener('click', () => {
       abrirSuporte({ userTipo: 'cliente', userNome: (chamado && chamado.nome_cliente) || 'Cliente' });
     });
+    // Compartilhar trajeto (família acompanha em tempo real)
+    document.getElementById('btnCompartilhar').addEventListener('click', async () => {
+      const url = location.href;
+      const texto = 'Estou usando o Busca Guincho. Acompanhe meu atendimento ao vivo: ' + url;
+      if (navigator.share) { try { await navigator.share({ title: 'Meu trajeto — Busca Guincho', text: texto, url }); } catch (e) {} }
+      else { try { await navigator.clipboard.writeText(url); alert('Link do trajeto copiado! Envie para sua família acompanhar.'); } catch (e) { prompt('Copie o link do trajeto:', url); } }
+    });
+    // SOS — emergência
+    document.getElementById('btnSOS').addEventListener('click', () => {
+      if (confirm('🆘 EMERGÊNCIA\n\nVamos te conectar à Polícia (190). Toque em OK para ligar agora.')) {
+        location.href = 'tel:190';
+      }
+    });
     // compartilhar/copiar o código de retirada
     document.getElementById('topCodigo').addEventListener('click', async () => {
       const cod = document.getElementById('topCodigoNum').textContent;
@@ -527,8 +566,39 @@
       if (!notaSel) return; const btn=document.getElementById('btnEnviar'); btn.disabled=true; btn.textContent='Enviando...';
       const { error } = await sb.from('avaliacoes').insert({ prestador_id: chamado.prestador_id||chamado.prestador_notificado_id, chamado_id: chamado.id, nota: notaSel, comentario: document.getElementById('avComentario').value.trim()||null });
       if (error) { btn.disabled=false; btn.textContent='Tentar novamente'; alert('Erro: '+error.message); return; }
-      document.getElementById('avForm').style.display='none'; document.getElementById('avObrigado').style.display='block';
+      // já cadastrado? então pula direto pro obrigado. senão, oferece cadastro.
+      const jaTem = localStorage.getItem('bg_cliente_id');
+      if (jaTem) { mostrarObrigado(); return; }
+      document.getElementById('avForm').style.display='none';
+      document.getElementById('cadNome').value = (chamado.nome_cliente || '');
+      document.getElementById('avCadastro').style.display='block';
+    });
+    function mostrarObrigado(tit) {
+      document.getElementById('avForm').style.display='none';
+      document.getElementById('avCadastro').style.display='none';
+      if (tit) document.getElementById('obrigadoTit').textContent = tit;
+      document.getElementById('avObrigado').style.display='block';
       setTimeout(()=>{ location.href='/'; }, 2600);
+    }
+    document.getElementById('btnPularCadastro').addEventListener('click', () => mostrarObrigado());
+    document.getElementById('btnCriarConta').addEventListener('click', async () => {
+      const m = document.getElementById('cadMsg');
+      const nome = document.getElementById('cadNome').value.trim();
+      const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+      const cpf = document.getElementById('cadCpf').value.trim();
+      const senha = document.getElementById('cadSenha').value;
+      const tel = (chamado.telefone_cliente || '').replace(/\D/g,'');
+      if (nome.length < 3) { m.style.color='#e23c3c'; m.textContent='Informe seu nome.'; return; }
+      if (senha.length < 4) { m.style.color='#e23c3c'; m.textContent='Crie uma senha de 4+ caracteres.'; return; }
+      m.style.color='#6e7682'; m.textContent='Criando conta...';
+      const { data, error } = await sb.from('clientes')
+        .upsert({ nome, email, cpf, senha, telefone: tel }, { onConflict: 'telefone' })
+        .select('id').single();
+      if (error) { m.style.color='#e23c3c'; m.textContent='Erro: '+error.message; return; }
+      localStorage.setItem('bg_cliente_id', data.id);
+      localStorage.setItem('bg_cliente_nome', nome);
+      if (chamado.id) sb.from('chamados').update({ cliente_id: data.id }).eq('id', chamado.id).then(()=>{});
+      mostrarObrigado('Conta criada! Bem-vindo 🎉');
     });
 
     /* ---------- cancelar (cancela o serviço de verdade) ---------- */

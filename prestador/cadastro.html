@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Busca Guincho — Cadastro de Parceiro</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    :root{ --ink:#0D0D0D; --yellow:#ffdd00; --line:#E9EAEE; --soft:#8A8F98; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{ font-family:'Poppins',system-ui,sans-serif; color:#16181d; background:#EDEEF1; padding:18px; }
+    .wrap{ max-width:460px; margin:0 auto; }
+    .brand{ text-align:center; margin:6px 0 18px; }
+    .brand .bl{ font-size:20px; font-weight:800; } .brand .bl b{color:var(--ink)} .brand .bl i{color:#caa200;font-style:normal}
+    .brand .sub{ font-size:12.5px; color:var(--soft); font-weight:600; margin-top:4px; }
+    .card{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:20px; margin-bottom:14px; box-shadow:0 14px 38px -22px rgba(20,24,40,.3); }
+    .card h2{ font-size:15px; font-weight:800; display:flex; align-items:center; gap:9px; margin-bottom:14px; }
+    .card h2 i{ color:#caa200; }
+    .field{ margin-bottom:13px; } .field:last-child{margin-bottom:0}
+    label.lbl{ display:block; font-size:12.5px; font-weight:700; color:#3c3f46; margin-bottom:6px; }
+    input[type=text], input[type=email], input[type=tel], input[type=password], select{
+      width:100%; border:1.6px solid var(--line); background:#F7F8FA; border-radius:12px; padding:13px 14px;
+      font-family:inherit; font-size:14.5px; color:#16181d; outline:none; transition:.15s; }
+    input:focus, select:focus{ border-color:var(--yellow); background:#fff; box-shadow:0 0 0 4px rgba(255,221,0,.16); }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+    .chk-grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .chk{ display:flex; align-items:center; gap:8px; border:1.5px solid var(--line); border-radius:11px; padding:11px; font-size:13px; font-weight:600; cursor:pointer; }
+    .chk input{ width:18px; height:18px; accent-color:#caa200; }
+    .upload{ border:1.6px dashed #cfd3da; border-radius:13px; padding:14px; text-align:center; cursor:pointer; transition:.15s; position:relative; }
+    .upload:hover{ border-color:var(--yellow); background:#fffdf2; }
+    .upload i{ font-size:22px; color:#caa200; } .upload p{ font-size:12.5px; font-weight:600; margin-top:6px; }
+    .upload small{ font-size:11px; color:var(--soft); }
+    .upload.ok{ border-style:solid; border-color:#1f9d57; background:#f1fbf5; }
+    .upload.ok i{ color:#1f9d57; }
+    .upload input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .up-prev{ width:100%; max-height:130px; object-fit:cover; border-radius:10px; margin-top:10px; display:none; }
+    .selfie-wrap{ text-align:center; }
+    .selfie-prev{ width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--yellow); margin:0 auto 10px; display:none; }
+    .loc-btn{ width:100%; border:1.6px solid var(--line); background:#F7F8FA; border-radius:12px; padding:13px; font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; }
+    .loc-btn.ok{ border-color:#1f9d57; color:#1f9d57; background:#f1fbf5; }
+    .btn{ width:100%; border:none; border-radius:14px; padding:16px; cursor:pointer; font-family:inherit; font-weight:800; font-size:15.5px; color:#fff; background:var(--ink); display:flex; align-items:center; justify-content:center; gap:9px; }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn i{ color:var(--yellow); }
+    .msg{ font-size:13px; font-weight:600; margin-top:12px; text-align:center; min-height:18px; }
+    .msg.error{ color:#e23c3c; } .msg.ok{ color:#1f9d57; }
+    .voltar{ text-align:center; margin:6px 0 16px; } .voltar a{ color:var(--soft); font-size:13px; text-decoration:none; font-weight:600; }
+    .helper{ font-size:12px; color:var(--soft); }
+    /* tela de sucesso */
+    .sucesso{ display:none; text-align:center; padding:30px 20px; }
+    .sucesso .ico{ width:84px; height:84px; border-radius:50%; background:#e7f7ee; color:#1f9d57; display:grid; place-items:center; font-size:38px; margin:0 auto 18px; }
+    .sucesso h2{ font-size:20px; font-weight:800; margin-bottom:10px; }
+    .sucesso p{ font-size:14px; color:#444; line-height:1.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="bl"><b>BUSCA</b><i>GUINCHO</i></div>
+      <div class="sub"><i class="fa-solid fa-helmet-safety"></i> Cadastro de Parceiro</div>
+    </div>
+
+    <form id="cadForm">
+      <!-- DADOS PESSOAIS -->
+      <div class="card">
+        <h2><i class="fa-solid fa-id-card"></i> Seus dados</h2>
+        <div class="field"><label class="lbl">Nome completo</label><input type="text" id="nome" required></div>
+        <div class="grid2">
+          <div class="field"><label class="lbl">E-mail (login)</label><input type="email" id="email" required></div>
+          <div class="field"><label class="lbl">Senha de acesso</label><input type="password" id="senha" required></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label class="lbl">WhatsApp</label><input type="tel" id="whats" placeholder="(21) 99999-9999" required></div>
+          <div class="field"><label class="lbl">Telefone (opcional)</label><input type="tel" id="tel"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label class="lbl">CPF ou CNPJ</label><input type="text" id="doc" required></div>
+          <div class="field"><label class="lbl">Emite Nota Fiscal?</label><select id="nf"><option value="nao">Não</option><option value="sim">Sim — tenho CNPJ/MEI</option></select></div>
+        </div>
+        <div class="field"><label class="lbl">Razão social (se PJ)</label><input type="text" id="razao" placeholder="Opcional"></div>
+      </div>
+
+      <!-- GUINCHO + SERVIÇOS -->
+      <div class="card">
+        <h2><i class="fa-solid fa-truck-pickup"></i> Seu guincho</h2>
+        <div class="grid2">
+          <div class="field"><label class="lbl">Modelo do guincho</label><input type="text" id="veiculo" placeholder="Ford Cargo" required></div>
+          <div class="field"><label class="lbl">Placa</label><input type="text" id="placa" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase" required></div>
+        </div>
+        <div class="field"><label class="lbl">Serviços que você oferece</label>
+          <div class="chk-grid">
+            <label class="chk"><input type="checkbox" id="s_reboque_leve" checked> Reboque leve</label>
+            <label class="chk"><input type="checkbox" id="s_reboque_pesado"> Reboque pesado</label>
+            <label class="chk"><input type="checkbox" id="s_troca_pneu"> Troca de pneu</label>
+            <label class="chk"><input type="checkbox" id="s_carga_bateria"> Carga de bateria</label>
+            <label class="chk"><input type="checkbox" id="s_chaveiro"> Chaveiro</label>
+            <label class="chk"><input type="checkbox" id="s_resgate_veicular"> Resgate veicular</label>
+          </div>
+        </div>
+        <div class="field"><label class="lbl">Regiões que você atende</label><input type="text" id="regioes" placeholder="Centro, Zona Sul, Barra..." required></div>
+        <div class="field"><label class="lbl">Bairro / base</label><input type="text" id="bairro" placeholder="Barra da Tijuca, RJ" required></div>
+        <div class="field"><label class="lbl">Endereço da base (opcional)</label><input type="text" id="endbase" placeholder="Rua X, 100"></div>
+        <div class="field"><label class="lbl">Localização da base</label>
+          <button type="button" class="loc-btn" id="btnLoc"><i class="fa-solid fa-location-crosshairs"></i> Usar minha localização atual</button>
+          <p class="helper" id="locStatus" style="margin-top:7px">Ajuda a receber chamados perto de você.</p>
+        </div>
+      </div>
+
+      <!-- DOCUMENTOS + SELFIE -->
+      <div class="card">
+        <h2><i class="fa-solid fa-folder-open"></i> Documentos para análise</h2>
+        <p class="helper" style="margin-bottom:14px">Envie fotos legíveis. Usadas só para verificar seu cadastro.</p>
+
+        <div class="field selfie-wrap">
+          <label class="lbl">Selfie (foto do seu rosto)</label>
+          <img class="selfie-prev" id="selfiePrev">
+          <div class="upload" id="upSelfie"><i class="fa-solid fa-camera-retro"></i><p>Tirar selfie</p><small>Segurando seu documento, se possível</small>
+            <input type="file" accept="image/*" capture="user" id="fSelfie"></div>
+        </div>
+
+        <div class="field"><label class="lbl">CNH (habilitação)</label>
+          <div class="upload" id="upCnh"><i class="fa-solid fa-id-card-clip"></i><p>Enviar CNH</p><small>Frente (e verso, se tiver)</small>
+            <input type="file" accept="image/*" id="fCnh"></div>
+          <img class="up-prev" id="prevCnh"></div>
+
+        <div class="field"><label class="lbl">CRLV (documento do guincho)</label>
+          <div class="upload" id="upCrlv"><i class="fa-solid fa-file-lines"></i><p>Enviar CRLV</p><small>Documento do veículo</small>
+            <input type="file" accept="image/*" id="fCrlv"></div>
+          <img class="up-prev" id="prevCrlv"></div>
+
+        <div class="field"><label class="lbl">Identidade ou comprovante de residência</label>
+          <div class="upload" id="upId"><i class="fa-solid fa-address-card"></i><p>Enviar documento</p><small>RG/CPF ou conta no seu nome</small>
+            <input type="file" accept="image/*" id="fId"></div>
+          <img class="up-prev" id="prevId"></div>
+      </div>
+
+      <div class="card">
+        <button type="submit" class="btn" id="btnEnviar"><i class="fa-solid fa-paper-plane"></i> Enviar cadastro para análise</button>
+        <p class="msg" id="msg"></p>
+        <p class="helper" style="text-align:center;margin-top:10px">Ao enviar, você concorda com os <a href="/termos.html">Termos</a> e a <a href="/privacidade.html">Privacidade</a>.</p>
+      </div>
+    </form>
+
+    <!-- SUCESSO -->
+    <div class="sucesso" id="sucesso">
+      <div class="ico"><i class="fa-solid fa-clipboard-check"></i></div>
+      <h2>Cadastro enviado! 🎉</h2>
+      <p>Recebemos seus dados e documentos. Nossa equipe vai <strong>analisar em até 24h</strong>. Assim que aprovado, você poderá entrar no painel e começar a receber chamados.</p>
+      <p style="margin-top:18px"><a href="login.html" class="helper" style="font-weight:700;color:#caa200">Ir para o login →</a></p>
+    </div>
+
+    <div class="voltar"><a href="/">← Voltar ao site</a></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script>
+    let baseLat = null, baseLng = null;
+    const arquivos = { selfie:null, cnh:null, crlv:null, id:null };
+
+    // localização da base
+    document.getElementById('btnLoc').addEventListener('click', () => {
+      const b = document.getElementById('btnLoc'), s = document.getElementById('locStatus');
+      if (!navigator.geolocation) { s.textContent = 'GPS não disponível.'; return; }
+      s.textContent = 'Obtendo localização...';
+      navigator.geolocation.getCurrentPosition(p => {
+        baseLat = p.coords.latitude; baseLng = p.coords.longitude;
+        b.classList.add('ok'); b.innerHTML = '<i class="fa-solid fa-check"></i> Localização definida';
+        s.textContent = 'Base definida pela sua localização atual.';
+      }, () => { s.textContent = 'Não foi possível obter o GPS — você pode preencher o endereço.'; }, { enableHighAccuracy:true, timeout:10000 });
+    });
+
+    // previews de upload
+    function ligarUpload(inputId, boxId, prevId, chave, redondo) {
+      document.getElementById(inputId).addEventListener('change', e => {
+        const f = e.target.files[0]; if (!f) return;
+        arquivos[chave] = f;
+        const box = document.getElementById(boxId); box.classList.add('ok');
+        box.querySelector('p').textContent = 'Arquivo selecionado ✓';
+        const prev = document.getElementById(prevId);
+        if (prev) { prev.src = URL.createObjectURL(f); prev.style.display = 'block'; }
+      });
+    }
+    ligarUpload('fSelfie','upSelfie','selfiePrev','selfie', true);
+    ligarUpload('fCnh','upCnh','prevCnh','cnh');
+    ligarUpload('fCrlv','upCrlv','prevCrlv','crlv');
+    ligarUpload('fId','upId','prevId','id');
+
+    async function upload(pasta, chave, f) {
+      if (!f) return null;
+      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${pasta}/${chave}_${Date.now()}.${ext}`;
+      const { error } = await sb.storage.from('documentos-prestadores').upload(path, f, { upsert:true, cacheControl:'3600' });
+      if (error) throw new Error('Falha no upload de ' + chave + ': ' + error.message);
+      return sb.storage.from('documentos-prestadores').getPublicUrl(path).data.publicUrl;
+    }
+
+    document.getElementById('cadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg'); const btn = document.getElementById('btnEnviar');
+      const val = id => document.getElementById(id).value.trim();
+      if (!arquivos.selfie) { msg.className='msg error'; msg.textContent='Envie a sua selfie.'; return; }
+      if (!arquivos.cnh)    { msg.className='msg error'; msg.textContent='Envie a foto da sua CNH.'; return; }
+      if (!sb) { msg.className='msg error'; msg.textContent='Sistema indisponível.'; return; }
+      btn.disabled = true; msg.className='msg'; msg.textContent='Enviando documentos...';
+      try {
+        const email = val('email').toLowerCase();
+        const pasta = email.replace(/[^a-z0-9]/g,'_');
+        const selfieUrl = await upload(pasta, 'selfie', arquivos.selfie);
+        const cnhUrl    = await upload(pasta, 'cnh', arquivos.cnh);
+        const crlvUrl   = arquivos.crlv ? await upload(pasta, 'crlv', arquivos.crlv) : null;
+        const idUrl     = arquivos.id ? await upload(pasta, 'identidade', arquivos.id) : null;
+        msg.textContent = 'Salvando cadastro...';
+        const chk = id => document.getElementById(id).checked;
+        const { error } = await sb.from('prestadores').insert({
+          nome: val('nome'), email, senha_provisoria: val('senha'),
+          whatsapp: val('whats').replace(/\D/g,''), telefone: val('tel').replace(/\D/g,''),
+          documento: val('doc'), emite_nf: (val('nf')==='sim'), razao_social: val('razao'),
+          veiculo: val('veiculo'), placa: val('placa').toUpperCase(),
+          reboque_leve: chk('s_reboque_leve'), reboque_pesado: chk('s_reboque_pesado'),
+          troca_pneu: chk('s_troca_pneu'), carga_bateria: chk('s_carga_bateria'),
+          chaveiro: chk('s_chaveiro'), resgate_veicular: chk('s_resgate_veicular'),
+          atendimento_regioes: val('regioes'), bairro: val('bairro'), endereco_base: val('endbase'),
+          latitude: baseLat, longitude: baseLng, latitude_atual: baseLat, longitude_atual: baseLng,
+          foto_url: selfieUrl, selfie_url: selfieUrl, doc_cnh_url: cnhUrl, doc_crlv_url: crlvUrl, doc_identidade_url: idUrl,
+          status_cadastro: 'em_analise', ativo: false, online: false, status_disponibilidade: 'Offline',
+          perfil_verificado: false, avaliacao: 5.0, total_avaliacoes: 0
+        });
+        if (error) throw new Error(error.message);
+        document.getElementById('cadForm').style.display = 'none';
+        document.getElementById('sucesso').style.display = 'block';
+        window.scrollTo(0,0);
+      } catch (err) {
+        msg.className='msg error'; msg.textContent = 'Erro: ' + err.message;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
