@@ -262,6 +262,16 @@ function fecharChamar() { chamarOverlay.classList.remove('open'); if (canalChama
 document.getElementById('bnChamar').addEventListener('click', abrirChamar);
 document.getElementById('chamarClose').addEventListener('click', fecharChamar);
 
+/* Ajuda (bottom nav) -> chat de suporte com Agente de IA */
+const btnAjudaHome = document.getElementById('bnAjuda');
+if (btnAjudaHome && typeof abrirSuporte === 'function') {
+  btnAjudaHome.addEventListener('click', () => abrirSuporte({
+    userTipo: 'cliente',
+    userNome: localStorage.getItem('bg_cliente_nome') || 'Cliente',
+    userRef: localStorage.getItem('bg_cliente_tel') || null,
+  }));
+}
+
 /* ===== GATE de cadastro/login (bloqueio da 2ª corrida sem conta) ===== */
 const cadGate = document.getElementById('cadGateOverlay');
 let gateModo = 'cadastro';

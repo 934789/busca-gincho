@@ -540,7 +540,7 @@
     document.getElementById('btnChat').addEventListener('click', abrirChat);
     // Ajuda -> chat de suporte da plataforma (chatbot híbrido)
     document.getElementById('btnAjuda').addEventListener('click', () => {
-      abrirSuporte({ userTipo: 'cliente', userNome: (chamado && chamado.nome_cliente) || 'Cliente' });
+      abrirSuporte({ userTipo: 'cliente', userNome: (chamado && chamado.nome_cliente) || 'Cliente', userRef: (chamado && chamado.telefone_cliente) || null });
     });
     // Compartilhar trajeto (família acompanha em tempo real)
     document.getElementById('btnCompartilhar').addEventListener('click', async () => {

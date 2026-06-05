@@ -61,7 +61,7 @@
     { q: 'Consigo reembolso no meu seguro?', a: () => 'Sim! Se o seu seguro tem a modalidade "Livre Escolha", basta solicitar o reembolso a eles. Ao final da corrida, geramos um PDF detalhado com o recibo do prestador e as fotos do atendimento, que serve como comprovação para a seguradora.' },
   ];
 
-  let conversaId = null, canal = null, uTipo = 'cliente', uId = null, uNome = '';
+  let conversaId = null, canal = null, uTipo = 'cliente', uId = null, uNome = '', uRef = null;
   const som = new Audio('/audio/chat.mp3'); som.preload = 'auto';
 
   function addMsg(m) {
@@ -97,6 +97,7 @@
     if (typeof sb === 'undefined' || !sb) { alert('Suporte indisponível no momento.'); return; }
     uTipo = opts.userTipo || 'cliente';
     uNome = opts.userNome || (uTipo === 'prestador' ? 'Prestador' : 'Cliente');
+    uRef = opts.userRef || null;   // telefone do cliente (p/ o agente achar o chamado)
     uId = opts.userId || localStorage.getItem('bg_suporte_uid') || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
     if (uTipo === 'cliente') localStorage.setItem('bg_suporte_uid', uId);
     ov.classList.add('open');
@@ -104,9 +105,12 @@
 
     // acha a conversa do usuário ou cria
     const { data: cs } = await sb.from('suporte_conversas').select('*').eq('user_id', uId).order('updated_at', { ascending: false }).limit(1);
-    if (cs && cs.length) { conversaId = cs[0].id; document.getElementById('supStatus').textContent = cs[0].status === 'humano' ? 'Aguardando atendente humano...' : 'Assistente virtual'; }
-    else {
-      const { data: nv } = await sb.from('suporte_conversas').insert({ user_id: uId, user_nome: uNome, user_tipo: uTipo, status: 'bot' }).select('id').single();
+    if (cs && cs.length) {
+      conversaId = cs[0].id;
+      document.getElementById('supStatus').textContent = cs[0].status === 'humano' ? 'Aguardando atendente humano...' : 'Assistente virtual';
+      if (uRef && cs[0].user_ref !== uRef) sb.from('suporte_conversas').update({ user_ref: uRef }).eq('id', conversaId).then(()=>{});
+    } else {
+      const { data: nv } = await sb.from('suporte_conversas').insert({ user_id: uId, user_nome: uNome, user_tipo: uTipo, user_ref: uRef, status: 'bot' }).select('id').single();
       conversaId = nv.id; document.getElementById('supStatus').textContent = 'Assistente virtual';
     }
     // histórico
@@ -130,9 +134,29 @@
   async function enviarTexto() {
     const inp = document.getElementById('supInput'); const t = inp.value.trim(); if (!t || !conversaId) return;
     inp.value = ''; await enviar('usuario', t);
-    // se ainda no bot, dá um empurrão pras opções
-    const { data } = await sb.from('suporte_conversas').select('status').eq('id', conversaId).single();
-    if (data && data.status === 'bot') await enviar('bot', 'Posso ajudar com uma das opções acima 👆 ou, se preferir, toque em "Falar com atendente real".');
+    // já com atendente humano? não aciona a IA
+    const { data: conv } = await sb.from('suporte_conversas').select('status').eq('id', conversaId).single();
+    if (conv && conv.status === 'humano') return;
+    // indicador "digitando..."
+    const box = document.getElementById('supMsgs');
+    const typing = document.createElement('div'); typing.className = 'sup-msg bot'; typing.style.opacity = '.6'; typing.textContent = 'digitando...';
+    box.appendChild(typing); box.scrollTop = box.scrollHeight;
+    try {
+      const resp = await fetch(`${SUPABASE_CONFIG.url}/functions/v1/suporte-agente`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_CONFIG.anonKey, 'Authorization': 'Bearer ' + SUPABASE_CONFIG.anonKey },
+        body: JSON.stringify({ conversa_id: conversaId }),
+      });
+      typing.remove();
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.reply) addMsg({ enviado_por: 'bot', texto: data.reply });
+        if (data && data.status === 'humano') { document.getElementById('supStatus').textContent = 'Aguardando atendente humano...'; document.getElementById('supBotoes').innerHTML = ''; }
+        return;
+      }
+    } catch (e) { try { typing.remove(); } catch (_) {} }
+    // fallback: agente indisponível (não deployado) -> mantém o fluxo de FAQ/humano
+    await enviar('bot', 'Posso ajudar com uma das opções acima 👆 ou, se preferir, toque em "Falar com atendente real".');
   }
   document.getElementById('supSend').onclick = enviarTexto;
   document.getElementById('supInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') enviarTexto(); });
