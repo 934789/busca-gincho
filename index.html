@@ -151,6 +151,28 @@
     </div>
   </div>
 
+  <!-- ===== GATE: cadastro/login na 2ª corrida ===== -->
+  <div class="chamar-overlay" id="cadGateOverlay">
+    <div class="chamar-sheet">
+      <div class="chamar-head"><h2 id="gateTit">Crie sua conta</h2><button class="chamar-close" id="gateClose"><i class="fa-solid fa-xmark"></i></button></div>
+      <p class="chamar-nf" id="gateLead" style="margin-bottom:14px"><i class="fa-solid fa-circle-info"></i> Sua primeira chamada foi liberada sem cadastro. Para chamar de novo, crie sua conta gratuita — leva 10 segundos.</p>
+      <div class="chamar-cliente" id="gateCadFields">
+        <label><i class="fa-solid fa-user"></i><input id="gateNome" placeholder="Nome completo" autocomplete="name"></label>
+        <label><i class="fa-solid fa-phone"></i><input id="gateTel" placeholder="Celular (WhatsApp)" inputmode="tel" autocomplete="tel"></label>
+        <label><i class="fa-solid fa-envelope"></i><input id="gateEmail" placeholder="E-mail" inputmode="email" autocomplete="email"></label>
+        <label><i class="fa-solid fa-id-card"></i><input id="gateCpf" placeholder="CPF (opcional, p/ recibo)" inputmode="numeric"></label>
+        <label><i class="fa-solid fa-lock"></i><input id="gateSenha" type="password" placeholder="Crie uma senha"></label>
+      </div>
+      <div class="chamar-cliente" id="gateLoginFields" style="display:none">
+        <label><i class="fa-solid fa-phone"></i><input id="gateLoginTel" placeholder="Celular cadastrado" inputmode="tel"></label>
+        <label><i class="fa-solid fa-lock"></i><input id="gateLoginSenha" type="password" placeholder="Sua senha"></label>
+      </div>
+      <p class="chamar-erro" id="gateErro" style="display:none"></p>
+      <button class="btn-chamar" id="gateConfirmar"><i class="fa-solid fa-circle-check"></i> Criar conta e continuar</button>
+      <button class="btn-chamar btn-cancelar" id="gateToggle" style="margin-top:8px">Já tenho conta — entrar</button>
+    </div>
+  </div>
+
   <!-- ===== MENU LATERAL (3 pontos) ===== -->
   <div class="drawer-bg" id="drawerBg"></div>
   <aside class="drawer" id="drawer" aria-hidden="true">

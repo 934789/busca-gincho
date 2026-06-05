@@ -238,7 +238,13 @@ function primeAudio() { if (audioPrimed) return; audioPrimed = true; somAceite.p
 function abrirChamar() {
   if (!sb) return;
   if (!userPos) { alert('Precisamos da sua localização. Ative o GPS e recarregue a página.'); return; }
+  // BLOQUEIO: só a 1ª corrida é sem cadastro. Na 2ª, exige conta.
+  if (localStorage.getItem('bg_corrida_feita') && !localStorage.getItem('bg_cliente_id')) { abrirCadGate(); return; }
   primeAudio();
+  // cliente cadastrado: pré-preenche nome e celular
+  const cliNome = localStorage.getItem('bg_cliente_nome'), cliTel = localStorage.getItem('bg_cliente_tel');
+  if (cliNome) document.getElementById('chamarNome').value = cliNome;
+  if (cliTel) document.getElementById('chamarTel').value = cliTel;
   destinoSel = null; chamadoAtual = null; categoriaSel = 'guincho_leve'; precoCalc = null;
   document.querySelectorAll('#chamarCat .cat-chip').forEach((x, i) => x.classList.toggle('active', i === 0));
   document.getElementById('grpDestino').style.display = '';
@@ -255,6 +261,59 @@ function abrirChamar() {
 function fecharChamar() { chamarOverlay.classList.remove('open'); if (canalChamar) { canalChamar.unsubscribe(); canalChamar = null; } }
 document.getElementById('bnChamar').addEventListener('click', abrirChamar);
 document.getElementById('chamarClose').addEventListener('click', fecharChamar);
+
+/* ===== GATE de cadastro/login (bloqueio da 2ª corrida sem conta) ===== */
+const cadGate = document.getElementById('cadGateOverlay');
+let gateModo = 'cadastro';
+function abrirCadGate() { gateModo = 'cadastro'; renderGate(); cadGate.classList.add('open'); }
+function renderGate() {
+  const cad = gateModo === 'cadastro';
+  document.getElementById('gateTit').textContent = cad ? 'Crie sua conta' : 'Entrar na sua conta';
+  document.getElementById('gateLead').innerHTML = cad
+    ? '<i class="fa-solid fa-circle-info"></i> Sua primeira chamada foi liberada sem cadastro. Para chamar de novo, crie sua conta gratuita — leva 10 segundos.'
+    : '<i class="fa-solid fa-circle-info"></i> Entre com o celular e a senha que você cadastrou.';
+  document.getElementById('gateCadFields').style.display = cad ? '' : 'none';
+  document.getElementById('gateLoginFields').style.display = cad ? 'none' : '';
+  document.getElementById('gateConfirmar').innerHTML = cad
+    ? '<i class="fa-solid fa-circle-check"></i> Criar conta e continuar'
+    : '<i class="fa-solid fa-right-to-bracket"></i> Entrar e continuar';
+  document.getElementById('gateToggle').textContent = cad ? 'Já tenho conta — entrar' : '← Voltar para o cadastro';
+  document.getElementById('gateErro').style.display = 'none';
+}
+document.getElementById('gateClose').addEventListener('click', () => cadGate.classList.remove('open'));
+document.getElementById('gateToggle').addEventListener('click', () => { gateModo = gateModo === 'cadastro' ? 'login' : 'cadastro'; renderGate(); });
+document.getElementById('gateConfirmar').addEventListener('click', async () => {
+  const erro = document.getElementById('gateErro');
+  const show = (m) => { erro.textContent = m; erro.style.display = 'block'; };
+  if (!sb) { show('Sistema indisponível.'); return; }
+  if (gateModo === 'login') {
+    const tel = document.getElementById('gateLoginTel').value.replace(/\D/g, '');
+    const senha = document.getElementById('gateLoginSenha').value;
+    if (tel.length < 10 || !senha) { show('Informe celular e senha.'); return; }
+    const { data, error } = await sb.from('clientes').select('id,nome').eq('telefone', tel).eq('senha', senha).maybeSingle();
+    if (error || !data) { show('Celular ou senha incorretos.'); return; }
+    salvarCliente(data.id, data.nome, tel);
+    cadGate.classList.remove('open'); abrirChamar();
+    return;
+  }
+  const nome = document.getElementById('gateNome').value.trim();
+  const tel = document.getElementById('gateTel').value.replace(/\D/g, '');
+  const email = document.getElementById('gateEmail').value.trim().toLowerCase();
+  const cpf = document.getElementById('gateCpf').value.trim();
+  const senha = document.getElementById('gateSenha').value;
+  if (nome.length < 3) { show('Informe seu nome completo.'); return; }
+  if (tel.length < 10) { show('Informe um celular válido com DDD.'); return; }
+  if (senha.length < 4) { show('Crie uma senha de 4+ caracteres.'); return; }
+  const { data, error } = await sb.from('clientes').upsert({ nome, telefone: tel, email, cpf, senha }, { onConflict: 'telefone' }).select('id').single();
+  if (error) { show('Erro: ' + error.message); return; }
+  salvarCliente(data.id, nome, tel);
+  cadGate.classList.remove('open'); abrirChamar();
+});
+function salvarCliente(id, nome, tel) {
+  localStorage.setItem('bg_cliente_id', id);
+  localStorage.setItem('bg_cliente_nome', nome || '');
+  if (tel) localStorage.setItem('bg_cliente_tel', tel);
+}
 
 /* categoria de serviço + cálculo de preço (cliente) */
 const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;
@@ -347,7 +406,7 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   const { data, error } = await sb.from('chamados').insert({
     status: 'Pendente', servico_solicitado: cat.label, categoria_servico: categoriaSel,
     nome_cliente: nomeCli, telefone_cliente: telCli, codigo_confirmacao: codigo, codigo_entrega: codigoEntrega,
-    modelo_veiculo: veicCli, placa_veiculo: placaCli,
+    modelo_veiculo: veicCli, placa_veiculo: placaCli, cliente_id: localStorage.getItem('bg_cliente_id') || null,
     local_partida_lat: userPos.lat, local_partida_lng: userPos.lng,
     local_chegada_lat: destino.lat, local_chegada_lng: destino.lng,
     distancia_estimada_km: +dist.toFixed(2), endereco_destino: destino.nome,

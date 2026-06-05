@@ -103,6 +103,20 @@
     .btn-enviar:disabled { opacity:.45; }
     .btn-pular { width:100%; background:transparent; border:none; color:#9aa1ac; font-family:inherit; font-size:13.5px; font-weight:600; margin-top:10px; cursor:pointer; }
     .av-obrigado { display:none; }
+    /* avaliação estilo 99 com banner */
+    .modal-avaliacao.show { overflow-y:auto; }
+    .av-card-banner { padding:0; overflow:hidden; max-width:420px; }
+    .av-banner { width:100%; aspect-ratio:16/10; background:linear-gradient(135deg,#ffe14d,#ffc400); position:relative; }
+    .av-banner img { width:100%; height:100%; object-fit:cover; display:block; }
+    .av-banner.noimg img { display:none; }
+    .av-banner.noimg::after { content:"\f4d7"; font-family:"Font Awesome 6 Free"; font-weight:900; color:#0d0d0d; font-size:54px; position:absolute; inset:0; display:grid; place-items:center; }
+    .av-body { padding:22px 22px 26px; text-align:center; }
+    .av-body h2 { font-size:21px; }
+    .av-status { display:flex; align-items:center; gap:9px; background:#fff8d6; border-radius:13px; padding:12px 14px; font-size:13px; font-weight:600; color:#7a5e00; margin:16px 0; text-align:left; }
+    .av-status i { color:#caa200; font-size:16px; flex-shrink:0; }
+    .av-prest { display:flex; align-items:center; gap:11px; border:1px solid #ececf0; border-radius:14px; padding:11px 13px; text-align:left; }
+    .av-prest img { width:46px; height:46px; border-radius:50%; object-fit:cover; background:#eee; flex-shrink:0; }
+    .av-prest strong { font-size:14px; display:block; color:var(--ink); } .av-prest small { font-size:12px; color:#8a8f98; }
 
     /* CHAT */
     .chat-overlay { position:absolute; inset:0; z-index:2500; background:rgba(0,0,0,.4); display:none; align-items:flex-end; }
@@ -189,15 +203,22 @@
 
     <!-- avaliação -->
     <div class="modal-avaliacao" id="modalAval">
-      <div class="av-card" id="avForm">
-        <div class="check"><i class="fa-solid fa-flag-checkered"></i></div>
-        <h2 id="avPergunta">Como foi o atendimento?</h2>
-        <p class="sub">Sua avaliação ajuda outros motoristas.</p>
-        <div class="stars" id="stars">
-          <i class="fa-solid fa-star" data-v="1"></i><i class="fa-solid fa-star" data-v="2"></i><i class="fa-solid fa-star" data-v="3"></i><i class="fa-solid fa-star" data-v="4"></i><i class="fa-solid fa-star" data-v="5"></i>
+      <div class="av-card av-card-banner" id="avForm">
+        <div class="av-banner" id="avBanner"><img src="/img/bannerbusca.png" alt="Busca Guincho" onerror="this.parentNode.classList.add('noimg')"></div>
+        <div class="av-body">
+          <h2 id="avPergunta">Serviço concluído! 🎉</h2>
+          <p class="sub">Seu veículo chegou ao destino com segurança. Avalie o atendimento para nos ajudar a melhorar.</p>
+          <div class="av-status"><i class="fa-solid fa-shield-halved"></i> <span id="avStatusTxt">Atendimento finalizado com sucesso</span></div>
+          <div class="av-prest" id="avPrest" style="display:none">
+            <img id="avPrestFoto" src="" alt="">
+            <div><strong id="avPrestNome">—</strong><small>Prestador Busca Guincho</small></div>
+          </div>
+          <div class="stars" id="stars">
+            <i class="fa-solid fa-star" data-v="1"></i><i class="fa-solid fa-star" data-v="2"></i><i class="fa-solid fa-star" data-v="3"></i><i class="fa-solid fa-star" data-v="4"></i><i class="fa-solid fa-star" data-v="5"></i>
+          </div>
+          <textarea id="avComentario" rows="3" placeholder="Deixe um comentário (opcional)"></textarea>
+          <button class="btn-enviar" id="btnEnviar" disabled>Avaliar atendimento</button>
         </div>
-        <textarea id="avComentario" rows="3" placeholder="Deixe um comentário (opcional)"></textarea>
-        <button class="btn-enviar" id="btnEnviar" disabled>Enviar Avaliação</button>
       </div>
       <!-- cadastro do cliente (após avaliar) -->
       <div class="av-card" id="avCadastro" style="display:none">
@@ -556,7 +577,16 @@
       document.getElementById('trackTop').style.display='none';
       document.getElementById('trackCard').style.display='none';
       chatOverlay.classList.remove('open');
-      document.getElementById('avPergunta').textContent = `Como foi o atendimento de ${prestador.nome}?`;
+      // primeira corrida concluída -> destrava o "bloqueio" da 2ª sem cadastro
+      localStorage.setItem('bg_corrida_feita', '1');
+      localStorage.removeItem('bg_chamado');
+      if (prestador) {
+        document.getElementById('avPrestNome').textContent = prestador.nome || 'Prestador';
+        const f = document.getElementById('avPrestFoto');
+        if (prestador.foto_url) { f.src = prestador.foto_url; } else { f.style.display = 'none'; }
+        document.getElementById('avPrest').style.display = 'flex';
+      }
+      document.getElementById('avStatusTxt').textContent = 'Atendimento finalizado às ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
       document.getElementById('modalAval').classList.add('show');
     }
     const stars = [...document.querySelectorAll('#stars i')];
@@ -597,6 +627,7 @@
       if (error) { m.style.color='#e23c3c'; m.textContent='Erro: '+error.message; return; }
       localStorage.setItem('bg_cliente_id', data.id);
       localStorage.setItem('bg_cliente_nome', nome);
+      if (tel) localStorage.setItem('bg_cliente_tel', tel);
       if (chamado.id) sb.from('chamados').update({ cliente_id: data.id }).eq('id', chamado.id).then(()=>{});
       mostrarObrigado('Conta criada! Bem-vindo 🎉');
     });
