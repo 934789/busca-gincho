@@ -74,24 +74,16 @@
   }
   function renderBotoes() {
     const box = document.getElementById('supBotoes');
-    box.innerHTML = FAQ.map((f, i) => `<button data-faq="${i}">${f.q}</button>`).join('')
-      + `<button class="sup-humano" data-humano="1">⚠️ Falar com atendente real</button>`;
+    box.innerHTML = FAQ.map((f, i) => `<button data-faq="${i}">${f.q}</button>`).join('');
     box.querySelectorAll('[data-faq]').forEach((b) => b.onclick = async () => {
       const f = FAQ[+b.dataset.faq];
       await enviar('usuario', f.q);
       await enviar('bot', typeof f.a === 'function' ? f.a() : f.a);
     });
-    box.querySelector('[data-humano]').onclick = chamarAtendente;
   }
   async function enviar(por, texto) {
     addMsg({ enviado_por: por, texto });
     await sb.from('suporte_mensagens').insert({ conversa_id: conversaId, enviado_por: por, texto });
-  }
-  async function chamarAtendente() {
-    await sb.from('suporte_conversas').update({ status: 'humano', updated_at: new Date().toISOString() }).eq('id', conversaId);
-    document.getElementById('supStatus').textContent = 'Aguardando atendente humano...';
-    document.getElementById('supBotoes').innerHTML = '';
-    await enviar('bot', 'Entendi. Estou chamando um de nossos operadores. Por favor, aguarde um momento na tela... ⏳');
   }
 
   window.abrirSuporte = async function (opts) {
