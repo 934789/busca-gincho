@@ -221,7 +221,25 @@ document.getElementById('bnLista').addEventListener('click', (e) => { e.preventD
    ============================================================ */
 const chamarOverlay = document.getElementById('chamarOverlay');
 let destinoSel = null, chamadoAtual = null, canalChamar = null, jaRedirecionou = false;
-let categoriaSel = 'guincho_leve', precoCalc = null, distRota = 0, precoReq = 0;
+let categoriaSel = 'guincho_leve', precoCalc = null, distRota = 0, distDesloc = 0, precoReq = 0;
+// acha o guincho ONLINE mais próximo do cliente (p/ cobrar o deslocamento)
+async function acharPrestadorProximo(pos) {
+  try {
+    const { data } = await sb.from('prestadores')
+      .select('id,nome,latitude,longitude,latitude_atual,longitude_atual')
+      .eq('ativo', true).eq('online', true);
+    if (!data || !data.length) return null;
+    let best = null, bestD = Infinity;
+    for (const p of data) {
+      const lat = p.latitude_atual != null ? p.latitude_atual : p.latitude;
+      const lng = p.longitude_atual != null ? p.longitude_atual : p.longitude;
+      if (lat == null || lng == null) continue;
+      const d = distanciaKm(pos.lat, pos.lng, lat, lng);
+      if (d < bestD) { bestD = d; best = { id: p.id, nome: p.nome, lat, lng }; }
+    }
+    return best;
+  } catch (e) { return null; }
+}
 // distância REAL pelas ruas (OSRM); fallback: linha reta × 1,3 (fator rodoviário)
 async function rotaDistKm(a, b) {
   try {
@@ -394,25 +412,26 @@ async function atualizarPreco() {
   const btn = document.getElementById('btnConfirmarChamado');
   if (!catFixa() && !destinoSel) { est.style.display = 'none'; btn.disabled = true; return; }
   const myReq = ++precoReq;
-  const cat = PRECO_CATEGORIAS[categoriaSel];
   // distância real pelas ruas (só pra categorias que cobram km)
-  if (catFixa()) { distRota = 0; }
+  if (catFixa()) { distRota = 0; distDesloc = 0; }
   else {
     document.getElementById('chamarValor').textContent = 'calculando...';
     est.style.display = 'block'; btn.disabled = true;
-    const d = await rotaDistKm(userPos, destinoSel);
+    const reb = await rotaDistKm(userPos, destinoSel);     // reboque: cliente -> destino
     if (myReq !== precoReq) return;            // chegou outra atualização mais nova
-    distRota = d;
+    distRota = reb;
+    const prox = await acharPrestadorProximo(userPos);     // guincho mais próximo
+    if (myReq !== precoReq) return;
+    distDesloc = prox ? await rotaDistKm({ lat: prox.lat, lng: prox.lng }, userPos) : 0; // deslocamento -> cliente
+    if (myReq !== precoReq) return;
   }
-  precoCalc = calcularValoresChamado(distRota, categoriaSel, condicoesAtuais());
+  const distTotal = distRota + distDesloc;
+  precoCalc = calcularValoresChamado(distTotal, categoriaSel, condicoesAtuais());
   document.getElementById('chamarValor').textContent = fmtBRL(precoCalc.valor_cliente);
   let info;
   if (catFixa()) info = 'Atendimento no seu local — valor fixo';
   else {
-    const exc = Math.max(0, distRota - 10);
-    info = `${km1(distRota)} km · ` + (exc > 0
-      ? `saída ${fmtBRL(cat.taxaSaida)} + ${km1(exc)} km × ${fmtBRL(cat.kmExcedente)}`
-      : `dentro da franquia de 10 km`);
+    info = `deslocamento ${km1(distDesloc)} km + reboque ${km1(distRota)} km = ${km1(distTotal)} km`;
   }
   document.getElementById('chamarDist').textContent = info;
   document.getElementById('chamarMult').textContent = precoCalc.fator_multiplicador > 1 ? `· tarifa dinâmica x${String(precoCalc.fator_multiplicador).replace('.', ',')}` : '';
@@ -469,7 +488,7 @@ document.getElementById('btnConfirmarChamado').addEventListener('click', async (
   erro.style.display = 'none';
   // serviço fixo (bateria): atendimento no local -> destino = origem
   const destino = destinoSel || { lat: userPos.lat, lng: userPos.lng, nome: 'Atendimento no local do cliente' };
-  const dist = catFixa() ? 0 : (distRota || await rotaDistKm(userPos, destino)); // distância real pelas ruas
+  const dist = catFixa() ? 0 : ((distRota + distDesloc) || await rotaDistKm(userPos, destino)); // deslocamento + reboque
   const v = precoCalc || calcularValoresChamado(dist, categoriaSel, condicoesAtuais());
   const cat = PRECO_CATEGORIAS[categoriaSel];
   const codigo = String(Math.floor(1000 + Math.random() * 9000));        // PIN 1 — retirada (chegada ao cliente)
