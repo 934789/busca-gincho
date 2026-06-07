@@ -355,6 +355,14 @@ function renderContaCliente() {
   document.getElementById('contaToggle').textContent = contaModoCad ? '← Já tenho conta — entrar' : 'Não tenho conta — cadastrar';
   document.getElementById('contaErro').style.display = 'none';
 }
+async function carregarAvatarConta() {
+  const id = localStorage.getItem('bg_cliente_id'); if (!id || !sb) return;
+  const { data } = await sb.from('clientes').select('nome,foto_url').eq('id', id).maybeSingle();
+  if (!data) return;
+  if (data.nome) document.getElementById('contaNome').textContent = data.nome;
+  const ava = document.getElementById('contaAva');
+  ava.innerHTML = data.foto_url ? `<img src="${data.foto_url}" alt="">` : '<i class="fa-solid fa-user"></i>';
+}
 function abrirConta() {
   const logado = !!localStorage.getItem('bg_cliente_id');
   document.getElementById('contaLogado').style.display = logado ? 'block' : 'none';
@@ -362,6 +370,8 @@ function abrirConta() {
   document.getElementById('contaTit').textContent = logado ? 'Minha conta' : 'Acesse sua conta';
   if (logado) {
     document.getElementById('contaNome').textContent = localStorage.getItem('bg_cliente_nome') || 'Cliente';
+    document.getElementById('contaAva').innerHTML = '<i class="fa-solid fa-user"></i>';
+    carregarAvatarConta();   // busca a foto de perfil (se houver)
   } else {
     contaModoCad = false; renderContaCliente();
     document.querySelectorAll('.conta-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
