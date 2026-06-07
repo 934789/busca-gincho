@@ -377,6 +377,7 @@ function abrirConta() {
     document.querySelectorAll('.conta-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
     document.getElementById('contaCliente').style.display = 'block';
     document.getElementById('contaParceiro').style.display = 'none';
+    const bn = document.getElementById('contaBanner'); bn.style.visibility = 'visible'; bn.src = '/img/cadastro_cliente.png';
   }
   contaOv.classList.add('open');
 }
@@ -387,6 +388,9 @@ document.querySelectorAll('.conta-tab').forEach((t) => t.addEventListener('click
   const cli = t.dataset.tipo === 'cliente';
   document.getElementById('contaCliente').style.display = cli ? 'block' : 'none';
   document.getElementById('contaParceiro').style.display = cli ? 'none' : 'block';
+  const bn = document.getElementById('contaBanner');
+  bn.style.visibility = 'visible';
+  bn.src = cli ? '/img/cadastro_cliente.png' : '/img/cadastro_login_parceiro.png';
 }));
 document.getElementById('contaToggle').addEventListener('click', () => { contaModoCad = !contaModoCad; renderContaCliente(); });
 document.getElementById('contaSair').addEventListener('click', () => {
