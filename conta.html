@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Busca Guincho — Minha Conta</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    :root{ --ink:#0D0D0D; --yellow:#ffdd00; --line:#E9EAEE; --soft:#8A8F98; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{ font-family:'Poppins',system-ui,sans-serif; background:#EDEEF1; color:#16181d; padding-bottom:30px; }
+    .wrap{ max-width:480px; margin:0 auto; }
+    .topo{ background:linear-gradient(135deg,#ffe14d,#ffc400); padding:16px 18px 30px; display:flex; align-items:center; gap:12px; border-radius:0 0 26px 26px; }
+    .topo a{ color:var(--ink); font-size:20px; text-decoration:none; }
+    .topo h1{ font-size:17px; font-weight:800; }
+    .perfil{ text-align:center; margin-top:-26px; }
+    .perfil .ava{ width:92px; height:92px; border-radius:50%; background:#fff; border:4px solid #fff; box-shadow:0 10px 26px -10px rgba(0,0,0,.3); object-fit:cover; display:inline-grid; place-items:center; color:#c9ccd2; font-size:40px; overflow:hidden; }
+    .perfil .ava img{ width:100%; height:100%; object-fit:cover; }
+    .perfil .nome{ font-size:19px; font-weight:800; margin-top:10px; }
+    .perfil .badges{ display:flex; gap:8px; justify-content:center; margin-top:8px; }
+    .perfil .badge{ background:#fff; border-radius:999px; padding:5px 12px; font-size:12px; font-weight:700; box-shadow:0 4px 12px -6px rgba(0,0,0,.2); display:inline-flex; align-items:center; gap:5px; }
+    .perfil .badge i{ color:var(--yellow); } .perfil .badge.selo i{ color:#9aa1ac; }
+    .card{ background:#fff; border-radius:18px; margin:16px; box-shadow:0 10px 30px -20px rgba(0,0,0,.3); overflow:hidden; }
+    .card h2{ font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--soft); padding:14px 16px 6px; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:15px 16px; border-top:1px solid var(--line); cursor:pointer; }
+    .row:first-of-type{ border-top:none; }
+    .row .lbl{ font-size:14.5px; font-weight:600; }
+    .row .val{ font-size:13.5px; color:var(--soft); display:flex; align-items:center; gap:8px; }
+    .row .val.alerta{ color:#e23c3c; font-weight:600; }
+    .row i.chev{ color:#c9ccd2; }
+    .corrida{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-top:1px solid var(--line); }
+    .corrida:first-of-type{ border-top:none; }
+    .corrida .ci{ width:40px; height:40px; border-radius:10px; background:#e7f7ee; color:#1f9d57; display:grid; place-items:center; flex-shrink:0; }
+    .corrida .cm{ flex:1; min-width:0; } .corrida .cm strong{ font-size:13.5px; display:block; } .corrida .cm small{ font-size:11.5px; color:var(--soft); }
+    .corrida .cv{ font-size:13px; font-weight:700; color:#1f9d57; }
+    .vazio{ padding:18px 16px; text-align:center; color:var(--soft); font-size:13px; }
+    .sair{ width:calc(100% - 32px); margin:6px 16px; border:none; background:#fff; color:#e23c3c; border-radius:14px; padding:15px; font-family:inherit; font-weight:800; font-size:14.5px; cursor:pointer; box-shadow:0 10px 30px -20px rgba(0,0,0,.3); }
+    .helper{ text-align:center; font-size:12px; color:var(--soft); margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topo"><a href="/">&larr;</a><h1>Minha Conta</h1></div>
+
+    <div class="perfil">
+      <label class="ava" id="ava" title="Trocar foto">
+        <i class="fa-solid fa-user" id="avaIcon"></i>
+        <input type="file" accept="image/*" id="avaInput" style="display:none">
+      </label>
+      <div class="nome" id="pNome">—</div>
+      <div class="badges">
+        <span class="badge"><i class="fa-solid fa-star"></i> <span id="pCorridas">0</span> corridas</span>
+        <span class="badge selo"><i class="fa-solid fa-shield-halved"></i> Cliente</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Dados pessoais</h2>
+      <div class="row" data-edit="nome"><span class="lbl">Nome</span><span class="val"><span id="vNome">—</span><i class="fa-solid fa-chevron-right chev"></i></span></div>
+      <div class="row" data-edit="telefone"><span class="lbl">Telefone</span><span class="val"><span id="vTel">—</span><i class="fa-solid fa-chevron-right chev"></i></span></div>
+      <div class="row" data-edit="email"><span class="lbl">E-mail</span><span class="val"><span id="vEmail">—</span><i class="fa-solid fa-chevron-right chev"></i></span></div>
+      <div class="row" data-edit="cpf"><span class="lbl">CPF</span><span class="val"><span id="vCpf">—</span><i class="fa-solid fa-chevron-right chev"></i></span></div>
+      <div class="row" data-edit="senha"><span class="lbl">Senha</span><span class="val"><span id="vSenha">••••</span><i class="fa-solid fa-chevron-right chev"></i></span></div>
+    </div>
+
+    <div class="card">
+      <h2 id="corridas">Histórico de corridas</h2>
+      <div id="histLista"><div class="vazio">Carregando...</div></div>
+    </div>
+
+    <button class="sair" id="btnSair"><i class="fa-solid fa-right-from-bracket"></i> Sair da conta</button>
+    <p class="helper">Busca Guincho — sua conta</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script>
+    const CID = localStorage.getItem('bg_cliente_id');
+    if (!CID) { location.href = '/'; }
+    let cliente = null;
+
+    async function carregar() {
+      const { data } = await sb.from('clientes').select('*').eq('id', CID).maybeSingle();
+      if (!data) { alert('Conta não encontrada.'); location.href = '/'; return; }
+      cliente = data;
+      document.getElementById('pNome').textContent = data.nome || 'Cliente';
+      document.getElementById('vNome').textContent = data.nome || '—';
+      document.getElementById('vTel').textContent = data.telefone || '—';
+      document.getElementById('vEmail').textContent = data.email || 'não informado';
+      document.getElementById('vCpf').textContent = data.cpf || 'não informado';
+      if (data.foto_url) { document.getElementById('avaIcon').outerHTML = '<img src="' + data.foto_url + '" alt="">'; }
+      // histórico
+      const { data: chs } = await sb.from('chamados')
+        .select('servico_solicitado,status,created_at,valor_cliente,endereco_destino')
+        .or('cliente_id.eq.' + CID + (data.telefone ? ',telefone_cliente.eq.' + data.telefone : ''))
+        .order('created_at', { ascending: false }).limit(15);
+      const fin = (chs || []).filter(c => c.status === 'Finalizado');
+      document.getElementById('pCorridas').textContent = fin.length;
+      const box = document.getElementById('histLista');
+      if (!chs || !chs.length) { box.innerHTML = '<div class="vazio">Você ainda não fez corridas.</div>'; return; }
+      box.innerHTML = chs.map(c => {
+        const d = new Date(c.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit' });
+        const val = c.valor_cliente != null ? ('R$ ' + Number(c.valor_cliente).toFixed(2).replace('.', ',')) : '';
+        return '<div class="corrida"><span class="ci"><i class="fa-solid fa-truck-pickup"></i></span>' +
+          '<div class="cm"><strong>' + (c.servico_solicitado || 'Corrida') + '</strong><small>' + (c.endereco_destino || '') + ' · ' + d + ' · ' + c.status + '</small></div>' +
+          '<span class="cv">' + val + '</span></div>';
+      }).join('');
+    }
+
+    // editar campo (simples, via prompt)
+    document.querySelectorAll('.row[data-edit]').forEach(r => r.addEventListener('click', async () => {
+      const campo = r.dataset.edit;
+      const rotulos = { nome:'Nome', telefone:'Telefone', email:'E-mail', cpf:'CPF', senha:'Nova senha' };
+      const atual = campo === 'senha' ? '' : (cliente[campo] || '');
+      const novo = prompt('Editar ' + rotulos[campo] + ':', atual);
+      if (novo === null) return;
+      const val = campo === 'telefone' ? novo.replace(/\D/g, '') : novo.trim();
+      const { error } = await sb.from('clientes').update({ [campo]: val }).eq('id', CID);
+      if (error) { alert('Erro: ' + error.message); return; }
+      if (campo === 'nome') localStorage.setItem('bg_cliente_nome', val);
+      if (campo === 'telefone') localStorage.setItem('bg_cliente_tel', val);
+      carregar();
+    }));
+
+    // trocar foto
+    document.getElementById('avaInput').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      const path = CID + '/perfil_' + Date.now() + '.jpg';
+      const { error } = await sb.storage.from('documentos-prestadores').upload(path, f, { upsert: true });
+      if (error) { alert('Erro ao enviar foto: ' + error.message); return; }
+      const url = sb.storage.from('documentos-prestadores').getPublicUrl(path).data.publicUrl;
+      await sb.from('clientes').update({ foto_url: url }).eq('id', CID);
+      carregar();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      if (!confirm('Sair da sua conta?')) return;
+      localStorage.removeItem('bg_cliente_id'); localStorage.removeItem('bg_cliente_nome'); localStorage.removeItem('bg_cliente_tel');
+      location.href = '/';
+    });
+
+    carregar();
+  </script>
+</body>
+</html>

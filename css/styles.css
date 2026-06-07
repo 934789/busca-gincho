@@ -605,3 +605,19 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .cr-chat { background:#eef5ff; color:#2b7de9; } .cr-enc { background:#e7f7ee; color:#1f9d57; } .cr-can { background:#ffe0e0; color:#e23c3c; }
 .amsg { font-size:13.5px; line-height:1.4; padding:9px 12px; border-radius:11px; background:#f4f5f7; align-self:flex-start; max-width:88%; }
 .amsg.a-cli { background:#fff8d6; align-self:flex-end; } .amsg small { color:#9aa1ac; font-size:10px; margin-left:5px; }
+
+/* ===== Minha Conta (ícone de usuário na home) ===== */
+.conta-perfil { display:flex; align-items:center; gap:13px; padding:6px 0 16px; }
+.conta-ava { width:56px; height:56px; border-radius:50%; background:var(--yellow); color:#0D0D0D; display:grid; place-items:center; font-size:24px; flex-shrink:0; overflow:hidden; }
+.conta-ava img { width:100%; height:100%; object-fit:cover; }
+.conta-perfil strong { font-size:17px; color:var(--ink); display:block; }
+.conta-perfil small { font-size:12.5px; color:var(--text-soft); }
+.conta-item { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; border:none; border-top:1px solid var(--line); background:none; padding:15px 2px; font-family:inherit; font-size:14.5px; font-weight:600; color:var(--ink); cursor:pointer; text-decoration:none; }
+.conta-item span { display:flex; align-items:center; gap:11px; }
+.conta-item i:first-child { color:#caa200; width:20px; text-align:center; }
+.conta-item.conta-sair { color:#e23c3c; } .conta-item.conta-sair i { color:#e23c3c; }
+.conta-tipo { display:flex; gap:9px; margin-bottom:16px; }
+.conta-tab { flex:1; border:1.6px solid var(--line); background:#F7F8FA; border-radius:13px; padding:13px; font-family:inherit; font-weight:700; font-size:14px; color:var(--text-soft); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+.conta-tab.active { border-color:var(--yellow); background:#fffdf2; color:var(--ink); }
+.conta-links { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 16px; margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
+.conta-links a { color:var(--text-soft); font-size:12.5px; text-decoration:none; font-weight:600; }

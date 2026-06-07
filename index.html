@@ -22,7 +22,7 @@
         <span class="hh-truck"><i class="fa-solid fa-truck-pickup"></i></span>
         <span class="hh-name"><b>BUSCA</b><i>GUINCHO</i></span>
       </a>
-      <button class="hh-menu" id="btnMenu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="hh-menu" id="btnConta" aria-label="Minha conta"><i class="fa-solid fa-circle-user"></i></button>
     </header>
 
     <!-- ===== MAPA + LOCALIZAÇÃO ===== -->
@@ -173,6 +173,58 @@
       <p class="chamar-erro" id="gateErro" style="display:none"></p>
       <button class="btn-chamar" id="gateConfirmar"><i class="fa-solid fa-circle-check"></i> Criar conta e continuar</button>
       <button class="btn-chamar btn-cancelar" id="gateToggle" style="margin-top:8px">Já tenho conta — entrar</button>
+    </div>
+  </div>
+
+  <!-- ===== MINHA CONTA (ícone de usuário) ===== -->
+  <div class="chamar-overlay" id="contaOverlay">
+    <div class="chamar-sheet">
+      <div class="chamar-head"><h2 id="contaTit">Minha conta</h2><button class="chamar-close" id="contaClose"><i class="fa-solid fa-xmark"></i></button></div>
+
+      <!-- LOGADO -->
+      <div id="contaLogado" style="display:none">
+        <div class="conta-perfil">
+          <div class="conta-ava" id="contaAva"><i class="fa-solid fa-user"></i></div>
+          <div><strong id="contaNome">—</strong><small>Cliente Busca Guincho</small></div>
+        </div>
+        <a class="conta-item" href="/conta.html"><span><i class="fa-solid fa-id-card"></i> Meu perfil e dados</span><i class="fa-solid fa-chevron-right"></i></a>
+        <a class="conta-item" href="/conta.html#corridas"><span><i class="fa-solid fa-clock-rotate-left"></i> Histórico de corridas</span><i class="fa-solid fa-chevron-right"></i></a>
+        <button class="conta-item conta-sair" id="contaSair"><span><i class="fa-solid fa-right-from-bracket"></i> Sair da conta</span></button>
+      </div>
+
+      <!-- DESLOGADO -->
+      <div id="contaDeslogado">
+        <p class="chamar-nf" style="margin-bottom:14px"><i class="fa-solid fa-circle-info"></i> Entre ou cadastre-se para acompanhar seu histórico e chamar mais rápido.</p>
+        <div class="conta-tipo">
+          <button class="conta-tab active" data-tipo="cliente"><i class="fa-solid fa-user"></i> Sou Cliente</button>
+          <button class="conta-tab" data-tipo="parceiro"><i class="fa-solid fa-truck-pickup"></i> Sou Parceiro</button>
+        </div>
+
+        <div id="contaCliente">
+          <div class="chamar-cliente" id="contaLoginFields">
+            <label><i class="fa-solid fa-phone"></i><input id="cLoginTel" placeholder="Celular (WhatsApp)" inputmode="tel"></label>
+            <label><i class="fa-solid fa-lock"></i><input id="cLoginSenha" type="password" placeholder="Sua senha"></label>
+          </div>
+          <div class="chamar-cliente" id="contaCadFields" style="display:none">
+            <label><i class="fa-solid fa-user"></i><input id="cCadNome" placeholder="Nome completo"></label>
+            <label><i class="fa-solid fa-phone"></i><input id="cCadTel" placeholder="Celular (WhatsApp)" inputmode="tel"></label>
+            <label><i class="fa-solid fa-envelope"></i><input id="cCadEmail" placeholder="E-mail"></label>
+            <label><i class="fa-solid fa-lock"></i><input id="cCadSenha" type="password" placeholder="Crie uma senha"></label>
+          </div>
+          <p class="chamar-erro" id="contaErro" style="display:none"></p>
+          <button class="btn-chamar" id="contaConfirmar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+          <button class="btn-chamar btn-cancelar" id="contaToggle" style="margin-top:8px">Não tenho conta — cadastrar</button>
+        </div>
+
+        <div id="contaParceiro" style="display:none">
+          <a class="btn-chamar" href="/prestador/login.html" style="text-decoration:none"><i class="fa-solid fa-right-to-bracket"></i> Entrar como parceiro</a>
+          <a class="btn-chamar btn-cancelar" href="/prestador/cadastro.html" style="text-decoration:none;margin-top:8px;display:flex"><i class="fa-solid fa-clipboard-list"></i> Quero ser parceiro</a>
+        </div>
+      </div>
+
+      <div class="conta-links">
+        <a href="/sobre.html">Sobre</a><a href="/termos.html">Termos</a><a href="/privacidade.html">Privacidade</a><a href="/contato.html">Contato</a>
+      </div>
     </div>
   </div>
 

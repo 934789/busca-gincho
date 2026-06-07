@@ -325,6 +325,67 @@ function salvarCliente(id, nome, tel) {
   if (tel) localStorage.setItem('bg_cliente_tel', tel);
 }
 
+/* ===== MINHA CONTA (ícone de usuário no header) ===== */
+const contaOv = document.getElementById('contaOverlay');
+let contaModoCad = false;
+function renderContaCliente() {
+  document.getElementById('contaLoginFields').style.display = contaModoCad ? 'none' : '';
+  document.getElementById('contaCadFields').style.display = contaModoCad ? '' : 'none';
+  document.getElementById('contaConfirmar').innerHTML = contaModoCad
+    ? '<i class="fa-solid fa-circle-check"></i> Criar conta'
+    : '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+  document.getElementById('contaToggle').textContent = contaModoCad ? '← Já tenho conta — entrar' : 'Não tenho conta — cadastrar';
+  document.getElementById('contaErro').style.display = 'none';
+}
+function abrirConta() {
+  const logado = !!localStorage.getItem('bg_cliente_id');
+  document.getElementById('contaLogado').style.display = logado ? 'block' : 'none';
+  document.getElementById('contaDeslogado').style.display = logado ? 'none' : 'block';
+  document.getElementById('contaTit').textContent = logado ? 'Minha conta' : 'Acesse sua conta';
+  if (logado) {
+    document.getElementById('contaNome').textContent = localStorage.getItem('bg_cliente_nome') || 'Cliente';
+  } else {
+    contaModoCad = false; renderContaCliente();
+    document.querySelectorAll('.conta-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    document.getElementById('contaCliente').style.display = 'block';
+    document.getElementById('contaParceiro').style.display = 'none';
+  }
+  contaOv.classList.add('open');
+}
+document.getElementById('btnConta').addEventListener('click', abrirConta);
+document.getElementById('contaClose').addEventListener('click', () => contaOv.classList.remove('open'));
+document.querySelectorAll('.conta-tab').forEach((t) => t.addEventListener('click', () => {
+  document.querySelectorAll('.conta-tab').forEach((x) => x.classList.remove('active')); t.classList.add('active');
+  const cli = t.dataset.tipo === 'cliente';
+  document.getElementById('contaCliente').style.display = cli ? 'block' : 'none';
+  document.getElementById('contaParceiro').style.display = cli ? 'none' : 'block';
+}));
+document.getElementById('contaToggle').addEventListener('click', () => { contaModoCad = !contaModoCad; renderContaCliente(); });
+document.getElementById('contaSair').addEventListener('click', () => {
+  if (!confirm('Sair da sua conta?')) return;
+  localStorage.removeItem('bg_cliente_id'); localStorage.removeItem('bg_cliente_nome'); localStorage.removeItem('bg_cliente_tel');
+  contaOv.classList.remove('open');
+});
+document.getElementById('contaConfirmar').addEventListener('click', async () => {
+  const erro = document.getElementById('contaErro'); const show = (m) => { erro.textContent = m; erro.style.display = 'block'; };
+  if (!sb) { show('Sistema indisponível.'); return; }
+  if (!contaModoCad) {
+    const tel = document.getElementById('cLoginTel').value.replace(/\D/g, ''); const senha = document.getElementById('cLoginSenha').value;
+    if (tel.length < 10 || !senha) { show('Informe celular e senha.'); return; }
+    const { data, error } = await sb.from('clientes').select('id,nome').eq('telefone', tel).eq('senha', senha).maybeSingle();
+    if (error || !data) { show('Celular ou senha incorretos.'); return; }
+    salvarCliente(data.id, data.nome, tel); abrirConta(); return;
+  }
+  const nome = document.getElementById('cCadNome').value.trim(); const tel = document.getElementById('cCadTel').value.replace(/\D/g, '');
+  const email = document.getElementById('cCadEmail').value.trim().toLowerCase(); const senha = document.getElementById('cCadSenha').value;
+  if (nome.length < 3) { show('Informe seu nome.'); return; }
+  if (tel.length < 10) { show('Celular inválido (com DDD).'); return; }
+  if (senha.length < 4) { show('Senha de 4+ caracteres.'); return; }
+  const { data, error } = await sb.from('clientes').upsert({ nome, telefone: tel, email, senha }, { onConflict: 'telefone' }).select('id').single();
+  if (error) { show('Erro: ' + error.message); return; }
+  salvarCliente(data.id, nome, tel); abrirConta();
+});
+
 /* categoria de serviço + cálculo de preço (cliente) */
 const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;
 const km1 = (n) => n.toFixed(1).replace('.', ',');
@@ -474,12 +535,15 @@ document.getElementById('btnCancelarChamado').addEventListener('click', () => {
   fecharChamar();
 });
 
-/* ---------- menu lateral ---------- */
+/* ---------- menu lateral (drawer) — agora substituído pelo ícone de conta; mantido null-safe ---------- */
 const drawer = document.getElementById('drawer'), drawerBg = document.getElementById('drawerBg');
-document.getElementById('btnMenu').addEventListener('click', () => { drawer.classList.add('open'); drawerBg.classList.add('open'); document.body.style.overflow = 'hidden'; });
-document.getElementById('drawerClose').addEventListener('click', fecharDrawer);
-drawerBg.addEventListener('click', fecharDrawer);
-function fecharDrawer() { drawer.classList.remove('open'); drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
+const btnMenuEl = document.getElementById('btnMenu');
+function fecharDrawer() { if (drawer) drawer.classList.remove('open'); if (drawerBg) drawerBg.classList.remove('open'); document.body.style.overflow = ''; }
+if (btnMenuEl && drawer && drawerBg) {
+  btnMenuEl.addEventListener('click', () => { drawer.classList.add('open'); drawerBg.classList.add('open'); document.body.style.overflow = 'hidden'; });
+  const dc = document.getElementById('drawerClose'); if (dc) dc.addEventListener('click', fecharDrawer);
+  drawerBg.addEventListener('click', fecharDrawer);
+}
 
 /* ---------- A/B do botão central: padrão B (só ícone); ?fab=a => com texto ---------- */
 if (new URLSearchParams(location.search).get('fab') === 'a') document.body.classList.remove('fab-icon-only');
