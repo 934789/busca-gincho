@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=9" />
 </head>
 <body class="fab-icon-only">
   <div class="app has-fab">
@@ -154,10 +154,8 @@
   <!-- ===== GATE: cadastro/login na 2ª corrida ===== -->
   <div class="chamar-overlay" id="cadGateOverlay">
     <div class="chamar-sheet">
-      <div style="margin:-22px -20px 18px;line-height:0;border-radius:26px 26px 0 0;overflow:hidden">
-        <img src="/img/cadastro_cliente.png" alt="Busca Guincho" style="width:100%;height:auto;display:block" onerror="this.parentNode.style.display='none'">
-      </div>
       <div class="chamar-head"><h2 id="gateTit">Crie sua conta</h2><button class="chamar-close" id="gateClose"><i class="fa-solid fa-xmark"></i></button></div>
+      <img src="/img/cadastro_cliente.png" alt="Busca Guincho" style="width:100%;height:120px;object-fit:cover;object-position:center;display:block;border-radius:16px;margin-bottom:14px" onerror="this.style.visibility='hidden'">
       <p class="chamar-nf" id="gateLead" style="margin-bottom:14px"><i class="fa-solid fa-circle-info"></i> Sua primeira chamada foi liberada sem cadastro. Para chamar de novo, crie sua conta gratuita — leva 10 segundos.</p>
       <div class="chamar-cliente" id="gateCadFields">
         <label><i class="fa-solid fa-user"></i><input id="gateNome" placeholder="Nome completo" autocomplete="name"></label>
@@ -194,7 +192,7 @@
 
       <!-- DESLOGADO -->
       <div id="contaDeslogado">
-        <img id="contaBanner" src="/img/cadastro_cliente.png" alt="Busca Guincho" style="width:100%;height:auto;display:block;border-radius:16px;margin-bottom:14px" onerror="this.style.visibility='hidden'">
+        <img id="contaBanner" src="/img/cadastro_cliente.png" alt="Busca Guincho" style="width:100%;height:130px;object-fit:cover;object-position:center;display:block;border-radius:16px;margin-bottom:14px" onerror="this.style.visibility='hidden'">
         <p class="chamar-nf" style="margin-bottom:14px"><i class="fa-solid fa-circle-info"></i> Entre ou cadastre-se para acompanhar seu histórico e chamar mais rápido.</p>
         <div class="conta-tipo">
           <button class="conta-tab active" data-tipo="cliente"><i class="fa-solid fa-user"></i> Sou Cliente</button>
@@ -202,6 +200,8 @@
         </div>
 
         <div id="contaCliente">
+          <button class="btn-google" id="btnGoogle" type="button"><i class="fa-brands fa-google"></i> Continuar com Google</button>
+          <div class="conta-ou"><span>ou entre com celular</span></div>
           <div class="chamar-cliente" id="contaLoginFields">
             <label><i class="fa-solid fa-phone"></i><input id="cLoginTel" placeholder="Celular (WhatsApp)" inputmode="tel"></label>
             <label><i class="fa-solid fa-lock"></i><input id="cLoginSenha" type="password" placeholder="Sua senha"></label>
@@ -282,8 +282,8 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
-  <script src="js/suporte.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/supabase-config.js?v=9"></script>
+  <script src="js/suporte.js?v=9"></script>
+  <script src="js/main.js?v=9"></script>
 </body>
 </html>

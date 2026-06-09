@@ -502,11 +502,12 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
    ============================================================ */
 .chamar-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.5); display:none; align-items:flex-end; justify-content:center; }
 .chamar-overlay.open { display:flex; animation:fadeBg .2s ease; }
-.chamar-sheet { background:#fff; width:100%; max-width:480px; border-radius:26px 26px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom)); animation:sheetUp .3s cubic-bezier(.2,.9,.3,1.1); }
+.chamar-sheet { background:#fff; width:100%; max-width:480px; max-height:92vh; max-height:92dvh; overflow-y:auto; -webkit-overflow-scrolling:touch; border-radius:26px 26px 0 0; padding:14px 20px calc(24px + env(safe-area-inset-bottom)); animation:sheetUp .3s cubic-bezier(.2,.9,.3,1.1); }
 @keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-.chamar-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
-.chamar-head h2 { font-size:20px; font-weight:800; color:var(--ink); }
-.chamar-close { width:38px; height:38px; border:none; background:#f1f2f5; border-radius:50%; font-size:17px; cursor:pointer; }
+/* cabeçalho fixo no topo do card -> o "x" fica sempre visível ao rolar */
+.chamar-head { position:sticky; top:0; z-index:3; background:#fff; display:flex; align-items:center; justify-content:space-between; padding:8px 0 12px; margin-bottom:6px; }
+.chamar-head h2 { font-size:19px; font-weight:800; color:var(--ink); }
+.chamar-close { width:38px; height:38px; border:none; background:#f1f2f5; border-radius:50%; font-size:17px; cursor:pointer; flex-shrink:0; }
 .chamar-rota { background:#f6f7f9; border-radius:16px; padding:6px 14px; }
 .cr-line { display:flex; align-items:center; gap:13px; padding:11px 0; position:relative; }
 .cr-line:first-child::after { content:''; position:absolute; left:5px; top:30px; bottom:-8px; width:2px; background:#d6d9df; }
@@ -621,3 +622,10 @@ body.fab-icon-only .bn-fab { width:66px; height:66px; margin-top:-38px; }
 .conta-tab.active { border-color:var(--yellow); background:#fffdf2; color:var(--ink); }
 .conta-links { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 16px; margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
 .conta-links a { color:var(--text-soft); font-size:12.5px; text-decoration:none; font-weight:600; }
+
+/* ===== Login com Google ===== */
+.btn-google { width:100%; border:1.6px solid var(--line); background:#fff; color:#3c3f46; border-radius:13px; padding:13px; font-family:inherit; font-weight:700; font-size:14.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; }
+.btn-google:active { background:#f7f8fa; }
+.btn-google i { color:#ea4335; font-size:17px; }
+.conta-ou { display:flex; align-items:center; gap:10px; color:var(--text-soft); font-size:12px; font-weight:600; margin:13px 0; }
+.conta-ou::before, .conta-ou::after { content:''; flex:1; height:1px; background:var(--line); }

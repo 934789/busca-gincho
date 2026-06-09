@@ -418,6 +418,28 @@ document.getElementById('contaConfirmar').addEventListener('click', async () => 
   salvarCliente(data.id, nome, tel); abrirConta();
 });
 
+/* ===== Login com Google (Supabase Auth OAuth) ===== */
+const btnGoogle = document.getElementById('btnGoogle');
+if (btnGoogle) btnGoogle.addEventListener('click', async () => {
+  if (!sb || !sb.auth) { alert('Login indisponível.'); return; }
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin } });
+  if (error) alert('Login Google indisponível: ' + error.message + '\n(O provedor Google precisa estar ativado no Supabase.)');
+});
+// ao voltar do Google, vincula/cria uma conta de cliente pelo e-mail
+async function bridgeGoogleLogin() {
+  if (!sb || !sb.auth) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.user || localStorage.getItem('bg_cliente_id')) return;
+    const u = session.user, email = u.email;
+    const nome = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || 'Cliente';
+    let { data } = await sb.from('clientes').select('id,nome').eq('email', email).maybeSingle();
+    if (!data) { const ins = await sb.from('clientes').insert({ nome, email }).select('id,nome').single(); data = ins.data; }
+    if (data) { localStorage.setItem('bg_cliente_id', data.id); localStorage.setItem('bg_cliente_nome', data.nome || nome); }
+  } catch (e) {}
+}
+bridgeGoogleLogin();
+
 /* categoria de serviço + cálculo de preço (cliente) */
 const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;
 const km1 = (n) => n.toFixed(1).replace('.', ',');
