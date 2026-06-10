@@ -190,6 +190,18 @@
         <button class="conta-item conta-sair" id="contaSair"><span><i class="fa-solid fa-right-from-bracket"></i> Sair da conta</span></button>
       </div>
 
+      <!-- COMPLETAR CADASTRO (após login Google: faltam celular/CPF) -->
+      <div id="contaCompletar" style="display:none">
+        <p class="chamar-nf" style="margin-bottom:14px"><i class="fa-solid fa-circle-check" style="color:#1f9d57"></i> Conta conectada! Complete seus dados para chamar o guincho.</p>
+        <div class="chamar-cliente">
+          <label><i class="fa-solid fa-user"></i><input id="compNome" placeholder="Nome completo" autocomplete="name"></label>
+          <label><i class="fa-solid fa-phone"></i><input id="compTel" placeholder="Celular (WhatsApp)" inputmode="tel" autocomplete="tel"></label>
+          <label><i class="fa-solid fa-id-card"></i><input id="compCpf" placeholder="CPF (opcional, p/ recibo do seguro)" inputmode="numeric"></label>
+        </div>
+        <p class="chamar-erro" id="compErro" style="display:none"></p>
+        <button class="btn-chamar" id="compSalvar"><i class="fa-solid fa-check"></i> Salvar e continuar</button>
+      </div>
+
       <!-- DESLOGADO -->
       <div id="contaDeslogado">
         <img id="contaBanner" src="/img/cadastro_cliente.png" alt="Busca Guincho" style="width:100%;height:auto;display:block;border-radius:16px;margin-bottom:14px" onerror="this.style.visibility='hidden'">

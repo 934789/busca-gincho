@@ -139,6 +139,7 @@
     document.getElementById('btnSair').addEventListener('click', () => {
       if (!confirm('Sair da sua conta?')) return;
       localStorage.removeItem('bg_cliente_id'); localStorage.removeItem('bg_cliente_nome'); localStorage.removeItem('bg_cliente_tel');
+      if (sb && sb.auth) sb.auth.signOut();
       location.href = '/';
     });
 

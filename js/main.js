@@ -355,32 +355,51 @@ function renderContaCliente() {
   document.getElementById('contaToggle').textContent = contaModoCad ? '← Já tenho conta — entrar' : 'Não tenho conta — cadastrar';
   document.getElementById('contaErro').style.display = 'none';
 }
-async function carregarAvatarConta() {
-  const id = localStorage.getItem('bg_cliente_id'); if (!id || !sb) return;
-  const { data } = await sb.from('clientes').select('nome,foto_url').eq('id', id).maybeSingle();
-  if (!data) return;
-  if (data.nome) document.getElementById('contaNome').textContent = data.nome;
-  const ava = document.getElementById('contaAva');
-  ava.innerHTML = data.foto_url ? `<img src="${data.foto_url}" alt="">` : '<i class="fa-solid fa-user"></i>';
-}
-function abrirConta() {
-  const logado = !!localStorage.getItem('bg_cliente_id');
-  document.getElementById('contaLogado').style.display = logado ? 'block' : 'none';
-  document.getElementById('contaDeslogado').style.display = logado ? 'none' : 'block';
-  document.getElementById('contaTit').textContent = logado ? 'Minha conta' : 'Acesse sua conta';
-  if (logado) {
-    document.getElementById('contaNome').textContent = localStorage.getItem('bg_cliente_nome') || 'Cliente';
-    document.getElementById('contaAva').innerHTML = '<i class="fa-solid fa-user"></i>';
-    carregarAvatarConta();   // busca a foto de perfil (se houver)
+async function abrirConta() {
+  const id = localStorage.getItem('bg_cliente_id');
+  const L = document.getElementById('contaLogado'), C = document.getElementById('contaCompletar'), D = document.getElementById('contaDeslogado');
+  contaOv.classList.add('open');
+  if (id) {
+    D.style.display = 'none';
+    // busca os dados; se faltar o celular (ex: veio do Google), pede pra completar
+    const { data } = sb ? await sb.from('clientes').select('nome,telefone,cpf,foto_url').eq('id', id).maybeSingle() : { data: null };
+    const falta = data && !data.telefone;
+    C.style.display = falta ? 'block' : 'none';
+    L.style.display = falta ? 'none' : 'block';
+    if (falta) {
+      document.getElementById('contaTit').textContent = 'Complete seu cadastro';
+      document.getElementById('compNome').value = (data && data.nome) || localStorage.getItem('bg_cliente_nome') || '';
+      document.getElementById('compErro').style.display = 'none';
+    } else {
+      document.getElementById('contaTit').textContent = 'Minha conta';
+      document.getElementById('contaNome').textContent = (data && data.nome) || localStorage.getItem('bg_cliente_nome') || 'Cliente';
+      const ava = document.getElementById('contaAva');
+      ava.innerHTML = (data && data.foto_url) ? `<img src="${data.foto_url}" alt="">` : '<i class="fa-solid fa-user"></i>';
+    }
   } else {
+    L.style.display = 'none'; C.style.display = 'none'; D.style.display = 'block';
+    document.getElementById('contaTit').textContent = 'Acesse sua conta';
     contaModoCad = false; renderContaCliente();
     document.querySelectorAll('.conta-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
     document.getElementById('contaCliente').style.display = 'block';
     document.getElementById('contaParceiro').style.display = 'none';
     const bn = document.getElementById('contaBanner'); bn.style.visibility = 'visible'; bn.src = '/img/cadastro_cliente.png';
   }
-  contaOv.classList.add('open');
 }
+// salvar "completar cadastro" (pós-Google)
+document.getElementById('compSalvar').addEventListener('click', async () => {
+  const erro = document.getElementById('compErro'); const show = (m) => { erro.textContent = m; erro.style.display = 'block'; };
+  const id = localStorage.getItem('bg_cliente_id'); if (!id || !sb) return;
+  const nome = document.getElementById('compNome').value.trim();
+  const tel = document.getElementById('compTel').value.replace(/\D/g, '');
+  const cpf = document.getElementById('compCpf').value.trim();
+  if (nome.length < 3) { show('Informe seu nome completo.'); return; }
+  if (tel.length < 10) { show('Informe um celular válido com DDD.'); return; }
+  const { error } = await sb.from('clientes').update({ nome, telefone: tel, cpf }).eq('id', id);
+  if (error) { show(error.message.includes('duplicate') ? 'Esse celular já tem conta.' : 'Erro: ' + error.message); return; }
+  salvarCliente(id, nome, tel);
+  abrirConta();
+});
 document.getElementById('btnConta').addEventListener('click', abrirConta);
 document.getElementById('contaClose').addEventListener('click', () => contaOv.classList.remove('open'));
 document.querySelectorAll('.conta-tab').forEach((t) => t.addEventListener('click', () => {
@@ -396,6 +415,7 @@ document.getElementById('contaToggle').addEventListener('click', () => { contaMo
 document.getElementById('contaSair').addEventListener('click', () => {
   if (!confirm('Sair da sua conta?')) return;
   localStorage.removeItem('bg_cliente_id'); localStorage.removeItem('bg_cliente_nome'); localStorage.removeItem('bg_cliente_tel');
+  if (sb && sb.auth) sb.auth.signOut();   // encerra também a sessão do Google
   contaOv.classList.remove('open');
 });
 document.getElementById('contaConfirmar').addEventListener('click', async () => {
@@ -433,9 +453,13 @@ async function bridgeGoogleLogin() {
     if (!session || !session.user || localStorage.getItem('bg_cliente_id')) return;
     const u = session.user, email = u.email;
     const nome = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || 'Cliente';
-    let { data } = await sb.from('clientes').select('id,nome').eq('email', email).maybeSingle();
-    if (!data) { const ins = await sb.from('clientes').insert({ nome, email }).select('id,nome').single(); data = ins.data; }
-    if (data) { localStorage.setItem('bg_cliente_id', data.id); localStorage.setItem('bg_cliente_nome', data.nome || nome); }
+    let { data } = await sb.from('clientes').select('id,nome,telefone').eq('email', email).maybeSingle();
+    if (!data) { const ins = await sb.from('clientes').insert({ nome, email }).select('id,nome,telefone').single(); data = ins.data; }
+    if (data) {
+      localStorage.setItem('bg_cliente_id', data.id); localStorage.setItem('bg_cliente_nome', data.nome || nome);
+      if (data.telefone) localStorage.setItem('bg_cliente_tel', data.telefone);
+      if (!data.telefone) abrirConta();   // veio do Google sem celular -> "Complete seu cadastro"
+    }
   } catch (e) {}
 }
 bridgeGoogleLogin();
