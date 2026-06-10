@@ -452,25 +452,41 @@ async function bridgeGoogleLogin(session) {
   _bridgeBusy = true;
   try {
     if (!session) { const r = await sb.auth.getSession(); session = r.data.session; }
-    if (!session || !session.user) return;
+    if (!session || !session.user || !session.user.email) return;
     const u = session.user, email = u.email;
     const nome = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || 'Cliente';
-    let { data } = await sb.from('clientes').select('id,nome,telefone').eq('email', email).maybeSingle();
-    if (!data) { const ins = await sb.from('clientes').insert({ nome, email }).select('id,nome,telefone').single(); data = ins.data; }
+    let { data, error } = await sb.from('clientes').select('id,nome,telefone').eq('email', email).maybeSingle();
+    if (!data && !error) { const ins = await sb.from('clientes').insert({ nome, email }).select('id,nome,telefone').single(); data = ins.data; error = ins.error; }
+    if (error) { alert('Não consegui vincular sua conta Google: ' + error.message); return; }
     if (data) {
       localStorage.setItem('bg_cliente_id', data.id); localStorage.setItem('bg_cliente_nome', data.nome || nome);
       if (data.telefone) localStorage.setItem('bg_cliente_tel', data.telefone);
       abrirConta();   // abre a conta (perfil; ou "Complete seu cadastro" se faltar celular)
     }
-  } catch (e) {} finally { _bridgeBusy = false; }
+  } catch (e) { /* silencioso */ } finally { _bridgeBusy = false; }
 }
-// escuta o evento de login (a sessão do Google volta na URL e é processada async)
 if (sb && sb.auth) {
+  // 1) evento de login (a sessão do Google volta na URL e é processada async)
   sb.auth.onAuthStateChange((event, session) => {
     if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) setTimeout(() => bridgeGoogleLogin(session), 0);
   });
+  // 2) se o Google voltou com erro na URL, mostra
+  if (/error_description=/.test(location.hash + location.search)) {
+    try {
+      const raw = (location.hash.replace(/^#/, '') + '&' + location.search.replace(/^\?/, ''));
+      const ed = new URLSearchParams(raw).get('error_description');
+      if (ed) alert('Login Google: ' + decodeURIComponent(ed.replace(/\+/g, ' ')));
+    } catch (e) {}
+  }
+  // 3) retry: a sessão da URL pode demorar a ser processada após o redirect
+  (async () => {
+    for (let i = 0; i < 6 && !localStorage.getItem('bg_cliente_id'); i++) {
+      await bridgeGoogleLogin();
+      if (localStorage.getItem('bg_cliente_id')) break;
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  })();
 }
-bridgeGoogleLogin();
 
 /* categoria de serviço + cálculo de preço (cliente) */
 const catFixa = () => PRECO_CATEGORIAS[categoriaSel].fixo;

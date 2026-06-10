@@ -80,7 +80,9 @@ let sb = null;
 (function () {
   const ok = SUPABASE_CONFIG.url.startsWith('http') && SUPABASE_CONFIG.anonKey.length > 20;
   if (ok && window.supabase) {
-    sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' }
+    });
   } else {
     console.warn('[Busca Guincho] Supabase não carregado.');
   }
