@@ -446,11 +446,13 @@ if (btnGoogle) btnGoogle.addEventListener('click', async () => {
   if (error) alert('Login Google indisponível: ' + error.message + '\n(O provedor Google precisa estar ativado no Supabase.)');
 });
 // ao voltar do Google, vincula/cria uma conta de cliente pelo e-mail
-async function bridgeGoogleLogin() {
-  if (!sb || !sb.auth) return;
+let _bridgeBusy = false;
+async function bridgeGoogleLogin(session) {
+  if (!sb || !sb.auth || _bridgeBusy || localStorage.getItem('bg_cliente_id')) return;
+  _bridgeBusy = true;
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session || !session.user || localStorage.getItem('bg_cliente_id')) return;
+    if (!session) { const r = await sb.auth.getSession(); session = r.data.session; }
+    if (!session || !session.user) return;
     const u = session.user, email = u.email;
     const nome = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || 'Cliente';
     let { data } = await sb.from('clientes').select('id,nome,telefone').eq('email', email).maybeSingle();
@@ -458,9 +460,15 @@ async function bridgeGoogleLogin() {
     if (data) {
       localStorage.setItem('bg_cliente_id', data.id); localStorage.setItem('bg_cliente_nome', data.nome || nome);
       if (data.telefone) localStorage.setItem('bg_cliente_tel', data.telefone);
-      if (!data.telefone) abrirConta();   // veio do Google sem celular -> "Complete seu cadastro"
+      abrirConta();   // abre a conta (perfil; ou "Complete seu cadastro" se faltar celular)
     }
-  } catch (e) {}
+  } catch (e) {} finally { _bridgeBusy = false; }
+}
+// escuta o evento de login (a sessão do Google volta na URL e é processada async)
+if (sb && sb.auth) {
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) setTimeout(() => bridgeGoogleLogin(session), 0);
+  });
 }
 bridgeGoogleLogin();
 
