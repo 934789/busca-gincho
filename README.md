@@ -1,5 +1,10 @@
 # 🚛 BuscaGincho
 
+> ⚠️ **ESTE README ESTÁ DESATUALIZADO.** O projeto migrou 100% para **Supabase**
+> (Postgres + Realtime + Auth + Edge Functions). A documentação atualizada e completa
+> está em **[`PROJETO.md`](PROJETO.md)** — use-a como fonte da verdade.
+> O texto abaixo descreve a versão antiga (Node + SQLite) e foi mantido só como histórico.
+
 Plataforma **mobile** que conecta motoristas a prestadores de serviço de reboque e
 assistência veicular no **Rio de Janeiro**. Foco: cliente em emergência → chamar guincho
 rápido pelo WhatsApp. Prestadores pagam mensalidade para aparecerem verificados.
